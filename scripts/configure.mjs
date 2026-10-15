@@ -56,7 +56,7 @@ function founderSection() {
   const proof = (f.proof || []).filter(Boolean).map((p) => `<li>${esc(p)}</li>`).join("");
   const li = founderLinkedIn ? `<a class="btn btn-g" href="${esc(founderLinkedIn)}" rel="me noopener" target="_blank" data-track="LinkedIn click">LinkedIn</a>` : "";
   return `
-  <section class="block" id="founder" aria-labelledby="founderTitle">
+  <section class="section" id="founder" aria-labelledby="founderTitle">
     <div class="wrap">
       <div class="founder">
         <div class="fd-photo">${pic}</div>
@@ -84,9 +84,9 @@ function testimonialSection() {
     return `<figure class="tm">${res}<blockquote><p>${esc(t.quote)}</p></blockquote>${cs}<figcaption><strong>${esc(t.name)}</strong>${who ? `<span>${who}</span>` : ""}${inc}</figcaption></figure>`;
   }).join("");
   return `
-  <section class="block" id="clients" aria-labelledby="clientsTitle">
+  <section class="section" id="clients" aria-labelledby="clientsTitle">
     <div class="wrap">
-      <div class="head"><h2 class="h-l" id="clientsTitle">${testimonials.length > 1 ? "What clients say." : "What a client says."}</h2><p class="sub">Clarke Systems Group clients, in their own words.</p></div>
+      <div class="head center"><h2 class="h2" id="clientsTitle">${testimonials.length > 1 ? "What clients say." : "What a client says."}</h2><p class="lede">Clarke Systems Group clients, in their own words.</p></div>
       <div class="tm-grid${testimonials.length === 1 ? " one" : ""}">${cards}</div>
     </div>
   </section>
@@ -98,12 +98,12 @@ function foundingSection() {
   const places = Number(fc.places) > 0 ? `${Number(fc.places)} founding client${Number(fc.places) === 1 ? "" : "s"}` : "a small number of founding clients";
   const closes = fc.closes ? ` Places close ${esc(fc.closes)}.` : "";
   return `
-  <section class="block-tight" id="founding" aria-labelledby="foundingTitle">
+  <section class="section-tight" id="founding" aria-labelledby="foundingTitle">
     <div class="wrap">
       <div class="founding">
         <div class="fo-copy">
           <span class="tag">Founding client programme</span>
-          <h2 class="h-l" id="foundingTitle">${esc(fc.offer)}</h2>
+          <h2 class="h2" id="foundingTitle">${esc(fc.offer)}</h2>
           <p class="sub">We are taking on ${places}. You get the full build, documentation and 30-day defect cover, with the founder leading your project personally.${closes}</p>
         </div>
         <ul class="fo-terms">
@@ -147,6 +147,19 @@ const csp = () => {
   return Object.entries(c).map(([k, v]) => `${k} ${v.join(" ")}`).join("; ") + "; upgrade-insecure-requests";
 };
 
+// shared page chrome, from src/partials; the current section is marked from <body data-nav>
+const partial = (name) => readFileSync(`src/partials/${name}.html`, "utf8");
+function chrome(name, page, html) {
+  const prefix = page === "404.html" ? "/" : "";
+  const nav = (html.match(/<body[^>]*data-nav="([^"]+)"/) || [])[1] || "";
+  let out = partial(name).replaceAll("{{p}}", prefix).trim();
+  if (nav) {
+    out = out.replace(new RegExp(`(<a class="gnav-link"[^>]*data-nav="${nav}")`), '$1 aria-current="page"');
+    if (nav === "solutions") out = out.replace('class="gnav-trigger"', 'class="gnav-trigger on"');
+  }
+  return out;
+}
+
 const regions = {
   address: () => (address ? esc(address) : "[Business address: add before launch]"),
   founder: founderSection,
@@ -164,7 +177,8 @@ const fingerprint = Object.fromEntries(["site.css", "site.js", "film.js"].map((f
 const changed = [];
 for (const page of readdirSync(".").filter((p) => p.endsWith(".html"))) {
   const before = readFileSync(page, "utf8");
-  let html = before.replace(/<!-- cfg:([a-z-]+) -->[\s\S]*?<!-- \/cfg:\1 -->/g, (m, name) =>
+  let html = before.replace(/<!-- cfg:(header|footer) -->[\s\S]*?<!-- \/cfg:\1 -->/g, (m, name) => `<!-- cfg:${name} -->\n${chrome(name, page, before)}\n<!-- /cfg:${name} -->`);
+  html = html.replace(/<!-- cfg:(?!header|footer)([a-z-]+) -->[\s\S]*?<!-- \/cfg:\1 -->/g, (m, name) =>
     regions[name] ? `<!-- cfg:${name} -->${regions[name]()}<!-- /cfg:${name} -->` : m);
 
   html = html.replace(/(\/?assets\/(site\.css|site\.js|film\.js))\?v=[\w-]*/g, (m, ref, file) => `${ref}?v=${fingerprint[file]}`);

@@ -41,114 +41,73 @@
   var $=function(s,c){return (c||document).querySelector(s);};
   var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));};
 
-  /* ---------- reveal (content is visible at rest; only position animates) ---------- */
-  var revealIO=null;
+  /* ---------- reveal: tiles settle once as they arrive ---------- */
   if("IntersectionObserver" in window&&!reduce){
-    revealIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");revealIO.unobserve(e.target);}});},{rootMargin:"0px 0px -6% 0px",threshold:.06});
-  }
-  function armReveal(scope){
-    if(!scope)return;
-    var els=$$(".rv",scope).filter(function(el){return !el.classList.contains("in");});
-    if(!revealIO){els.forEach(function(el){el.classList.add("in");});return;}
-    els.forEach(function(el){revealIO.observe(el);});
+    var rvIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");rvIO.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px",threshold:.08});
+    $$(".rv").forEach(function(el){rvIO.observe(el);});
+  }else{$$(".rv").forEach(function(el){el.classList.add("in");});}
+
+  /* ---------- global navigation: the Solutions menu ---------- */
+  var megaBtn=$("#megaBtn"),mega=$("#mega"),closeT=0;
+  function setMega(open){if(!mega||!megaBtn)return;mega.hidden=!open;megaBtn.setAttribute("aria-expanded",open?"true":"false");}
+  if(megaBtn&&mega){
+    megaBtn.addEventListener("click",function(){setMega(mega.hidden);if(!mega.hidden){var f=mega.querySelector("a");if(f&&document.activeElement===megaBtn&&!mq("(hover: hover)"))f.focus();}});
+    if(mq("(hover: hover) and (pointer: fine)")){
+      [megaBtn,mega].forEach(function(el){
+        el.addEventListener("pointerenter",function(){clearTimeout(closeT);setMega(true);});
+        el.addEventListener("pointerleave",function(){closeT=setTimeout(function(){setMega(false);},180);});
+      });
+    }
+    mega.addEventListener("keydown",function(e){if(e.key==="Escape"){setMega(false);megaBtn.focus();}});
+    document.addEventListener("click",function(e){if(!mega.hidden&&!mega.contains(e.target)&&e.target!==megaBtn)setMega(false);});
+    mega.addEventListener("focusout",function(e){if(!mega.contains(e.relatedTarget)&&e.relatedTarget!==megaBtn)setMega(false);});
   }
 
-  /* ---------- nav ---------- */
-  var navbar=$("#navbar"),lens=$("#lens"),navLinks=$$("#navlinks a"),activeLink=null;
-  function placeLens(a){
-    if(!lens)return;
-    if(!a){lens.style.opacity="0";return;}
-    lens.style.width=a.offsetWidth+"px";
-    lens.style.transform="translateX("+a.offsetLeft+"px)";
-    lens.style.opacity="1";
-  }
-  function setNav(key){
-    var k=(key&&key.indexOf("work")===0)?"work":(key&&key.indexOf("guide")===0)?"guides":key;
-    activeLink=null;
-    navLinks.forEach(function(a){var on=a.getAttribute("data-nav")===k;a.classList.toggle("on",on);if(on){activeLink=a;a.setAttribute("aria-current","page");}else a.removeAttribute("aria-current");});
-    placeLens(activeLink);
-  }
-  navLinks.forEach(function(a){
-    a.addEventListener("pointerenter",function(){placeLens(a);});
-    a.addEventListener("pointerleave",function(){placeLens(activeLink);});
-  });
-  window.addEventListener("resize",function(){placeLens(activeLink);});
-  function onScroll(){if(navbar)navbar.classList.toggle("tight",window.pageYOffset>30);}
-  window.addEventListener("scroll",onScroll,{passive:true});
-
-  var burger=$("#burger"),menu=$("#menu"),bpath=$("#burgerPath"),scrim=$("#scrim");
+  /* ---------- mobile menu ---------- */
+  var burger=$("#burger"),mnav=$("#mnav"),mscrim=$("#mscrim"),bpath=$("#burgerPath");
   function setMenu(open){
-    if(!menu||!burger)return;
-    var wasOpen=!menu.hidden;
-    menu.hidden=!open;
-    if(scrim)scrim.hidden=!open;
+    if(!mnav||!burger)return;
+    var was=!mnav.hidden;
+    mnav.hidden=!open;if(mscrim)mscrim.hidden=!open;
     root.style.overflow=open?"hidden":"";
     burger.setAttribute("aria-expanded",open?"true":"false");
     burger.setAttribute("aria-label",open?"Close menu":"Open menu");
-    if(bpath)bpath.setAttribute("d",open?"M6 6l12 12M18 6L6 18":"M4 9h16M4 15h16");
-    var app=$("#main"),foot=$("footer.app");
-    [app,foot].forEach(function(el){if(el){if(open)el.setAttribute("inert","");else el.removeAttribute("inert");}});
-    if(open){var first=menu.querySelector("a");if(first)first.focus({preventScroll:true});}
-    else if(wasOpen&&document.activeElement&&(document.activeElement===document.body||menu.contains(document.activeElement)))burger.focus({preventScroll:true});
+    if(bpath)bpath.setAttribute("d",open?"M6 6l12 12M18 6L6 18":"M4 8h16M4 16h16");
+    var main=$("#main"),foot=$(".gfoot");
+    [main,foot].forEach(function(el){if(el){if(open)el.setAttribute("inert","");else el.removeAttribute("inert");}});
+    if(open){var first=mnav.querySelector("summary,a");if(first)first.focus({preventScroll:true});}
+    else if(was)burger.focus({preventScroll:true});
   }
-  function closeMenu(){setMenu(false);}
-  menu&&menu.addEventListener("keydown",function(e){
-    if(e.key!=="Tab")return;
-    var items=[burger].concat([].slice.call(menu.querySelectorAll("a"))),i=items.indexOf(document.activeElement);
-    if(e.shiftKey&&i<=0){e.preventDefault();items[items.length-1].focus();}
-    else if(!e.shiftKey&&i===items.length-1){e.preventDefault();items[0].focus();}
-  });
-  burger&&burger.addEventListener("keydown",function(e){
-    if(e.key==="Tab"&&!menu.hidden){var items=[].slice.call(menu.querySelectorAll("a"));e.preventDefault();(e.shiftKey?items[items.length-1]:items[0]).focus();}
-  });
-  if(burger)burger.addEventListener("click",function(){setMenu(menu.hidden);});
-  if(scrim)scrim.addEventListener("click",closeMenu);
-  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu();});
-  window.addEventListener("resize",function(){if(window.innerWidth>1000)closeMenu();});
+  if(burger)burger.addEventListener("click",function(){setMenu(mnav.hidden);});
+  if(mscrim)mscrim.addEventListener("click",function(){setMenu(false);});
+  if(mnav){
+    mnav.addEventListener("click",function(e){if(e.target.closest("a"))setMenu(false);});
+    mnav.addEventListener("keydown",function(e){
+      if(e.key!=="Tab")return;
+      var items=[burger].concat($$("summary,a",mnav).filter(function(x){return x.offsetParent!==null;})),i=items.indexOf(document.activeElement);
+      if(e.shiftKey&&i<=0){e.preventDefault();items[items.length-1].focus();}
+      else if(!e.shiftKey&&i===items.length-1){e.preventDefault();items[0].focus();}
+    });
+  }
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"){setMenu(false);setMega(false);}});
+  window.addEventListener("resize",function(){if(window.innerWidth>1068)setMenu(false);});
 
-  /* ---------- page wiring ----------
-     Every page is a real page now; links are plain links. The bar marks the current page,
-     and on the home page it follows the section in view. */
+  /* ---------- local navigation follows the section in view ---------- */
+  var lnav=$(".lnav-links");
+  if(lnav&&"IntersectionObserver" in window){
+    var lmap={};$$("a[href^='#']",lnav).forEach(function(a){var el=document.getElementById(a.getAttribute("href").slice(1));if(el)lmap[el.id]=a;});
+    var lio=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;$$("a",lnav).forEach(function(a){a.classList.toggle("on",a===lmap[e.target.id]);});});},{rootMargin:"-40% 0px -55% 0px"});
+    Object.keys(lmap).forEach(function(id){lio.observe(document.getElementById(id));});
+  }
+
+  /* ---------- the story: the step in view is the one lit ---------- */
+  var steps=$$(".story-step");
+  if(steps.length&&"IntersectionObserver" in window){
+    var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){steps.forEach(function(s){s.classList.toggle("on",s===e.target);});}});},{rootMargin:"-45% 0px -45% 0px"});
+    steps.forEach(function(s){sio.observe(s);});
+  }else steps.forEach(function(s){s.classList.add("on");});
+
   var page=document.body.getAttribute("data-page")||"home";
-  setNav(page.indexOf("work")===0?"work":page);
-  armReveal(document);
-  if(page==="home"&&"IntersectionObserver" in window){
-    var spy=new IntersectionObserver(function(es){
-      es.forEach(function(e){if(e.isIntersecting)setNav(e.target.getAttribute("data-spy"));});
-    },{rootMargin:"-40% 0px -55% 0px"});
-    [["top","home"],["proof","home"],["principles","home"],["automate","automate"],["results","work"],["process","home"],["demo","home"]].forEach(function(k){var el=document.getElementById(k[0]);if(el){el.setAttribute("data-spy",k[1]);spy.observe(el);}});
-  }
-  /* menu closes when an in-page link is chosen */
-  if(menu)menu.addEventListener("click",function(e){if(e.target.closest("a"))closeMenu();});
-
-  /* ---------- capability sheet ---------- */
-  var CAPS={
-    integrate:{kind:"Integrations",title:"Systems that share data automatically.",lead:"Reliable connections between the platforms you already use, so information flows without manual re-entry.",replaces:["Manual data entry between systems","Exporting, cleansing and re-uploading files","Inconsistent records across platforms"],builds:["Orders, invoices and customer records synchronised across systems","Automated ticket and project updates","Data pipelines into databases and warehouses","Custom connectors for any system with an API"],cases:"work-ai-categorisation.html",prefill:"Integrations"},
-    report:{kind:"Reporting and dashboards",title:"Reporting that runs itself.",lead:"Data collected, validated and assembled automatically, then delivered to the right people on schedule.",replaces:["Hours spent compiling the same reports each week","Copying figures between spreadsheets","Figures that cannot be relied on"],builds:["Scheduled email reporting","Live dashboards in Power BI, Excel or Google Sheets","Automated data collection across systems","Alerts when metrics move outside tolerance"],cases:"work-launch-qa.html",prefill:"Reporting"},
-    qa:{kind:"Quality checks",title:"Errors intercepted before release.",lead:"Automated validation that tests every record against your rules and quarantines failures, with the reason recorded.",replaces:["Manual spot-checks before release","Errors discovered by customers","Chasing status updates"],builds:["Rule-based validation of data, listings and documents","Daily tracking of completed and failed work","Exception queues for remediation","Automated progress reporting"],cases:"work-launch-qa.html",prefill:"Quality checks"},
-    schedule:{kind:"Scheduling and capacity",title:"Plans that stay current.",lead:"Scheduling engines that allocate work against real capacity and re-plan automatically as conditions change.",replaces:["Rebuilding plans in spreadsheets every week","Conflicts discovered after the fact","Uncertainty about available capacity"],builds:["Job and project scheduling across teams and sites","Capacity forecasting, including leave and absence","Early-warning alerts and resourcing recommendations","Approval workflows with a full audit trail"],cases:"work-capacity-planning.html",prefill:"Scheduling"},
-    ai:{kind:"AI processing",title:"Classification at scale, measured.",lead:"AI applied to classification and extraction, with models selected on tested accuracy and cost per item.",replaces:["Manual product or record categorisation","Re-keying details from documents and emails","Inconsistent tagging across a team"],builds:["Product and content categorisation","Data extraction from documents, PDFs and email","Data enrichment and cleansing","Accuracy and cost benchmarking before commitment"],cases:"work-ai-categorisation.html",prefill:"AI processing"},
-    apps:{kind:"Internal tools",title:"Purpose-built internal tools.",lead:"Applications that replace email chains and shared spreadsheets for the work your team repeats every day.",replaces:["Approvals chased over email","Spreadsheets that break or fall out of date","Updates that never reach the right people"],builds:["Request and approval workflows","Trackers that update their own status","Notifications to email, Slack or Teams","A full record of every change"],cases:"work-capacity-planning.html",prefill:"Internal tools"}
-  };
-  var sheet=$("#sheet");
-  function fillList(ul,items){ul.textContent="";items.forEach(function(t){var li=document.createElement("li");li.textContent=t;ul.appendChild(li);});}
-  function openCap(key){
-    var c=CAPS[key];if(!c||!sheet)return;
-    $("#sheetKind").textContent=c.kind;$("#sheetTitle").textContent=c.title;$("#sheetLead").textContent=c.lead;
-    fillList($("#sheetReplaces"),c.replaces);fillList($("#sheetBuilds"),c.builds);
-    $("#sheetCase").setAttribute("href",c.cases);
-    $("#sheetCta").setAttribute("href","contact.html?topic="+encodeURIComponent(c.prefill).replace(/%20/g,"+"));
-    if(typeof sheet.showModal==="function"){try{sheet.showModal();}catch(err){sheet.setAttribute("open","");}}else{sheet.setAttribute("open","");}
-    var inner=$(".sheet-in",sheet);if(inner){try{inner.focus({preventScroll:true});}catch(err){}}
-    sheet.scrollTop=0;
-  }
-  function closeSheet(){if(!sheet)return;if(typeof sheet.close==="function"){if(sheet.open)sheet.close();}else{sheet.removeAttribute("open");}}
-  $$("[data-cap]").forEach(function(b){b.addEventListener("click",function(){openCap(b.getAttribute("data-cap"));});});
-  if(sheet){
-    $("#sheetClose").addEventListener("click",closeSheet);
-    sheet.addEventListener("click",function(e){if(e.target===sheet)closeSheet();});
-  }
-
   /* ---------- demo / assessment request ----------
      A short structured breakdown, so every demo can be prepared around the visitor's process. */
   var EMAIL="enquiries@clarkesystemsgroup.com";
@@ -310,11 +269,10 @@
 
   if(page==="contact"){var tp=null;try{tp=new URLSearchParams(location.search).get("topic");}catch(err){}applyPrefill(tp);}
   render();
-  onScroll();
 })();
 /* Track record: the figures count up once, the first time they come into view */
 (function(){
-  var els=[].slice.call(document.querySelectorAll(".big[data-count]"));
+  var els=[].slice.call(document.querySelectorAll("[data-count]"));
   if(!els.length||!("IntersectionObserver" in window))return;
   if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   els.forEach(function(el){el.setAttribute("aria-label",el.textContent);});
@@ -324,31 +282,6 @@
     (function step(now){var k=Math.min(1,(now-t0)/D),v=Math.round(to*(1-Math.pow(1-k,4)));el.textContent=v.toLocaleString("en-GB")+(k===1?suf:"");if(k<1)requestAnimationFrame(step);})(t0);
   });},{threshold:.6});
   els.forEach(function(el){io.observe(el);});
-})();
-/* How it works: the line fills and each step lights up as you scroll through it */
-(function(){
-  var flow=document.getElementById("flow"),fill=document.getElementById("flowFill");
-  if(!flow||!fill)return;
-  var steps=[].slice.call(flow.querySelectorAll(".fstep")),nodes=steps.map(function(s){return s.querySelector(".fnode");});
-  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches,ticking=false;
-  function upd(){
-    ticking=false;
-    if(!flow.offsetParent)return;
-    var H=window.innerHeight,r=flow.getBoundingClientRect();
-    var pos=nodes.map(function(n){return n.offsetTop+n.offsetHeight/2+n.parentNode.offsetTop;});
-    var start=pos[0],end=pos[pos.length-1],len=Math.max(1,end-start),f;
-    flow.style.setProperty("--top",start+"px");
-    flow.style.setProperty("--len",len+"px");
-    f=reduce?len:Math.max(0,Math.min(len,H*.6-r.top-start));
-    fill.style.height=f+"px";
-    steps.forEach(function(s,i){s.classList.toggle("on",f>=pos[i]-start-2);});
-  }
-  function req(){if(!ticking){ticking=true;requestAnimationFrame(upd);}}
-  window.addEventListener("scroll",req,{passive:true});
-  window.addEventListener("resize",req,{passive:true});
-  window.addEventListener("hashchange",function(){setTimeout(req,120);});
-  window.addEventListener("load",req);
-  req();
 })();
 /* Services: estimate what one manual process costs, and how quickly a starting build pays back */
 (function(){
@@ -381,19 +314,4 @@
     });
   }
   tick();setInterval(tick,15000);
-})();
-/* Home: the chapter index follows the film */
-(function(){
-  var nav=document.querySelector(".chapters");if(!nav||!("IntersectionObserver" in window))return;
-  var links=[].slice.call(nav.querySelectorAll("a")),map={};
-  links.forEach(function(a){var id=a.getAttribute("href").slice(1),el=document.getElementById(id);if(el)map[id]=a;});
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;links.forEach(function(a){var on=a===map[e.target.id];a.classList.toggle("on",on);if(on)a.setAttribute("aria-current","true");else a.removeAttribute("aria-current");});});},{rootMargin:"-45% 0px -50% 0px"});
-  Object.keys(map).forEach(function(id){io.observe(document.getElementById(id));});
-})();
-/* Inner pages: the film dims as the reading starts */
-(function(){
-  var root=document.documentElement,ticking=false;
-  function upd(){ticking=false;root.style.setProperty("--veil",Math.min(1,Math.max(0,window.pageYOffset/(window.innerHeight*.65))).toFixed(3));}
-  window.addEventListener("scroll",function(){if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});
-  upd();
 })();
