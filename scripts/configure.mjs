@@ -58,7 +58,7 @@ function founderSection() {
   return `
   <section class="block" id="founder" aria-labelledby="founderTitle">
     <div class="wrap">
-      <div class="founder glass rv">
+      <div class="founder">
         <div class="fd-photo">${pic}</div>
         <div class="fd-copy">
           <span class="tag">Who you work with</span>
@@ -81,12 +81,12 @@ function testimonialSection() {
     const res = t.result ? `<p class="tm-res"><span class="big">${esc(t.result)}</span><span>${esc(t.resultLabel)}</span></p>` : "";
     const cs = t.caseStudy && existsSync(t.caseStudy) ? `<a class="link" href="${esc(t.caseStudy)}">Read the case study ${arrow}</a>` : "";
     const inc = t.foundingClient ? `<span class="tm-inc">Founding client: received a discount on their build in exchange for a case study and testimonial.</span>` : "";
-    return `<figure class="tm glass rv">${res}<blockquote><p>${esc(t.quote)}</p></blockquote>${cs}<figcaption><strong>${esc(t.name)}</strong>${who ? `<span>${who}</span>` : ""}${inc}</figcaption></figure>`;
+    return `<figure class="tm">${res}<blockquote><p>${esc(t.quote)}</p></blockquote>${cs}<figcaption><strong>${esc(t.name)}</strong>${who ? `<span>${who}</span>` : ""}${inc}</figcaption></figure>`;
   }).join("");
   return `
   <section class="block" id="clients" aria-labelledby="clientsTitle">
     <div class="wrap">
-      <div class="head rv"><h2 class="h-l" id="clientsTitle">${testimonials.length > 1 ? "What clients say." : "What a client says."}</h2><p class="sub">Clarke Systems Group clients, in their own words.</p></div>
+      <div class="head"><h2 class="h-l" id="clientsTitle">${testimonials.length > 1 ? "What clients say." : "What a client says."}</h2><p class="sub">Clarke Systems Group clients, in their own words.</p></div>
       <div class="tm-grid${testimonials.length === 1 ? " one" : ""}">${cards}</div>
     </div>
   </section>
@@ -100,7 +100,7 @@ function foundingSection() {
   return `
   <section class="block-tight" id="founding" aria-labelledby="foundingTitle">
     <div class="wrap">
-      <div class="founding glass rv">
+      <div class="founding">
         <div class="fo-copy">
           <span class="tag">Founding client programme</span>
           <h2 class="h-l" id="foundingTitle">${esc(fc.offer)}</h2>
@@ -160,14 +160,14 @@ const regions = {
 };
 
 // ---------- apply ----------
-const fingerprint = Object.fromEntries(["site.css", "site.js", "sort.js"].map((f) => [f, createHash("sha256").update(readFileSync(`assets/${f}`)).digest("hex").slice(0, 10)]));
+const fingerprint = Object.fromEntries(["site.css", "site.js", "film.js"].map((f) => [f, createHash("sha256").update(readFileSync(`assets/${f}`)).digest("hex").slice(0, 10)]));
 const changed = [];
 for (const page of readdirSync(".").filter((p) => p.endsWith(".html"))) {
   const before = readFileSync(page, "utf8");
   let html = before.replace(/<!-- cfg:([a-z-]+) -->[\s\S]*?<!-- \/cfg:\1 -->/g, (m, name) =>
     regions[name] ? `<!-- cfg:${name} -->${regions[name]()}<!-- /cfg:${name} -->` : m);
 
-  html = html.replace(/(\/?assets\/(site\.css|site\.js|sort\.js))\?v=[\w-]*/g, (m, ref, file) => `${ref}?v=${fingerprint[file]}`);
+  html = html.replace(/(\/?assets\/(site\.css|site\.js|film\.js))\?v=[\w-]*/g, (m, ref, file) => `${ref}?v=${fingerprint[file]}`);
   html = html.replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(")/, `$1${csp()}$2`);
   if (page === "contact.html") html = html.replace(/data-booking="[^"]*"/, `data-booking="${esc(booking)}"`);
 
