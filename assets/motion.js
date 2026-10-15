@@ -5,12 +5,11 @@
 
      [data-split]    headline words rise into place once
      [data-fill]     a statement fills in, word by word, as it is read
-     [data-drive]    scrollytelling: the [data-step] being read drives the scene beside it
+     [data-drive]    scrollytelling: a pinned panel whose steps and scene are played by the scroll
      [data-tally]    numbers that add up as they come into view
      [data-focus]    a typographic list whose lines fill in as each one is reached
      [data-strike]   before and after: today's manual work is struck out, the automated version arrives
      [data-draw]     a process line that draws itself through its steps
-     [data-thread]   anchors for one line that runs down the page through them, drawn as you scroll
      .spot           cards that catch a soft light under the pointer
 */
 (function(){
@@ -70,26 +69,44 @@
     parts.push(m);
   });
 
-  /* ---------- scrollytelling: the text scrolls as normal; the step being read drives the scene ----------
-     The reading line is the middle of the free screen (below the scene on phones, where it sits on top).
-     The scene's stage is written to el.csgStage for the 3D: whole numbers at rest, blends between. */
+  /* ---------- scrollytelling: one compact panel holds still while the scroll plays its steps ----------
+     The pinned stretch is split into holds (a step at rest, weight 1) and changes (weight 1.25). The stage is
+     written to el.csgStage for the 3D as a float: whole numbers at rest, blends between. Numbered buttons jump
+     to the middle of each hold. */
   $$("[data-drive]").forEach(function(el){
-    var steps=$$("[data-step]",el),n=steps.length,pin=el.querySelector(".scrolly-pin"),m={el:el,c:[],line:.5,cur:-1};
+    var steps=$$("[data-step]",el),n=steps.length,dots=$$("[data-go]",el),m={el:el,t:0,h:1,stick:0,cur:-1,last:-1};
     if(!n)return;
+    var HOLD=1,MOVE=1.25,U=n*HOLD+(n-1)*MOVE;
     el.csgStage=0;
-    m.measure=function(){
-      /* the step being read is the one nearest the middle of the reading area: the middle of the screen,
-         or, on phones where the scene sits on top, the middle of the space below it */
-      m.c=steps.map(function(s){var h=s.querySelector("h3")||s;return top(h)+h.offsetHeight/2;});
-      var stacked=pin&&getComputedStyle(el.querySelector(".scrolly-grid")).gridTemplateColumns.split(" ").length<2;
-      m.line=stacked?(pin.offsetHeight+(parseFloat(getComputedStyle(el.querySelector(".scrolly-stage")).top)||0)+VH)/2:VH*.5;
-    };
+    function stageAt(p){
+      var u=p*U;
+      for(var i=0;i<n;i++){
+        if(u<=HOLD)return i;u-=HOLD;
+        if(i===n-1)return i;
+        if(u<=MOVE){var x=u/MOVE;return i+x*x*(3-2*x);}u-=MOVE;
+      }
+      return n-1;
+    }
+    function range(){return Math.max(1,m.h-VH+m.stick);}
+    m.measure=function(){m.t=top(el);m.h=el.offsetHeight;m.stick=parseFloat(getComputedStyle(el.querySelector(".scrolly-pin")).top)||0;};
     m.update=function(){
-      var L=Y+m.line,a=0,best=1e9;
-      for(var i=0;i<n;i++){var d=Math.abs(m.c[i]-L);if(d<best){best=d;a=i;}}
-      el.csgStage=a;
-      if(a!==m.cur){m.cur=a;steps.forEach(function(s,i){s.classList.toggle("on",i===a);s.classList.toggle("past",i<a);});}
+      var p=reduce?0:clamp((Y-(m.t-m.stick))/range(),0,1);
+      if(p===m.last)return;m.last=p;
+      var st=stageAt(p),a=Math.round(st);
+      el.csgStage=st;
+      el.style.setProperty("--p",p.toFixed(4));
+      if(a!==m.cur){
+        m.cur=a;
+        steps.forEach(function(s,i){s.classList.toggle("on",i===a);s.classList.toggle("past",i<a);});
+        dots.forEach(function(d,i){d.classList.toggle("on",i===a);d.classList.toggle("past",i<a);if(i===a)d.setAttribute("aria-current","step");else d.removeAttribute("aria-current");});
+      }
     };
+    dots.forEach(function(d,i){
+      d.addEventListener("click",function(){
+        var mid=(i*(HOLD+MOVE)+HOLD/2)/U;
+        window.scrollTo({top:Math.round(m.t-m.stick+range()*mid),behavior:reduce?"auto":"smooth"});
+      });
+    });
     parts.push(m);
   });
 
@@ -143,66 +160,6 @@
     };
     parts.push(m);
   });
-
-  /* ---------- one line down the page, through every anchor ---------- */
-  var anchors=$$("[data-thread]").filter(function(a){return !a.closest("[data-drive]");}),main=document.getElementById("main");
-  if(anchors.length>1&&main&&!reduce){
-    var NS="http://www.w3.org/2000/svg";
-    var svg=document.createElementNS(NS,"svg");svg.setAttribute("class","thread");svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");
-    svg.innerHTML='<defs><linearGradient id="thrG" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#12b5a0"/><stop offset="1" stop-color="#2d4fe0"/></linearGradient><radialGradient id="thrH"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#12b5a0"/><stop offset="1" stop-color="#12b5a0" stop-opacity="0"/></radialGradient></defs><path class="thr-base"/><path class="thr-line"/><circle class="thr-head" r="9" fill="url(#thrH)"/>';
-    main.insertBefore(svg,main.firstChild);
-    var pBase=svg.querySelector(".thr-base"),pLine=svg.querySelector(".thr-line"),head=svg.querySelector(".thr-head");
-    var tm={len:1,ys:[],ls:[],xs:[],on:false,mt:0};
-    tm.measure=function(){
-      tm.on=VW>=900;svg.style.display=tm.on?"":"none";if(!tm.on)return;
-      tm.mt=top(main);
-      var W=main.clientWidth,H=main.offsetHeight,g=Math.max(20,(VW-Math.min(VW,1240))/2*.5+16);
-      svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.style.height=H+"px";
-      /* the line keeps to the gutter on the side of the next anchor, and swings in through each one */
-      var ml=main.getBoundingClientRect().left,P=anchors.map(function(a){
-        var r=a.getBoundingClientRect(),y=r.top+window.pageYOffset-tm.mt+r.height/2;
-        return [r.left+r.width/2-ml,y];
-      });
-      var gx=function(x){return x>W/2?W-g:g;},pts=[];
-      P.forEach(function(q,i){
-        if(i>0){
-          var pr=P[i-1],gap=q[1]-pr[1];
-          if(gap>VH*.9){pts.push([gx(pr[0]),pr[1]+VH*.38]);pts.push([gx(q[0]),q[1]-VH*.38]);}
-          else pts.push([(gx(pr[0])+gx(q[0]))/2,(pr[1]+q[1])/2]);
-        }
-        pts.push(q);
-      });
-      /* a smooth curve through the points: each tangent scaled to its own segment, so long and short runs never overshoot */
-      var unit=function(x,y){var l=Math.hypot(x,y)||1;return [x/l,y/l];};
-      var d="M"+pts[0][0].toFixed(1)+" "+pts[0][1].toFixed(1);
-      for(var i=0;i<pts.length-1;i++){
-        var p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
-        var dist=Math.hypot(p2[0]-p1[0],p2[1]-p1[1])/3,T1=unit(p2[0]-p0[0],p2[1]-p0[1]),T2=unit(p3[0]-p1[0],p3[1]-p1[1]);
-        var c1=[p1[0]+T1[0]*dist,p1[1]+T1[1]*dist],c2=[p2[0]-T2[0]*dist,p2[1]-T2[1]*dist];
-        c1[0]=clamp(c1[0],g*.5,W-g*.5);c2[0]=clamp(c2[0],g*.5,W-g*.5);
-        d+=" C"+c1[0].toFixed(1)+" "+c1[1].toFixed(1)+" "+c2[0].toFixed(1)+" "+c2[1].toFixed(1)+" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
-      }
-      pBase.setAttribute("d",d);pLine.setAttribute("d",d);
-      tm.len=pLine.getTotalLength();
-      pLine.style.strokeDasharray=tm.len+" "+tm.len;
-      tm.ys=[];tm.ls=[];tm.xs=[];
-      for(var k=0;k<=400;k++){var l=tm.len*k/400,pt=pLine.getPointAtLength(l);tm.ls.push(l);tm.ys.push(pt.y);tm.xs.push(pt.x);}
-    };
-    tm.update=function(){
-      if(!tm.on)return;
-      var yy=Y+VH*.72-tm.mt,k=0;
-      while(k<400&&tm.ys[k+1]<=yy)k++;
-      if(k<400&&tm.ys[k+1]<yy)k=400;
-      var f=k<400?clamp((yy-tm.ys[k])/Math.max(.001,tm.ys[k+1]-tm.ys[k]),0,1):0;
-      var l=k<400?tm.ls[k]+(tm.ls[k+1]-tm.ls[k])*f:tm.len;
-      var x=k<400?tm.xs[k]+(tm.xs[k+1]-tm.xs[k])*f:tm.xs[400],y=k<400?tm.ys[k]+(tm.ys[k+1]-tm.ys[k])*f:tm.ys[400];
-      if(yy<tm.ys[0]){l=0;x=tm.xs[0];y=tm.ys[0];}
-      pLine.style.strokeDashoffset=(tm.len-l).toFixed(1);
-      head.setAttribute("cx",x.toFixed(1));head.setAttribute("cy",y.toFixed(1));
-      head.style.opacity=l>2&&l<tm.len-2?1:0;
-    };
-    parts.push(tm);
-  }
 
   /* ---------- one call to action on screen: hide the navigation's while a page button is visible ---------- */
   var ctas=$$("[data-cta]");
