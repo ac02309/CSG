@@ -24,13 +24,12 @@
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css?v=0ed7d9e201">
+<link rel="stylesheet" href="assets/site.css?v=cc28dc010c">
 <noscript><style>.slot{background-image:var(--poster)}.rv{opacity:1!important;transform:none!important}</style></noscript>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Service","name":"Internal tools","description":"Applications that replace email chains and shared spreadsheets for the work your team repeats every day.","url":"https://www.clarkesystemsgroup.com/internal-tools.html","provider":{"@id":"https://www.clarkesystemsgroup.com/#org"},"areaServed":"Worldwide","offers":{"@type":"Offer","price":"1250","priceCurrency":"GBP","description":"Builds from £1,250"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Solutions","item":"https://www.clarkesystemsgroup.com/solutions.html"},{"@type":"ListItem","position":3,"name":"Internal tools","item":"https://www.clarkesystemsgroup.com/internal-tools.html"}]}]}</script>
 <!-- cfg:analytics --><!-- /cfg:analytics -->
 </head>
-<body data-page="internal-tools" data-nav="solutions" data-stat-a="stacks:1,1,1,1,1">
-<canvas id="scene" aria-hidden="true"></canvas>
+<body data-page="internal-tools" data-nav="solutions" data-stat-a="stacks:1,1,1,1,1" class="has-lnav">
 <!-- cfg:header -->
 <a class="skip" href="#main">Skip to content</a>
 <header class="gnav" id="gnav">
@@ -53,6 +52,7 @@
       <a class="mega-feature" href="solutions.html"><strong>All solutions</strong><span>How each one works, what it replaces and what it delivers.</span></a>
     </div>
   </div>
+  <div class="progress" aria-hidden="true"><i></i></div>
 </header>
 <div class="mscrim" id="mscrim" hidden></div>
 <nav class="mnav" id="mnav" aria-label="Menu" hidden>
@@ -74,58 +74,62 @@
   <div class="wrap split">
     <div class="copy">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="solutions.html">Solutions</a><span aria-hidden="true">›</span><span aria-current="page">Internal tools</span></nav><span class="eyebrow">Internal tools</span>
-      <h1 class="h1">Purpose-built internal tools.</h1>
+      <h1 data-split class="h1">Purpose-built internal tools.</h1>
       <p class="lede">Applications that replace email chains and shared spreadsheets for the work your team repeats every day.</p>
       <div class="ctas"><a class="btn btn-primary" href="contact.html?topic=Internal+tools">Request a demo</a><a class="more" href="#how">See how it works</a></div>
     </div>
-    <div class="slot" data-form="line" aria-hidden="true" style="--poster:url('/assets/posters/line.webp')"></div>
+    <div class="slot" data-form="line" data-thread aria-hidden="true" style="--poster:url('/assets/posters/line.webp')"></div>
   </div>
 </section>
 </div>
 <section class="section" id="replaces" aria-labelledby="repTitle">
   <div class="wrap">
-    <div class="head center rv"><h2 class="h2" id="repTitle">What changes.</h2><p class="lede">The manual work it removes, and what you have instead.</p></div>
-    <div class="compare">
-      <div class="compare-col before rv"><h3>Today</h3><ul><li>Approvals chased over email</li><li>Spreadsheets that break or fall out of date</li><li>Updates that never reach the right people</li></ul></div>
-      <div class="compare-col after rv"><h3>With internal tools</h3><ul><li>Request and approval workflows</li><li>Trackers that update their own status</li><li>Notifications to email, Slack or Teams</li><li>A full record of every change</li></ul></div>
+    <div class="head rv"><h2 class="h2" data-split id="repTitle">What changes.</h2><p class="lede">The manual work it removes, and what you have instead.</p></div>
+    <div class="compare" data-strike>
+      <div class="compare-col before"><h3>Today</h3><ul><li><span>Approvals chased over email</span></li><li><span>Spreadsheets that break or fall out of date</span></li><li><span>Updates that never reach the right people</span></li></ul></div>
+      <div class="compare-col after"><h3>With internal tools</h3><ul><li><span>Request and approval workflows</span></li><li><span>Trackers that update their own status</span></li><li><span>Notifications to email, Slack or Teams</span></li><li><span>A full record of every change</span></li></ul></div>
     </div>
   </div>
 </section>
-<section class="chapter" id="how">
-  <div class="wrap split flip">
-    <div class="copy rv"><h2 class="h2">How it works.</h2><p>Four steps, built around your process and your systems.</p><ol class="steps"><li class="step rv"><span class="step-n" aria-hidden="true">1</span><h3 class="h4">Map the workflow</h3><p>Who requests, who approves, what happens next, and where it stalls today.</p></li><li class="step rv"><span class="step-n" aria-hidden="true">2</span><h3 class="h4">Build the tool</h3><p>One place for the request, its status and its history.</p></li><li class="step rv"><span class="step-n" aria-hidden="true">3</span><h3 class="h4">Notify</h3><p>Updates sent to email, Slack or Teams, to the people who need them.</p></li><li class="step rv"><span class="step-n" aria-hidden="true">4</span><h3 class="h4">Record</h3><p>A full record of every change, so nothing depends on memory.</p></li></ol></div>
-    <div class="slot" data-form="a" aria-hidden="true" style="--poster:url('/assets/posters/a.webp')"></div>
+<section class="drive" id="how" data-drive style="--n:4" aria-labelledby="howTitle">
+  <div class="wrap drive-pin">
+    <div class="drive-copy">
+      <h2 class="h2" data-split id="howTitle">How it works.</h2><p class="lede">Four steps, built around your process and your systems.</p>
+      <ol class="drive-steps"><li data-step><span class="n">01 / 04</span><h3>Map the workflow</h3><p>Who requests, who approves, what happens next, and where it stalls today.</p></li><li data-step><span class="n">02 / 04</span><h3>Build the tool</h3><p>One place for the request, its status and its history.</p></li><li data-step><span class="n">03 / 04</span><h3>Notify</h3><p>Updates sent to email, Slack or Teams, to the people who need them.</p></li><li data-step><span class="n">04 / 04</span><h3>Record</h3><p>A full record of every change, so nothing depends on memory.</p></li></ol>
+      <div class="drive-rail" aria-hidden="true"><span>Scroll</span><span class="bar"><i></i></span></div>
+    </div>
+    <div class="drive-stage"><div class="slot" data-forms="scatter,grid,line,a" data-thread aria-hidden="true" style="--poster:url('/assets/posters/scatter.webp')"></div></div>
   </div>
 </section>
 <section class="section" id="proof" aria-labelledby="proofTitle">
   <div class="wrap">
-    <div class="head center rv"><h2 class="h2" id="proofTitle">Proven in practice.</h2><p class="lede">From systems our founder designed and delivered in enterprise digital commerce.</p></div>
+    <div class="head rv"><h2 class="h2" data-split id="proofTitle">Proven in practice.</h2><p class="lede">From systems our founder designed and delivered in enterprise digital commerce.</p></div>
     <div class="cases two-up">
-      <a class="case-card rv" href="work-capacity-planning.html"><span class="case-tag">Case study: Capacity planning</span><span class="case-n grad">290+</span><h3 class="h4">Approvals for exceptions, with every change recorded in an audit trail.</h3><span class="more">Read the case study</span></a>
-      <a class="case-card rv" href="approach.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><h3 class="h4">Every project, the same standard</h3><p>Agreed scope, real-data testing, full documentation and your ownership on final payment.</p><span class="more">Our approach</span></a>
+      <a class="case-card spot rv" href="work-capacity-planning.html"><span class="case-tag">Case study: Capacity planning</span><span class="case-n grad">290+</span><h3 class="h4">Approvals for exceptions, with every change recorded in an audit trail.</h3><span class="more">Read the case study</span></a>
+      <a class="case-card spot rv" href="approach.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><h3 class="h4">Every project, the same standard</h3><p>Agreed scope, real-data testing, full documentation and your ownership on final payment.</p><span class="more">Our approach</span></a>
     </div>
   </div>
 </section>
 <section class="section" id="questions" aria-labelledby="qTitle">
   <div class="wrap-text">
-    <div class="head center rv"><h2 class="h2" id="qTitle">Questions.</h2></div>
+    <div class="head rv"><h2 class="h2" data-split id="qTitle">Questions.</h2></div>
     <div class="faq"><details><summary>Can the tool notify our team where they already work?<i aria-hidden="true"></i></summary><p class="ans">Yes. Notifications can go to email, Slack or Teams.</p></details><details><summary>What happens after go-live?<i aria-hidden="true"></i></summary><p class="ans">Any defect against the agreed scope is resolved at no cost for 30 days after handover. Ongoing support covers changes as your processes evolve.</p></details><details><summary>Do we own what is built?<i aria-hidden="true"></i></summary><p class="ans">Yes. On final payment, the code, documentation and accounts transfer to you.</p></details></div>
-    <p class="center" style="margin-top:28px"><a class="more" href="faq.html">All questions</a></p>
+    <p style="margin-top:28px"><a class="more" href="faq.html">All questions</a></p>
   </div>
 </section>
 <section class="section" aria-labelledby="otherTitle">
   <div class="wrap">
-    <div class="head center rv"><h2 class="h2" id="otherTitle">Other solutions.</h2></div>
-    <div class="bento"><a class="tile rv" href="integrations.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 6h4a3 3 0 0 1 3 3v6M15 18h-4a3 3 0 0 1-3-3V9"/></svg></span><h3 class="h4">Integrations</h3><p>Reliable connections between the platforms you already use, so information flows without manual re-entry.</p><span class="more">Learn more</span></a><a class="tile rv" href="ai-processing.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg></span><h3 class="h4">AI processing</h3><p>AI applied to classification and extraction, with models selected on tested accuracy and cost per item.</p><span class="more">Learn more</span></a><a class="tile rv" href="reporting.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><h3 class="h4">Reporting</h3><p>Data collected, validated and assembled automatically, then delivered to the right people on schedule.</p><span class="more">Learn more</span></a><a class="tile rv" href="quality-checks.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><h3 class="h4">Quality checks</h3><p>Automated validation that tests every record against your rules and quarantines failures, with the reason recorded.</p><span class="more">Learn more</span></a><a class="tile rv" href="scheduling.html"><span class="ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M7 13h5M7 17h8"/></svg></span><h3 class="h4">Scheduling</h3><p>Scheduling engines that allocate work against real capacity and re-plan automatically as conditions change.</p><span class="more">Learn more</span></a></div>
+    <div class="head rv"><h2 class="h2" data-split id="otherTitle">Other solutions.</h2></div>
+    <ol class="index"><li><a class="ix" href="integrations.html"><span class="ix-n">01</span><span class="ix-name">Integrations</span><span class="ix-lead">Reliable connections between the platforms you already use, so information flows without manual re-entry.</span><span class="ix-go"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></li><li><a class="ix" href="ai-processing.html"><span class="ix-n">02</span><span class="ix-name">AI processing</span><span class="ix-lead">AI applied to classification and extraction, with models selected on tested accuracy and cost per item.</span><span class="ix-go"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></li><li><a class="ix" href="reporting.html"><span class="ix-n">03</span><span class="ix-name">Reporting</span><span class="ix-lead">Data collected, validated and assembled automatically, then delivered to the right people on schedule.</span><span class="ix-go"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></li><li><a class="ix" href="quality-checks.html"><span class="ix-n">04</span><span class="ix-name">Quality checks</span><span class="ix-lead">Automated validation that tests every record against your rules and quarantines failures, with the reason recorded.</span><span class="ix-go"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></li><li><a class="ix" href="scheduling.html"><span class="ix-n">05</span><span class="ix-name">Scheduling</span><span class="ix-lead">Scheduling engines that allocate work against real capacity and re-plan automatically as conditions change.</span><span class="ix-go"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></li></ol>
   </div>
 </section>
 <section class="section cta" id="demo" aria-labelledby="demoTitle">
   <div class="wrap">
     <div class="split rv">
-      <div class="copy"><h2 class="h2" id="demoTitle">Request a demo.</h2><p class="lede">Every demo is built around your operations. Send a short brief. If we can deliver measurable value, we arrange a 20-minute session with the engineer who will lead your project.</p>
+      <div class="copy"><h2 class="h2" data-split id="demoTitle">Request a demo.</h2><p class="lede">Every demo is built around your operations. Send a short brief. If we can deliver measurable value, we arrange a 20-minute session with the engineer who will lead your project.</p>
         <div class="ctas"><a class="btn btn-primary" href="contact.html?topic=Internal+tools">Request a demo</a><a class="more" href="contact.html?topic=Assessment">Request a written assessment</a></div>
         <p class="hero-note">Reply within one business day. Sessions scheduled to your time zone.</p></div>
-      <div class="slot wide" data-form="b" aria-hidden="true" style="--poster:url('/assets/posters/b.webp')"></div>
+      <div class="slot wide" data-form="b" data-thread aria-hidden="true" style="--poster:url('/assets/posters/b.webp')"></div>
     </div>
   </div>
 </section>
@@ -152,6 +156,7 @@
 </footer>
 <!-- /cfg:footer -->
 <script src="assets/site.js?v=9db075306b" defer></script>
-<script src="assets/film.js?v=e72e5aa8d2" defer></script>
+<script src="assets/motion.js?v=46c4520efc" defer></script>
+<script src="assets/film.js?v=a6b0f46090" defer></script>
 </body>
 </html>

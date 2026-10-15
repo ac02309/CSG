@@ -24,13 +24,12 @@
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css?v=0ed7d9e201">
+<link rel="stylesheet" href="assets/site.css?v=cc28dc010c">
 <noscript><style>.slot{background-image:var(--poster)}.rv{opacity:1!important;transform:none!important}</style></noscript>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much does it cost?","acceptedAnswer":{"@type":"Answer","text":"The demo and written plan are free. Builds start from £1,250 (US$1,500) and support from £200 (US$250) a month. No VAT is added while Clarke Systems Group is not VAT-registered. Every project is priced on its scope, and your written plan confirms the timeline and investment before anything is agreed. For larger projects, a paid scoping session at £400 (US$500) is credited in full against the build."}},{"@type":"Question","name":"How long does it take?","acceptedAnswer":{"@type":"Answer","text":"Most builds are scoped at two to six weeks. Your written plan confirms the timeline."}},{"@type":"Question","name":"Will it work with the systems we already use?","acceptedAnswer":{"@type":"Answer","text":"Yes. We integrate with the systems you already run. Nothing is replaced, and every integration is confirmed before development begins."}},{"@type":"Question","name":"How much of our time will it take?","acceptedAnswer":{"@type":"Answer","text":"Minimal: a short written brief, then one to two hours a week from a process owner for questions and acceptance testing."}},{"@type":"Question","name":"Is our data safe?","acceptedAnswer":{"@type":"Answer","text":"Access is restricted to what each project requires, credentials remain in your accounts, and data is processed only by services you approve. AI workloads run on business API terms, under which your data is not used for model training by default. We sign your NDA before any details are shared."}},{"@type":"Question","name":"What if something breaks or our process changes?","acceptedAnswer":{"@type":"Answer","text":"Any defect against the agreed scope is resolved at no cost for 30 days after handover. Ongoing support covers changes as your processes evolve."}},{"@type":"Question","name":"Do we own what's built?","acceptedAnswer":{"@type":"Answer","text":"Yes. On final payment, the code, documentation and accounts transfer to you. Any reusable components are licensed to you in perpetuity."}},{"@type":"Question","name":"Who's behind Clarke Systems Group?","acceptedAnswer":{"@type":"Answer","text":"Clarke Systems Group was founded by an engineer from enterprise digital commerce who designed and delivered automation systems at a global digital-commerce analytics business, including launch quality assurance across 30+ markets, capacity planning for 290+ client projects and AI product categorisation. Our case studies present that work, anonymised. Clarke Systems Group is independent and is not affiliated with any current or former employer."}},{"@type":"Question","name":"Who will we be working with?","acceptedAnswer":{"@type":"Answer","text":"Every project has a dedicated lead engineer who scopes, builds and supports it, giving you a single point of accountability from discovery to go-live."}},{"@type":"Question","name":"Where are you based, and when can we talk?","acceptedAnswer":{"@type":"Answer","text":"Clarke Systems Group is based in the UK and delivers worldwide. Sessions are scheduled to your time zone, and every enquiry receives a response within one business day."}}]},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"FAQ","item":"https://www.clarkesystemsgroup.com/faq.html"}]}]}</script>
 <!-- cfg:analytics --><!-- /cfg:analytics -->
 </head>
 <body data-page="faq" data-nav="faq" data-stat-a="stacks:1,2,3,4">
-<canvas id="scene" aria-hidden="true"></canvas>
 <!-- cfg:header -->
 <a class="skip" href="#main">Skip to content</a>
 <header class="gnav" id="gnav">
@@ -53,6 +52,7 @@
       <a class="mega-feature" href="solutions.html"><strong>All solutions</strong><span>How each one works, what it replaces and what it delivers.</span></a>
     </div>
   </div>
+  <div class="progress" aria-hidden="true"><i></i></div>
 </header>
 <div class="mscrim" id="mscrim" hidden></div>
 <nav class="mnav" id="mnav" aria-label="Menu" hidden>
@@ -70,21 +70,21 @@
   <div class="wrap split">
     <div class="copy">
       <span class="eyebrow">FAQ</span>
-      <h1 class="h1">Questions, answered.</h1>
+      <h1 data-split class="h1">Questions, answered.</h1>
       <p class="lede">Investment, timelines, data security and ownership. Plain answers, published in full.</p>
       
     </div>
-    <div class="slot" data-form="orbit" aria-hidden="true" style="--poster:url('/assets/posters/orbit.webp')"></div>
+    <div class="slot" data-form="orbit" data-thread aria-hidden="true" style="--poster:url('/assets/posters/orbit.webp')"></div>
   </div>
 </section>
 <section class="section-tight" aria-label="Questions"><div class="wrap-text"><div class="faq-group"><h2 class="h3">Cost and timing</h2><div class="faq"><details><summary>How much does it cost?<i aria-hidden="true"></i></summary><p class="ans">The demo and written plan are free. Builds start from £1,250 (US$1,500) and support from £200 (US$250) a month. No VAT is added while Clarke Systems Group is not VAT-registered. Every project is priced on its scope, and your written plan confirms the timeline and investment before anything is agreed. For larger projects, a paid scoping session at £400 (US$500) is credited in full against the build.</p></details><details><summary>How long does it take?<i aria-hidden="true"></i></summary><p class="ans">Most builds are scoped at two to six weeks. Your written plan confirms the timeline.</p></details><details><summary>How much of our time will it take?<i aria-hidden="true"></i></summary><p class="ans">Minimal: a short written brief, then one to two hours a week from a process owner for questions and acceptance testing.</p></details></div></div><div class="faq-group"><h2 class="h3">Systems, data and ownership</h2><div class="faq"><details><summary>Will it work with the systems we already use?<i aria-hidden="true"></i></summary><p class="ans">Yes. We integrate with the systems you already run. Nothing is replaced, and every integration is confirmed before development begins.</p></details><details><summary>Is our data safe?<i aria-hidden="true"></i></summary><p class="ans">Access is restricted to what each project requires, credentials remain in your accounts, and data is processed only by services you approve. AI workloads run on business API terms, under which your data is not used for model training by default. We sign your NDA before any details are shared.</p></details><details><summary>Do we own what's built?<i aria-hidden="true"></i></summary><p class="ans">Yes. On final payment, the code, documentation and accounts transfer to you. Any reusable components are licensed to you in perpetuity.</p></details></div></div><div class="faq-group"><h2 class="h3">Working together</h2><div class="faq"><details><summary>What if something breaks or our process changes?<i aria-hidden="true"></i></summary><p class="ans">Any defect against the agreed scope is resolved at no cost for 30 days after handover. Ongoing support covers changes as your processes evolve.</p></details><details><summary>Who's behind Clarke Systems Group?<i aria-hidden="true"></i></summary><p class="ans"><!-- cfg:faq-founder -->Clarke Systems Group was founded by an engineer from enterprise digital commerce who designed and delivered automation systems at a global digital-commerce analytics business, including launch quality assurance across 30+ markets, capacity planning for 290+ client projects and AI product categorisation. Our case studies present that work, anonymised. Clarke Systems Group is independent and is not affiliated with any current or former employer.<!-- /cfg:faq-founder --></p></details><details><summary>Who will we be working with?<i aria-hidden="true"></i></summary><p class="ans">Every project has a dedicated lead engineer who scopes, builds and supports it, giving you a single point of accountability from discovery to go-live.</p></details><details><summary>Where are you based, and when can we talk?<i aria-hidden="true"></i></summary><p class="ans">Clarke Systems Group is based in the UK and delivers worldwide. Sessions are scheduled to your time zone, and every enquiry receives a response within one business day.</p></details></div></div></div></section>
 <section class="section cta" id="demo" aria-labelledby="demoTitle">
   <div class="wrap">
     <div class="split rv">
-      <div class="copy"><h2 class="h2" id="demoTitle">Have a further question?</h2><p class="lede">Raise it in your demo, or contact us by email.</p>
+      <div class="copy"><h2 class="h2" data-split id="demoTitle">Have a further question?</h2><p class="lede">Raise it in your demo, or contact us by email.</p>
         <div class="ctas"><a class="btn btn-primary" href="contact.html?topic=Demo">Request a demo</a><a class="more" href="contact.html?topic=Assessment">Request a written assessment</a></div>
         <p class="hero-note">Reply within one business day. Sessions scheduled to your time zone.</p></div>
-      <div class="slot wide" data-form="b" aria-hidden="true" style="--poster:url('/assets/posters/b.webp')"></div>
+      <div class="slot wide" data-form="b" data-thread aria-hidden="true" style="--poster:url('/assets/posters/b.webp')"></div>
     </div>
   </div>
 </section>
@@ -111,6 +111,7 @@
 </footer>
 <!-- /cfg:footer -->
 <script src="assets/site.js?v=9db075306b" defer></script>
-<script src="assets/film.js?v=e72e5aa8d2" defer></script>
+<script src="assets/motion.js?v=46c4520efc" defer></script>
+<script src="assets/film.js?v=a6b0f46090" defer></script>
 </body>
 </html>

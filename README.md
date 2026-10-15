@@ -11,7 +11,8 @@ The marketing site for [clarkesystemsgroup.com](https://www.clarkesystemsgroup.c
 | `*.html` | One file per page (23). `404.html` is served by Netlify for missing pages. Six solution pages (`integrations.html` … `internal-tools.html`), `solutions.html`, `approach.html`. |
 | `assets/site.css` | The design system: mist and white surfaces, midnight ink, one aqua-to-cobalt signal gradient, amber only for errors. Inter, tiles, navigation. |
 | `assets/site.js` | Shared behaviour: Solutions menu, mobile menu, local navigation, scroll story, counters, clocks, contact form, ROI calculator. |
-| `assets/film.js` | The scene: one transparent 3D layer behind every page. Built from `src/film` (do not edit by hand). |
+| `assets/film.js` | The 3D formations, one small canvas per slot. Built from `src/film` (do not edit by hand). |
+| `assets/motion.js` | Scroll-driven motion for every page. |
 | `assets/posters/` | A transparent still of each formation, shown when a device cannot run WebGL. |
 | `src/partials/` | `header.html` and `footer.html`: the navigation and footer on every page, applied by `configure.mjs`. Edit them here, never in a page. |
 | `src/film/` | Scene source: `main.js` (records, formations, the line, globe, gate), `land.js` (generated coastline points). |
@@ -35,19 +36,36 @@ All three run automatically on every push and pull request (`.github/workflows/c
 
 Stylesheet and script references carry a content fingerprint (`?v=…`) so returning visitors never get a stale copy. `configure.mjs` updates them automatically, locally and on every Netlify deploy.
 
-## The scene
+## The scene and the motion
 
-One transparent canvas (`<canvas id="scene">`) sits behind the whole page. It is not in a box: the page's own layout places it. Each `<div class="slot" data-form="…">` in the markup is a place where the 4,000 records gather into a formation, beside the text it illustrates:
+**3D (`assets/film.js`, source `src/film/main.js`).** Each `<div class="slot" data-form="…">` gets its own small transparent canvas. It scrolls with the page like any other element, so it never lags behind the text. It is only drawn while on screen. Formations:
 
 | `data-form` | Formation |
 | --- | --- |
 | `orbit` | The globe, with records orbiting it (worldwide). |
+| `scatter` | Loose records drifting: the manual work, before. |
 | `line` | Records on one straight conveyor (direct). |
 | `gate` | Every record checked; failures held back with the reason (no nonsense). |
 | `a` | The result, set by `data-stat-a` on `<body>`: `stacks:1,2,3,4`, `stacks:1,1,1,1,1` (even capacity), `bins:6,3,5,2,4,3,5,2` (classification) or `broken` (404). |
+| `grid` | A live, tidy sheet of records (reports and dashboards). |
 | `b` | The Clarke Systems Group mark (the call to action). |
 
-A single gradient line runs from the top of the page through every slot, weaving through the margins between them, and draws itself as you scroll. As the reader moves from one slot to the next, the formation dissolves, a stream of records rides the line down the page, and the next formation assembles. Slot sizes come from CSS (`.slot`, `.slot.wide`, `.slot.cinema`), so the scene follows every breakpoint.
+`data-forms="scatter,line,gate,a"` inside a pinned `[data-drive]` section plays the formations in order, scrubbed by scroll position.
+
+**Motion (`assets/motion.js`).** Every effect is a pure function of the scroll position, measured against layout read once per resize, so fast, slow or backwards scrolling always shows a correct frame:
+
+- `[data-split]`: headline words rise into place.
+- `[data-fill]`: a statement fills in as it is read.
+- `[data-drive]`: a pinned story; its `[data-step]` items take turns.
+- `[data-hscroll]`: cards travel sideways on wide screens and become a swipeable row elsewhere.
+- `[data-focus]`: a typographic list with the centre line in focus.
+- `[data-strike]`: before and after, with today's manual work struck out.
+- `[data-draw]`: a process line that draws itself.
+- `[data-drift]`: the ethos in giant type that slides with the scroll.
+- `[data-thread]`: anchors for one line down the page.
+- `.spot`: cards that catch light under the pointer.
+
+The page generator adds `data-split` to every `h1` and section `h2`.
 
 Text never sits on a formation. The numbers in it are real: 4,000 records (records validated) and 180 errors (errors intercepted), from the launch QA case study. Keep it that way.
 
@@ -59,7 +77,7 @@ npm run build:film          # rebuild assets/film.js from src/film
 node scripts/configure.mjs  # refresh the ?v= fingerprints
 ```
 
-Reduced-motion visitors get still formations that only change as they scroll. Devices without WebGL2 get each slot's poster (`assets/posters/<form>.webp`). To regenerate a poster, open a page holding only that slot with `?still=0&poster` (freezes the frame and hides the line) and screenshot it with a transparent background.
+Reduced-motion visitors get every element in its finished state, and still formations. Devices without WebGL2 get each slot's poster (`assets/posters/<form>.webp`). To regenerate a poster, open a page holding only that slot with `?still=0&poster` (freezes the frame and hides the line) and screenshot it with a transparent background.
 
 ## Adding a page
 
