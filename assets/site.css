@@ -553,8 +553,8 @@ main{animation:pageIn .6s var(--ease) both}
 
 /* scrollytelling: the steps scroll as normal text; the scene holds beside them and follows the step being read */
 .scrolly-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,80px);align-items:start}
-.scrolly-steps{list-style:none;margin:0;padding:12vh 0 22vh}
-.scrolly-steps>li{min-height:62vh;display:grid;align-content:center;gap:14px;padding-block:24px;opacity:.28;transition:opacity .5s var(--ease)}
+.scrolly-steps{list-style:none;margin:0;padding:6vh 0 18vh}
+.scrolly-steps>li{min-height:44vh;display:grid;align-content:center;gap:14px;padding-block:24px;opacity:.28;transition:opacity .5s var(--ease)}
 .scrolly-steps>li.on{opacity:1}
 .motion-off .scrolly-steps>li,html:not(.js) .scrolly-steps>li{opacity:1;min-height:0;padding-block:28px}
 .scrolly-steps .n{font-size:15px;font-weight:650;color:var(--cobalt);font-variant-numeric:tabular-nums}
@@ -572,14 +572,19 @@ main{animation:pageIn .6s var(--ease) both}
   .scrolly-stage{order:-1;position:sticky;top:var(--stick);z-index:2;height:auto}
   .scrolly-pin{position:relative;top:0;height:40vh;background:linear-gradient(var(--mist) 82%,rgba(243,245,248,0))}
   .scrolly-pin .slot{height:100%;width:auto;max-width:100%}
-  .scrolly-steps{padding:2vh 0 18vh}
-  .scrolly-steps>li{min-height:48vh}
+  .scrolly-steps{padding:2vh 0 14vh}
+  .scrolly-steps>li{min-height:38vh}
 }
 
 /* process: the heading holds while the steps draw down beside it */
 .process-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(32px,6vw,96px);align-items:start}
 .process-grid .head{position:sticky;top:calc(var(--stick) + 40px);margin:0}
 @media (max-width:860px){.process-grid{grid-template-columns:minmax(0,1fr)}.process-grid .head{position:static}}
+
+.cases.one{grid-template-columns:minmax(0,1fr);max-width:720px}
+/* one call to action on screen at a time: the navigation's button steps aside when the page shows its own */
+.gnav-cta{transition:opacity .35s var(--ease),transform .35s var(--ease),visibility .35s}
+.cta-shown .gnav-cta,body[data-nav="contact"] .gnav-cta{opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none}
 
 /* the six solutions */
 .solgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}

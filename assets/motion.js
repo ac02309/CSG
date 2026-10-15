@@ -87,7 +87,7 @@
       var L=Y+m.line,c=m.c,st;
       if(L<=c[0])st=0;
       else if(L>=c[n-1])st=n-1;
-      else{var k=0;while(k<n-2&&L>=c[k+1])k++;st=k+ease(.3,.7,(L-c[k])/(c[k+1]-c[k]));}
+      else{var k=0;while(k<n-2&&L>=c[k+1])k++;st=k+ease(.1,.9,(L-c[k])/(c[k+1]-c[k]));}
       el.csgStage=st;
       var a=Math.round(st);
       if(a!==m.cur){m.cur=a;steps.forEach(function(s,i){s.classList.toggle("on",i===a);s.classList.toggle("past",i<a);});}
@@ -204,6 +204,14 @@
       head.style.opacity=l>2&&l<tm.len-2?1:0;
     };
     parts.push(tm);
+  }
+
+  /* ---------- one call to action on screen: hide the navigation's while a page button is visible ---------- */
+  var ctas=$$("[data-cta]");
+  if(ctas.length&&"IntersectionObserver" in window){
+    var seen=new Set();
+    var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)seen.add(e.target);else seen.delete(e.target);});root.classList.toggle("cta-shown",seen.size>0);},{rootMargin:"-56px 0px 0px 0px"});
+    ctas.forEach(function(el){cio.observe(el);});
   }
 
   /* ---------- reading progress ---------- */
