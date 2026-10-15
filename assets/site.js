@@ -167,7 +167,7 @@
   function words(v){return v.split(/\s+/).filter(function(w){return w.length>1;}).length;}
   function val(k){return F[k]?(F[k].value||"").trim():"";}
   var service=null,area=null;
-  var PREFILL_MAP={"Integrations":1,"Reporting":1,"Quality checks":1,"Scheduling":1,"AI processing":1,"Internal tools":1,"Founding client programme":1};
+  var PREFILL_MAP={"Integrations":1,"Reporting":1,"Quality checks":1,"Scheduling":1,"AI processing":1,"Internal tools":1,"Founding client programme":1,"Catalogue check":1};
   var prefillBox=$("#prefill"),prefillVal=$("#prefillVal"),prefillX=$("#prefillX");
   var cTitle=$("#contactTitle"),cLead=$("#contactLead"),modeSw=$("#modeSwitch");
   var MODES={
