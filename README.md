@@ -72,9 +72,10 @@ Text never sits on a formation. The numbers in it are real: 4,000 records (recor
 To change it:
 
 ```sh
-npm install                 # once
+npm ci                      # once: install the exact build tools from package-lock.json
 npm run build:film          # rebuild assets/film.js from src/film
 node scripts/configure.mjs  # refresh the ?v= fingerprints
+python3 -m http.server 8000 # then open http://localhost:8000
 ```
 
 Reduced-motion visitors get every element in its finished state, and still formations. Devices without WebGL2 get each slot's poster (`assets/posters/<form>.webp`). To regenerate a poster, open a page holding only that slot with `?still=0&poster` (freezes the frame and hides the line) and screenshot it with a transparent background.
@@ -90,3 +91,8 @@ The request form posts to **Netlify Forms**. If a submission can't be sent (for 
 ## Adding a guide
 
 Copy an existing `guide-*.html`, replace the head metadata, headline, lede and the `.prose` body, add a card to `guides.html`, and add the page to `sitemap.xml`. Keep to the house style: British English, short declarative sentences, no invented statistics.
+
+## Security and readiness
+
+- `SECURITY.md` explains how to report a vulnerability. The same contact is published at `/.well-known/security.txt`.
+- `docs/READINESS.md` is a line-by-line production-readiness review: what is in place (with evidence), what doesn't apply to a static site, and what the owner still has to do.

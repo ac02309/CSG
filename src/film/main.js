@@ -439,7 +439,8 @@ function makeGlobe(scene) {
 
 function fit(v) {
   const W = Math.max(1, v.canvas.clientWidth), H = Math.max(1, v.canvas.clientHeight);
-  if (W === v.w && H === v.h) return;
+  if (W === v.w && H === v.h && devicePixelRatio === v.ratio) return;
+  v.ratio = devicePixelRatio;
   v.w = W; v.h = H;
   const dpr = Math.min(devicePixelRatio || 1, W * H > 700000 ? 1.5 : 1.75);
   v.renderer.setPixelRatio(dpr);
