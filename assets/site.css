@@ -544,3 +544,8 @@ textarea.input.input-sm,.contact-grid textarea.input.input-sm{min-height:72px}
 @media (max-width:860px){.why{grid-template-columns:minmax(0,1fr)}}
 /* independence disclosure */
 .disclose{margin:28px 0 0;font-size:15px;line-height:1.55;color:var(--muted);max-width:72ch}
+/* how it works: two columns now that the side details are gone */
+.fstep{grid-template-columns:var(--nd) minmax(0,1fr)}
+.fstep+.fstep .fbody::before{display:block!important;top:calc(-1 * clamp(28px,3.4vw,44px))}
+.fdesc{max-width:62ch}
+@media (max-width:760px){.fbody{grid-column:2;grid-row:auto}.fstep+.fstep .fbody::before{top:-26px}}

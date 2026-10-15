@@ -114,12 +114,12 @@
 
   /* ---------- capability sheet ---------- */
   var CAPS={
-    integrate:{kind:"Integrations",title:"Your tools, sharing data automatically.",lead:"Connections between the systems you already use, so information moves on its own and nobody re-types anything.",replaces:["Copying data between systems by hand","Exporting, cleaning and re-uploading files","Records that disagree from one system to the next"],builds:["Orders, invoices and customers kept in sync across your tools","Ticket and project updates that happen automatically","Data pipelines into a database or warehouse","Connectors for any system with an API"],cases:"work-ai-categorisation.html",prefill:"Integrations"},
-    report:{kind:"Reporting and dashboards",title:"Reports that build themselves.",lead:"Data pulled, checked and assembled automatically, then delivered to the right people on schedule.",replaces:["Hours each week assembling the same report","Copy-pasting figures between spreadsheets","Numbers nobody fully trusts"],builds:["Scheduled reports by email","Live dashboards in Power BI, Excel or Google Sheets","Automatic data collection from your tools","Alerts when a figure moves outside its range"],cases:"work-launch-qa.html",prefill:"Reporting"},
-    qa:{kind:"Quality checks",title:"Errors caught before they go out.",lead:"Automated checks that test every record against your rules and hold back anything that fails, with the reason attached.",replaces:["Spot-checking work by hand before release","Errors found by customers","Chasing people for status updates"],builds:["Rule-based checks on data, listings or documents","Daily tracking of what was done and what failed","Hold-and-fix queues for failed records","Automatic progress reporting"],cases:"work-launch-qa.html",prefill:"Quality checks"},
-    schedule:{kind:"Scheduling and capacity",title:"Plans that keep themselves current.",lead:"A system that schedules work against the people and hours you actually have, and re-plans when things change.",replaces:["Rebuilding the plan in a spreadsheet every week","Finding clashes after they happen","Guessing whether the team can take on more work"],builds:["Job and project scheduling across teams and sites","Capacity forecasts that include holidays and absences","Early warnings and resourcing suggestions","Approval flows with a full audit trail"],cases:"work-capacity-planning.html",prefill:"Scheduling"},
-    ai:{kind:"AI processing",title:"Sorting and tagging at volume, measured.",lead:"AI applied to real classification and extraction work, chosen on tested accuracy and cost per item.",replaces:["Categorising products or records by hand","Reading documents and emails to pull out the same details","Inconsistent tagging between people"],builds:["Product and content categorisation","Details extracted from documents, PDFs and emails","Data enrichment and clean-up","Accuracy and cost tested before you commit"],cases:"work-ai-categorisation.html",prefill:"AI processing"},
-    apps:{kind:"Internal tools",title:"Simple tools for everyday jobs.",lead:"Lightweight apps that replace email chains and shared spreadsheets for the work your team repeats every day.",replaces:["Chasing approvals over email","Shared spreadsheets that break or go out of date","Updates that never reach the right person"],builds:["Request and approval workflows","Trackers that update their own status","Notifications to email, Slack or Teams","A record of who changed what, and when"],cases:"work-capacity-planning.html",prefill:"Internal tools"}
+    integrate:{kind:"Integrations",title:"Systems that share data automatically.",lead:"Reliable connections between the platforms you already use, so information flows without manual re-entry.",replaces:["Manual data entry between systems","Exporting, cleansing and re-uploading files","Inconsistent records across platforms"],builds:["Orders, invoices and customer records synchronised across systems","Automated ticket and project updates","Data pipelines into databases and warehouses","Custom connectors for any system with an API"],cases:"work-ai-categorisation.html",prefill:"Integrations"},
+    report:{kind:"Reporting and dashboards",title:"Reporting that runs itself.",lead:"Data collected, validated and assembled automatically, then delivered to the right people on schedule.",replaces:["Hours spent compiling the same reports each week","Copying figures between spreadsheets","Figures that cannot be relied on"],builds:["Scheduled email reporting","Live dashboards in Power BI, Excel or Google Sheets","Automated data collection across systems","Alerts when metrics move outside tolerance"],cases:"work-launch-qa.html",prefill:"Reporting"},
+    qa:{kind:"Quality checks",title:"Errors intercepted before release.",lead:"Automated validation that tests every record against your rules and quarantines failures, with the reason recorded.",replaces:["Manual spot-checks before release","Errors discovered by customers","Chasing status updates"],builds:["Rule-based validation of data, listings and documents","Daily tracking of completed and failed work","Exception queues for remediation","Automated progress reporting"],cases:"work-launch-qa.html",prefill:"Quality checks"},
+    schedule:{kind:"Scheduling and capacity",title:"Plans that stay current.",lead:"Scheduling engines that allocate work against real capacity and re-plan automatically as conditions change.",replaces:["Rebuilding plans in spreadsheets every week","Conflicts discovered after the fact","Uncertainty about available capacity"],builds:["Job and project scheduling across teams and sites","Capacity forecasting, including leave and absence","Early-warning alerts and resourcing recommendations","Approval workflows with a full audit trail"],cases:"work-capacity-planning.html",prefill:"Scheduling"},
+    ai:{kind:"AI processing",title:"Classification at scale, measured.",lead:"AI applied to classification and extraction, with models selected on tested accuracy and cost per item.",replaces:["Manual product or record categorisation","Re-keying details from documents and emails","Inconsistent tagging across a team"],builds:["Product and content categorisation","Data extraction from documents, PDFs and email","Data enrichment and cleansing","Accuracy and cost benchmarking before commitment"],cases:"work-ai-categorisation.html",prefill:"AI processing"},
+    apps:{kind:"Internal tools",title:"Purpose-built internal tools.",lead:"Applications that replace email chains and shared spreadsheets for the work your team repeats every day.",replaces:["Approvals chased over email","Spreadsheets that break or fall out of date","Updates that never reach the right people"],builds:["Request and approval workflows","Trackers that update their own status","Notifications to email, Slack or Teams","A full record of every change"],cases:"work-capacity-planning.html",prefill:"Internal tools"}
   };
   var sheet=$("#sheet");
   function fillList(ul,items){ul.textContent="";items.forEach(function(t){var li=document.createElement("li");li.textContent=t;ul.appendChild(li);});}
@@ -149,10 +149,10 @@
     ["name","Add your name.",function(v){return v.length>=2;}],
     ["role","Add your role.",function(v){return v.length>=2;}],
     ["company","Add your company name.",function(v){return v.length>=2;}],
-    ["size","Choose your team size.",function(v){return !!v;}],
-    ["business","Add a sentence about what your company does.",function(v){return words(v)>=3;}],
-    ["process","Describe the process in a few sentences, so we can prepare for it.",function(v){return words(v)>=15;}],
-    ["hours","Choose roughly how long it takes each week.",function(v){return !!v;}]
+    ["size","Select your team size.",function(v){return !!v;}],
+    ["business","Briefly describe what your company does.",function(v){return words(v)>=3;}],
+    ["process","Describe the process in a few sentences so we can prepare.",function(v){return words(v)>=15;}],
+    ["hours","Select the approximate hours spent each week.",function(v){return !!v;}]
   ];
   function words(v){return v.split(/\s+/).filter(function(w){return w.length>1;}).length;}
   function val(k){return F[k]?(F[k].value||"").trim():"";}
@@ -161,8 +161,8 @@
   var prefillBox=$("#prefill"),prefillVal=$("#prefillVal"),prefillX=$("#prefillX");
   var cTitle=$("#contactTitle"),cLead=$("#contactLead"),modeSw=$("#modeSwitch");
   var MODES={
-    demo:{t:"Request a demo.",l:"Every demo is prepared around your process, so we start with a short breakdown. We review each request within one business day and, if it's a good fit, send you times for a 20-minute call.",b:"Request a demo",sw:"Prefer it in writing? Request a written assessment",to:"Assessment",title:"Request a demo · Clarke Systems Group"},
-    written:{t:"Request a written assessment.",l:"Send us a short breakdown of the process. We review each request within one business day and, if it's a good fit, send a written outline and estimate within two business days. No call needed.",b:"Request an assessment",sw:"Prefer to talk it through? Request a demo",to:"Demo",title:"Request a written assessment · Clarke Systems Group"}
+    demo:{t:"Request a demo.",l:"Every demo is tailored to your operations, so we begin with a short brief. Each request is reviewed within one business day and, where there is a strong fit, we will propose times for a 20-minute session.",b:"Request a demo",sw:"Request a written assessment instead",to:"Assessment",title:"Request a demo · Clarke Systems Group"},
+    written:{t:"Request a written assessment.",l:"Share a short brief of the process. Each request is reviewed within one business day and, where there is a strong fit, you will receive a written outline and estimate within two business days. No call required.",b:"Request an assessment",sw:"Request a tailored demo instead",to:"Demo",title:"Request a written assessment · Clarke Systems Group"}
   };
   function showPrefill(){
     var demo=service==="Demo",M=MODES[demo?"demo":"written"];
@@ -202,9 +202,9 @@
     if(service&&!demo&&service!=="Assessment")L.push("Interested in: "+service+".");
     if(area)L.push("Area: "+area+".");
     L.push("","ABOUT US","Name: "+val("name"),"Role: "+val("role"),"Company: "+co,"Team size: "+val("size"),"What we do: "+val("business"));
-    L.push("","THE PROCESS",val("process"),"","Time it takes: "+(val("hours")||"").toLowerCase()+" a week");
+    L.push("","THE PROCESS",val("process"),"","Hours spent: "+(val("hours")||"").toLowerCase()+" a week");
     if(val("tools"))L.push("Tools involved: "+val("tools"));
-    if(val("goal"))L.push("A good result would be: "+val("goal"));
+    if(val("goal"))L.push("Desired outcome: "+val("goal"));
     L.push("","Thanks,",val("name"));
     var bad=REQ.filter(function(r){return !r[2](val(r[0]));});
     return {subject:subject,body:L.join("\n"),bad:bad,ok:!bad.length};
