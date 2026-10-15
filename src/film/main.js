@@ -165,7 +165,7 @@ const VERT = /* glsl */`
   precision highp float;
   #define PI 3.14159265
   attribute vec4 aSeed; attribute vec3 aOrbit; attribute vec2 aLine; attribute float aErr; attribute vec4 aStatA; attribute vec4 aStatB;
-  uniform float uTime, uStage, uCount, uIntro, uErrMode, uForm[${MAXF}];
+  uniform float uTime, uStage, uCount, uIntro, uErrMode, uAH, uForm[${MAXF}];
   uniform vec4 uAnchor[${MAXF}], uAnchorQ[${MAXF}];
   varying vec3 vN; varying vec2 vUv; varying vec2 vState; varying vec3 vView;
   ${QUAT}
@@ -251,20 +251,27 @@ const VERT = /* glsl */`
     vec3 wA, wB; vec4 qA, qB; float sA, sB; vec2 tA, tB;
     place(i, wA, qA, sA, tA);
     vec3 w = wA; vec4 q = qA; float s = sA; vec2 st = tA;
-    float e = smoothstep(0., 1., clamp(f * 1.6 - aSeed.x * .6, 0., 1.));
+    // results are built, not dropped: records arrive bottom layer first, so the stacks rise as you scroll
+    float hB = clamp(aStatA.y / uAH + .5, 0., 1.);
+    float j = min(i + 1., uCount - 1.);
+    bool buildB = uForm[int(j)] > 2.5 && uForm[int(j)] < 3.5;
+    float order = buildB ? hB * .88 + aSeed.x * .12 : aSeed.x;
+    float e = smoothstep(0., 1., clamp(buildB ? f * 2.4 - order * 1.4 : f * 1.6 - order * .6, 0., 1.));
     if (e > 0.) {
-      float j = min(i + 1., uCount - 1.);
       place(j, wB, qB, sB, tB);
       if (dot(qA, qB) < 0.) qB = -qB;
       float span = .5 * (uAnchor[int(i)].w + uAnchor[int(j)].w);
       vec3 arc = vec3((aSeed.z - .5) * 2.4, (aSeed.y - .5) * 1.6 + .5, (aSeed.w - .5) * 2.4) * span * sin(PI * e);
-      w = mix(wA, wB, e) + arc;
+      w = mix(wA, wB, e) + arc * (buildB ? .45 : 1.);
       q = normalize(mix(qA, qB, e)); s = mix(sA, sB, e); st = mix(tA, tB, e);
     }
     // arrival: the formation unfolds from its own centre the first time it is seen
-    float ia = smoothstep(0., 1., clamp(uIntro * 1.6 - aSeed.x * .6, 0., 1.));
+    bool buildA = uForm[int(i)] > 2.5 && uForm[int(i)] < 3.5 && f < .01;
+    float ia = smoothstep(0., 1., clamp(buildA ? uIntro * 2.2 - (hB * .88 + aSeed.x * .12) * 1.2 : uIntro * 1.6 - aSeed.x * .6, 0., 1.));
     vec3 c0 = uAnchor[int(i)].xyz;
-    w = mix(c0 + (w - c0) * .2 + vec3(0., -.4, 0.) * uAnchor[int(i)].w, w, ia); s *= ia;
+    if (buildA) w = mix(w + vec3(0., 1.6, 0.) * uAnchor[int(i)].w, w, ia);
+    else w = mix(c0 + (w - c0) * .2 + vec3(0., -.4, 0.) * uAnchor[int(i)].w, w, ia);
+    s *= ia;
     vec3 world = qRot(q, position * s) + w;
     vec4 mv = viewMatrix * vec4(world, 1.);
     vN = normalize(mat3(viewMatrix) * qRot(q, normal));
@@ -335,7 +342,7 @@ function makeView(el) {
       uTime: { value: 0 }, uStage: { value: 0 }, uCount: { value: forms.length }, uIntro: { value: 0 },
       uForm: { value: forms.concat(Array(MAXF).fill(0)).slice(0, MAXF) },
       uAnchor: { value: new Float32Array(MAXF * 4) }, uAnchorQ: { value: new Float32Array(MAXF * 4) },
-      uErrMode: { value: errMode }, uRes: { value: [1, 1] },
+      uErrMode: { value: errMode }, uAH: { value: Math.max(0.01, extA.h) }, uRes: { value: [1, 1] },
       uSlate: { value: PAL.slate }, uAqua: { value: PAL.aqua }, uCobalt: { value: PAL.cobalt }, uAmber: { value: PAL.amber },
     },
     vertexShader: VERT, fragmentShader: FRAG,
@@ -459,7 +466,7 @@ function draw(v, dt) {
   const r = v.el.getBoundingClientRect();
   const c = clamp((r.top + r.height / 2) / VH - 0.5, -1, 1);
   const stage = stageOf(v);
-  if (!reduce) v.intro = Math.min(1, v.intro + dt / 1.3);
+  if (!reduce) v.intro = Math.min(1, v.intro + dt / (v.forms[0] === 3 ? 2.4 : 1.3));
   const sway = reduce ? [0, 0, 0, 1] : qMul(qAxis([0, 1, 0], -c * 0.3 + tilt.x * 0.22), qAxis([1, 0, 0], c * 0.1 + tilt.y * 0.12));
   const A = v.mat.uniforms.uAnchor.value, Q = v.mat.uniforms.uAnchorQ.value;
   v.forms.forEach((f, k) => { A.set([0, 0, 0, v.scales[k]], k * 4); Q.set(qMul(sway, BASEQ[f]), k * 4); });
