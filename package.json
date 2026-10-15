@@ -1,0 +1,19 @@
+{
+  "name": "clarke-systems-group-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:film": "node scripts/build-film.mjs",
+    "configure": "node scripts/configure.mjs",
+    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\""
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "html-validate": "8.24.1",
+    "three": "0.169.0",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2",
+    "d3-geo": "3.1.1",
+    "@fontsource-variable/archivo": "5.1.0"
+  }
+}

@@ -86,7 +86,7 @@
     burger.setAttribute("aria-expanded",open?"true":"false");
     burger.setAttribute("aria-label",open?"Close menu":"Open menu");
     if(bpath)bpath.setAttribute("d",open?"M6 6l12 12M18 6L6 18":"M4 9h16M4 15h16");
-    var app=$("#app"),foot=$("footer.app");
+    var app=$("#main"),foot=$("footer.app");
     [app,foot].forEach(function(el){if(el){if(open)el.setAttribute("inert","");else el.removeAttribute("inert");}});
     if(open){var first=menu.querySelector("a");if(first)first.focus({preventScroll:true});}
     else if(wasOpen&&document.activeElement&&(document.activeElement===document.body||menu.contains(document.activeElement)))burger.focus({preventScroll:true});
@@ -116,8 +116,7 @@
     var spy=new IntersectionObserver(function(es){
       es.forEach(function(e){if(e.isIntersecting)setNav(e.target.getAttribute("data-spy"));});
     },{rootMargin:"-40% 0px -55% 0px"});
-    ["automate","process"].forEach(function(id){var el=document.getElementById(id);if(el){el.setAttribute("data-spy",id);spy.observe(el);}});
-    var hero=$(".hero");if(hero){hero.setAttribute("data-spy","home");spy.observe(hero);}
+    [["top","home"],["proof","home"],["principles","home"],["automate","automate"],["results","work"],["process","home"],["demo","home"]].forEach(function(k){var el=document.getElementById(k[0]);if(el){el.setAttribute("data-spy",k[1]);spy.observe(el);}});
   }
   /* menu closes when an in-page link is chosen */
   if(menu)menu.addEventListener("click",function(e){if(e.target.closest("a"))closeMenu();});
@@ -309,17 +308,6 @@
     copyText("To: "+EMAIL+"\nSubject: "+m.subject+"\n\n"+m.body,note,"Request copied. Paste it into an email to "+EMAIL+".");
   });
 
-  /* ---------- pointer light on glass ---------- */
-  if(mq("(hover: hover) and (pointer: fine)")&&!reduce){
-    var lastG=null,raf=0,px=0,py=0;
-    document.addEventListener("pointermove",function(e){
-      var g=e.target.closest&&e.target.closest(".glass");
-      if(!g)return;lastG=g;px=e.clientX;py=e.clientY;
-      if(raf)return;
-      raf=requestAnimationFrame(function(){raf=0;var r=lastG.getBoundingClientRect();lastG.style.setProperty("--mx",(px-r.left)+"px");lastG.style.setProperty("--my",(py-r.top)+"px");});
-    },{passive:true});
-  }
-
   if(page==="contact"){var tp=null;try{tp=new URLSearchParams(location.search).get("topic");}catch(err){}applyPrefill(tp);}
   render();
   onScroll();
@@ -379,4 +367,33 @@
     else{op.textContent="–";opl.textContent="to recover a build starting at £1,250";}
   }
   f.addEventListener("input",calc);calc();
+})();
+/* Local time in London, New York and Singapore: the working day, worldwide */
+(function(){
+  var els=[].slice.call(document.querySelectorAll("time[data-tz]"));
+  if(!els.length||!window.Intl)return;
+  var fmt={};
+  function tick(){
+    var now=new Date();
+    els.forEach(function(el){
+      var tz=el.getAttribute("data-tz");
+      try{fmt[tz]=fmt[tz]||new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:tz});el.textContent=fmt[tz].format(now);el.setAttribute("datetime",now.toISOString());}catch(err){}
+    });
+  }
+  tick();setInterval(tick,15000);
+})();
+/* Home: the chapter index follows the film */
+(function(){
+  var nav=document.querySelector(".chapters");if(!nav||!("IntersectionObserver" in window))return;
+  var links=[].slice.call(nav.querySelectorAll("a")),map={};
+  links.forEach(function(a){var id=a.getAttribute("href").slice(1),el=document.getElementById(id);if(el)map[id]=a;});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;links.forEach(function(a){var on=a===map[e.target.id];a.classList.toggle("on",on);if(on)a.setAttribute("aria-current","true");else a.removeAttribute("aria-current");});});},{rootMargin:"-45% 0px -50% 0px"});
+  Object.keys(map).forEach(function(id){io.observe(document.getElementById(id));});
+})();
+/* Inner pages: the film dims as the reading starts */
+(function(){
+  var root=document.documentElement,ticking=false;
+  function upd(){ticking=false;root.style.setProperty("--veil",Math.min(1,Math.max(0,window.pageYOffset/(window.innerHeight*.65))).toFixed(3));}
+  window.addEventListener("scroll",function(){if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});
+  upd();
 })();
