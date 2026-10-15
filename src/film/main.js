@@ -1,9 +1,9 @@
-/* The film: one continuous 3D scene behind every page.
+/* The film: one 3D scene, shown in contained stage panels across the site.
    4,000 records (the launch QA system's validated-record count) orbit a globe drawn from real coastline
    data, line up on a single straight conveyor, pass through an automated check where 180 of them (the
    errors intercepted) turn amber and are set aside, then stack into finished work and finally form the
-   Clarke Systems Group mark. Each page plays one shot of it; the home page plays the whole sequence,
-   directed by scroll. */
+   Clarke Systems Group mark. Every <canvas data-shot> is its own instance: it sizes to its panel, renders
+   only while on screen, and either holds one shot or plays a scroll story ([data-story] with [data-stage] steps). */
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, Vector3, BoxGeometry, InstancedBufferGeometry,
   InstancedBufferAttribute, ShaderMaterial, Mesh, BufferGeometry, BufferAttribute, Points, PlaneGeometry,
@@ -19,29 +19,26 @@ import { SHOTS } from "./shots.js";
 
 const RINGS = [[1.5, 0.2], [1.68, -0.42], [1.86, 0.62], [2.05, -0.1], [2.26, 0.38]];
 const RECORDS = 4000, ERRORS = 180, LANES = 8, COLS = RECORDS / LANES, SPACING = 0.16;
-const root = document.documentElement, body = document.body;
-const canvas = document.getElementById("film");
-const shotName = body.getAttribute("data-shot") || "quiet";
-const shot = SHOTS[shotName] || SHOTS.quiet;
+const root = document.documentElement;
 const params = new URLSearchParams(location.search);
 const still = params.has("still") ? parseFloat(params.get("still")) || 0 : null; // ?still=2.0 freezes a frame (posters)
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const small = () => innerWidth < 900;
 const lowEnd = !params.has("hq") && ((navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2);
 
-function fail() { root.classList.add("film-off"); }
-
-let renderer = null;
-if (canvas) {
+for (const canvas of document.querySelectorAll("canvas[data-shot]")) {
+  const host = canvas.closest(".stage") || canvas.parentElement;
+  let renderer = null;
   try {
     renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", alpha: false, preserveDrawingBuffer: still !== null });
     if (!renderer.capabilities.isWebGL2) { renderer.dispose(); renderer = null; }
   } catch (e) { renderer = null; }
+  if (!renderer) { host.classList.add("film-off"); continue; }
+  start(canvas, renderer, SHOTS[canvas.dataset.shot] || SHOTS.quiet, host);
 }
-if (!renderer) fail();
-else start();
 
-function start() {
+function start(canvas, renderer, shot, host) {
+const fail = () => host.classList.add("film-off");
+const small = () => canvas.clientWidth < 700;
 
 renderer.setClearColor(0x000000, 1);
 const scene = new Scene();
@@ -452,18 +449,20 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const v3 = (a) => new Vector3(...a);
 const ease = (t) => t * t * (3 - 2 * t);
 const keys = shot.cameras.map((k) => ({ pos: v3(k.pos), look: v3(k.look), shift: k.shift ?? 0.2, fov: k.fov ?? 34 }));
-const sections = shot.scroll === "chapters" ? Array.from(document.querySelectorAll("[data-stage]")) : [];
+const story = shot.scroll === "story" ? canvas.closest("[data-story]") : null;
+const sections = story ? Array.from(story.querySelectorAll("[data-stage]")) : [];
 
+// the story position: which step sits across the middle of the viewport, eased between steps
 function scrollStage() {
   if (!sections.length) return null;
-  const y = scrollY + innerHeight * 0.55;
-  const tops = sections.map((s) => ({ top: s.getBoundingClientRect().top + scrollY, stage: parseFloat(s.dataset.stage) }));
+  const y = innerHeight * 0.55;
+  const tops = sections.map((s) => ({ top: s.getBoundingClientRect().top, stage: parseFloat(s.dataset.stage) }));
   for (let i = tops.length - 1; i >= 0; i--) {
     if (y >= tops[i].top) {
       const next = tops[i + 1];
       if (!next) return tops[i].stage;
       const t = (y - tops[i].top) / Math.max(1, next.top - tops[i].top);
-      return lerp(tops[i].stage, next.stage, ease(Math.min(1, Math.max(0, (t - 0.45) / 0.55))));
+      return lerp(tops[i].stage, next.stage, ease(Math.min(1, Math.max(0, (t - 0.35) / 0.65))));
     }
   }
   return tops[0]?.stage ?? 0;
@@ -475,7 +474,9 @@ let last = t0, time = still !== null ? 40 : 0, frames = 0;
 const tmpPos = new Vector3(), tmpLook = new Vector3(), curPos = new Vector3(), curLook = new Vector3();
 let curShift = 0, curFov = 34, first = true;
 
+const clampStage = (s, n) => (Number.isFinite(s) ? Math.min(Math.max(s, 0), n - 1) : 0);
 function camAt(s) {
+  s = clampStage(s, keys.length);
   const i = Math.min(keys.length - 1, Math.floor(s)), j = Math.min(keys.length - 1, i + 1), f = ease(s - i);
   tmpPos.lerpVectors(keys[i].pos, keys[j].pos, f);
   tmpLook.lerpVectors(keys[i].look, keys[j].look, f);
@@ -485,6 +486,7 @@ function camAt(s) {
 function globeAt(s) { // where the globe sits, by stage
   const g = shot.globe;
   if (!g) return { pos: [0, 0, 0], scale: 1, opacity: 0 };
+  s = clampStage(s, g.length);
   const i = Math.min(g.length - 1, Math.floor(s)), j = Math.min(g.length - 1, i + 1), f = ease(s - i);
   const a = g[i], b = g[j];
   return { pos: a.pos.map((v, k) => lerp(v, b.pos[k], f)), scale: lerp(a.scale, b.scale, f), opacity: lerp(a.opacity, b.opacity, f) };
@@ -493,7 +495,7 @@ const band = (s, a, b, c, d) => Math.min(Math.max((s - a) / Math.max(1e-4, b - a
 
 function resize() {
   const dpr = Math.min(devicePixelRatio || 1, small() ? 1.5 : lowEnd ? 1.25 : 1.75);
-  const w = innerWidth, h = innerHeight;
+  const w = Math.max(1, canvas.clientWidth), h = Math.max(1, canvas.clientHeight);
   renderer.setPixelRatio(dpr);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
@@ -504,8 +506,10 @@ function resize() {
   }
   [globe.landMat, globe.markMat, globe.arcMat].forEach((m) => (m.uniforms.uDpr.value = dpr * (h / 900)));
 }
-addEventListener("resize", resize);
+new ResizeObserver(() => { resize(); wake(); }).observe(canvas);
 resize();
+let visible = true;
+new IntersectionObserver((es) => { visible = es[es.length - 1].isIntersecting; if (visible) wake(); }, { rootMargin: "120px 0px" }).observe(canvas);
 
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -517,21 +521,25 @@ function frame(now) {
   else if (shot.intro) target = still !== null ? still : shot.rest;
   if (still !== null) target = still;
   const k = reduce || still !== null || first ? 1 : 1 - Math.exp(-dt * (shot.intro && sc === null ? 1.1 : 2.6));
+  if (!Number.isFinite(target)) target = shot.rest || 0;
   shown += (target - shown) * k;
   if (Math.abs(target - shown) < 1e-4) shown = target;
 
   // camera, with a slight handheld drift
   const cam = camAt(shown);
-  const pageT = sections.length ? 0 : Math.min(1, scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight));
+  const r = canvas.getBoundingClientRect();
+  const pageT = sections.length ? 0 : Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight + r.height)));
   tmpPos.add(v3(shot.dolly || [0, 0, 0]).multiplyScalar(pageT));
   const drift = reduce || still !== null ? 0 : 1;
   tmpPos.x += Math.sin(time * 0.21) * 0.05 * drift; tmpPos.y += Math.sin(time * 0.17 + 1) * 0.035 * drift;
   const ck = first ? 1 : 1 - Math.exp(-dt * 4);
   curPos.lerp(tmpPos, ck); curLook.lerp(tmpLook, ck);
   if (first) { curPos.copy(tmpPos); curLook.copy(tmpLook); }
-  curShift = lerp(curShift, small() ? 0 : cam.shift, ck); curFov = lerp(curFov, cam.fov * (small() ? 1.25 : 1), ck);
+  const w = Math.max(1, canvas.clientWidth), h = Math.max(1, canvas.clientHeight), asp = w / h;
+  const widen = asp < 1.6 ? Math.pow(1.6 / asp, 0.62) : 1; // narrow panels widen the lens so the subject stays in frame
+  curShift = lerp(curShift, small() ? 0 : cam.shift, ck); curFov = lerp(curFov, Math.min(75, cam.fov * widen), ck);
+  if (first) { curShift = small() ? 0 : cam.shift; curFov = Math.min(75, cam.fov * widen); }
   camera.position.copy(curPos); camera.lookAt(curLook); camera.fov = curFov;
-  const w = innerWidth, h = innerHeight;
   camera.setViewOffset(w, h, -curShift * w, 0, w, h);
   camera.updateProjectionMatrix();
 
@@ -560,19 +568,20 @@ function frame(now) {
 
   if (composer) { grade.uniforms.uTime.value = time; composer.render(dt); } else renderer.render(scene, camera);
 
-  if (first) { first = false; requestAnimationFrame(() => root.classList.add("film-on")); }
+  if (first) { first = false; requestAnimationFrame(() => host.classList.add("is-live")); }
   frames++;
   if (still !== null) { if (frames > 3) { root.classList.add("film-still"); return; } }
   // reduced motion: draw only when the scroll position changes
   if (reduce && Math.abs(target - shown) < 1e-4 && sections.length) { idle = true; return; }
   if (reduce && !sections.length) { idle = true; return; }
+  if (!visible || document.hidden) { idle = true; return; }
   requestAnimationFrame(frame);
 }
-let idle = false;
-const wake = () => { if (idle) { idle = false; last = performance.now(); requestAnimationFrame(frame); } };
+var idle = false;
+function wake() { if (idle) { idle = false; last = performance.now(); requestAnimationFrame(frame); } }
 addEventListener("scroll", wake, { passive: true });
 addEventListener("resize", wake);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) { last = performance.now(); } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) wake(); });
 canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); fail(); });
 requestAnimationFrame(frame);
 }
