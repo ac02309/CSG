@@ -188,12 +188,18 @@
     parts.push(m);
   });
 
-  /* ---------- one call to action on screen: hide the navigation's while a page button is visible ---------- */
-  var ctas=$$("[data-cta]");
-  if(ctas.length&&"IntersectionObserver" in window){
-    var seen=new Set();
-    var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)seen.add(e.target);else seen.delete(e.target);});root.classList.toggle("cta-shown",seen.size>0);},{rootMargin:"-56px 0px 0px 0px"});
-    ctas.forEach(function(el){cio.observe(el);});
+  /* ---------- the navigation's call to action: changes at most once ----------
+     On a page whose opening section has its own "Request a demo", the navigation's button starts hidden (by CSS, so
+     nothing flashes on load) and appears for good once that opening button has been scrolled past. Everywhere else
+     it is simply there. It never hides again. */
+  var heroCta=document.querySelector(".hero [data-cta]");
+  if(heroCta){
+    var free=function(){root.classList.add("cta-free");};
+    if(heroCta.getBoundingClientRect().bottom<0)free();
+    else if("IntersectionObserver" in window){
+      var hio=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting&&e.boundingClientRect.bottom<64){free();hio.disconnect();}});},{rootMargin:"-56px 0px 0px 0px"});
+      hio.observe(heroCta);
+    }else free();
   }
 
   /* ---------- reading progress ---------- */
