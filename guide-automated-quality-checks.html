@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; form-action 'self' mailto:; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catching data errors · Clarke Systems Group</title>
+<meta name="description" content="A practical guide to automated quality checks: validation rules, quarantining failures, daily reporting and a step-by-step plan to roll them out.">
+<link rel="canonical" href="https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Clarke Systems Group">
+<meta property="og:url" content="https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html">
+<meta property="og:title" content="Catching data errors · Clarke Systems Group">
+<meta property="og:description" content="A practical guide to automated quality checks: validation rules, quarantining failures, daily reporting and a step-by-step plan to roll them out.">
+<meta property="og:image" content="https://www.clarkesystemsgroup.com/og/guide-automated-quality-checks.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="How to catch data errors before they go live">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.clarkesystemsgroup.com/og/guide-automated-quality-checks.png">
+<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07090c" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css?v=620187229c">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"How to catch data errors before they go live","description":"A practical guide to automated quality checks: validation rules, quarantining failures, daily reporting and a step-by-step plan to roll them out.","url":"https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html","mainEntityOfPage":"https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html","image":"https://www.clarkesystemsgroup.com/og/guide-automated-quality-checks.png","datePublished":"2026-10-15","dateModified":"2026-10-15","articleSection":"Quality checks","timeRequired":"PT6M","author":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"publisher":{"@type":"Organization","name":"Clarke Systems Group","logo":{"@type":"ImageObject","url":"https://www.clarkesystemsgroup.com/apple-touch-icon.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://www.clarkesystemsgroup.com/guides.html"},{"@type":"ListItem","position":3,"name":"Catching data errors","item":"https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html"}]}]}</script>
+<!-- cfg:analytics --><!-- /cfg:analytics -->
+</head>
+<body data-page="guide">
+<a class="skip" href="#main" id="skip">Skip to content</a>
+<div class="glow" aria-hidden="true"><i></i><i></i></div>
+
+<div class="scrim" id="scrim" hidden></div>
+<header class="navbar" id="navbar">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html" aria-label="Clarke Systems Group home">
+      <span class="mark"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="orbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--lg1)"/><stop offset="1" stop-color="var(--lg2)"/></linearGradient></defs><circle cx="15" cy="15" r="11" fill="none" stroke="url(#orbG)" stroke-width="3.2" stroke-dasharray="52 17.1" transform="rotate(25 15 15)" stroke-linecap="round"/><circle cx="25.2" cy="11.2" r="3" fill="url(#orbG)"/></svg></span><span class="brand-name">Clarke Systems Group</span>
+    </a>
+    <ul class="navlinks" id="navlinks">
+      <li><a href="index.html#automate" data-nav="automate">What we automate</a></li>
+      <li><a href="work.html" data-nav="work">Track record</a></li>
+      <li><a href="services.html" data-nav="services">Services</a></li>
+      <li><a href="guides.html" aria-current="page" data-nav="guides">Guides</a></li>
+      <li><a href="faq.html" data-nav="faq">FAQ</a></li>
+      <li class="lens" id="lens" aria-hidden="true"></li>
+    </ul>
+    <a class="btn btn-p btn-sm" href="contact.html?topic=Demo">Request a demo</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path id="burgerPath" d="M4 9h16M4 15h16"/></svg>
+    </button>
+  </nav>
+  <div class="menu" id="menu" hidden>
+    <a href="index.html#automate">What we automate</a>
+    <a href="work.html">Track record</a>
+    <a href="services.html">Services</a>
+    <a href="guides.html">Guides</a>
+    <a href="faq.html">FAQ</a>
+    <a href="contact.html?topic=Demo">Request a demo</a>
+  </div>
+</header>
+
+<main class="app" id="main" tabindex="-1">
+<div class="view" data-view="guide">
+  <article>
+  <section class="case-hero wrap narrow">
+    <a class="back" href="guides.html"><svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 8H3M7 4L3 8l4 4"/></svg>Guides</a>
+    <div class="guide-meta"><span class="mono muted">Guide · Quality checks</span><span class="mono muted">6 min read</span></div>
+    <h1 class="h-l">How to catch data errors before they go live</h1>
+    <p class="sub">Manual review cannot keep pace with thousands of records across markets and retailers. Here is how to design automated checks that catch errors before release and record why each one failed.</p>
+  </section>
+  <div class="wrap narrow">
+    <div class="prose">
+<p>Most data errors are not hard to spot. A missing size attribute, a price that differs from the retailer feed, a product with two images where four are required. Any competent reviewer would catch each one. The problem is that nobody can catch all of them, every day, across thousands of records. This guide explains how to replace that reliance on attention with a system of automated checks that runs before anything is released.</p>
+
+<h2>Why manual review fails at volume</h2>
+<p>Manual review works when the volume is small and the rules are few. Neither stays true for long. As your catalogue grows across markets, retailers and channels, the number of things that can go wrong multiplies.</p>
+<p>Reviewers get tired. They check the fields they expect to be wrong and skim the rest. Two people apply the same rule differently. Under deadline, review is the step that gets shortened. And when an error does reach a live listing, there is rarely a record of what was checked, by whom, or against which rule.</p>
+<p>The failure is structural, not personal. A person can apply judgement. A system can apply the same rule to every record, every time, and write down the result. You need both, but the second should come first.</p>
+
+<h2>Designing validation rules</h2>
+<p>A validation rule is a precise, testable statement about what a correct record looks like. If you cannot express it as pass or fail, it is not yet a rule. Most useful rules fall into five types.</p>
+<h3>Completeness</h3>
+<p>Are the required fields present? A product record for the German market may need a size, a colour, a material and an EAN. If any is blank, the record fails. Define required fields per market or channel, because requirements differ.</p>
+<h3>Format</h3>
+<p>Is each value in the expected shape? Barcodes have a fixed length and check digit. Prices use the right decimal separator. Titles sit within the retailer's character limit. Image URLs resolve.</p>
+<h3>Consistency against a source of truth</h3>
+<p>Does the value match the system that owns it? The price in your listing should match the retailer feed or your pricing system. The stock status should match the warehouse. Name the source of truth for each field explicitly, or you will end up comparing two copies of the same error.</p>
+<h3>Cross-field</h3>
+<p>Do fields agree with each other? A product marked as a three-pack should not carry a single-unit barcode. A sale price should be lower than the regular price. A garment in the footwear category is probably miscategorised.</p>
+<h3>Business rules</h3>
+<p>Does the record meet your own standards? A minimum of four images per product. No launch before the agreed date. No discount above a set threshold without approval. These rules carry the most value, because nobody outside your organisation will enforce them for you.</p>
+<p>Write each rule down with a short name, the fields it touches, the condition for failure and the reason message a reviewer will see. That last part matters more than it seems.</p>
+
+<h2>Where checks sit, and what happens when they fail</h2>
+<h3>Place the gate at the release point</h3>
+<p>Checks belong at the point where a record is about to move from work in progress to live. That is usually just before a feed is sent, a listing is published or a batch is released to a retailer.</p>
+<p>Earlier checks are useful too. Validating data as it arrives from a supplier stops bad inputs spreading. But the final gate is the one that protects the customer, so build it first. Run it on every record in the release set, not a sample.</p>
+
+<h3>Quarantine failures, do not block everything</h3>
+<p>A common first design halts the whole release when any record fails. It feels safe. In practice, one missing image on one product delays hundreds of correct records, and the team learns to bypass the check.</p>
+<p>The better pattern is quarantine. Records that pass go ahead. Records that fail are held back, and the system records exactly why: <em>missing size attribute, US market</em> or <em>2 of 4 required images</em>. The person fixing it knows what to do without investigating. Once corrected, the record runs through the checks again and is released with the next batch.</p>
+<p>Quarantine turns quality control from a bottleneck into a queue. It also creates a log of every failure, which you will need to measure the system.</p>
+
+<h2>Reporting and measurement</h2>
+<h3>Report daily</h3>
+<p>A check that runs silently is easy to forget. Send a short report every day, automatically, to the people who own the data. Keep it plain: how many records were checked, how many passed, how many were quarantined, and the reasons grouped by rule and market.</p>
+<p>The report should answer two questions at a glance. Is today's release safe to go? What needs fixing first? If it takes longer than a minute to read, it is too long.</p>
+
+<h3>Measure the system</h3>
+<p>Three measures tell you whether your checks are working.</p>
+<ul>
+<li><strong>Errors intercepted.</strong> The number of records quarantined and later corrected before release. This is the clearest evidence of value.</li>
+<li><strong>Rule coverage.</strong> The proportion of known error types that have a rule. Review past incidents and ask whether a rule would have caught each one. If not, write it.</li>
+<li><strong>False positives.</strong> Records quarantined that were actually correct. A rule that fires wrongly erodes trust quickly. Track these and tighten the rule rather than tolerating them.</li>
+</ul>
+<p>Review these monthly. Retire rules that never fire and add rules for errors that slipped through.</p>
+
+<h2>Start small, then scale</h2>
+<p>You do not need a data platform to begin. A shared spreadsheet with one row per record, a column per rule and a status column is enough to prove the approach. Google Apps Script or a similar tool can run the checks on a schedule, write the reasons into the sheet and email the daily summary.</p>
+<p>This is not a toy. Our founder designed and delivered a <a href="work-launch-qa.html">launch quality system built in Google Apps Script</a> while employed at a global digital-commerce analytics business. It covered more than 30 markets and over 100 retailer lines, validated more than 4,000 records and intercepted more than 180 errors before release, with daily progress reporting fully automated.</p>
+<p>Move to heavier tooling when the volume, the number of sources or the speed required outgrows the spreadsheet. By then you will know exactly which rules matter.</p>
+
+<h2>A step-by-step rollout plan</h2>
+<ol>
+<li>List the last ten to twenty errors that reached a live listing. Note the field, the market and how each was found.</li>
+<li>Identify the release point: the moment a record goes live. This is where your first checks will run.</li>
+<li>Write five to ten rules that would have caught those errors. Give each a name, a condition and a reason message.</li>
+<li>Name the source of truth for every field a consistency rule compares.</li>
+<li>Build the checks in a spreadsheet or script and run them against last month's data. Confirm they catch the known errors and count the false positives.</li>
+<li>Add quarantine. Passing records continue, failing records are held with the reason recorded.</li>
+<li>Switch on the daily report and agree who acts on it.</li>
+<li>Run alongside manual review for two to four weeks. Compare what each catches.</li>
+<li>Reduce manual review to the judgement calls the rules cannot make.</li>
+<li>Review the measures monthly and extend rule coverage.</li>
+</ol>
+
+<h2>Common mistakes</h2>
+<ul>
+<li><strong>Writing vague rules.</strong> "Images should be good quality" cannot be tested. "At least four images, each at least 1,000 pixels wide" can.</li>
+<li><strong>Checking a sample.</strong> Errors hide in the records you skipped. Check every record in the release set.</li>
+<li><strong>Blocking the whole release.</strong> Quarantine the failures and let correct records through.</li>
+<li><strong>Unhelpful reason messages.</strong> "Validation failed" sends someone hunting. State the rule, the field and the value.</li>
+<li><strong>Ignoring false positives.</strong> If people learn to override the checks, the system has stopped working.</li>
+<li><strong>Never revisiting the rules.</strong> Your catalogue, retailers and standards change. The rules must change with them.</li>
+</ul>
+<p>If you want to see how this would apply to your own data, we can <a href="contact.html?topic=Quality+checks">build a short demo around your process</a>. Details of how builds are scoped and priced are on the <a href="services.html">services page</a>.</p>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Manual review fails at volume because of structure, not effort. Automate the repeatable checks first.</li>
+<li>Every rule should be testable as pass or fail and carry a clear reason message.</li>
+<li>Cover completeness, format, consistency against a named source of truth, cross-field logic and your own business rules.</li>
+<li>Quarantine failing records with the reason recorded, rather than blocking the whole release.</li>
+<li>Report daily and measure errors intercepted, rule coverage and false positives.</li>
+<li>Start with a spreadsheet and a script. Scale the tooling once the rules have proved themselves.</li>
+</ul>
+    </div>
+    <a class="next glass" href="guide-ai-classification-model-selection.html"><div><small>Next guide</small><span class="h-s">Choosing an AI model for classification: accuracy and cost</span></div><span class="link">Read <svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+  </div>
+  </article>
+  <section class="block-tight"><div class="wrap"><div class="closer glass"><h2 class="h-l">Still checking work manually before release?</h2><p class="sub">See automated checks applied to your data in a 20-minute demo.</p><a class="btn btn-p" href="contact.html?topic=Quality+checks">Request a demo</a></div></div></section>
+</div>
+</main>
+
+<footer class="app">
+  <div class="wrap">
+    <div class="foot">
+      
+      <div><h2>Explore</h2><ul><li><a href="index.html#automate">What we automate</a></li><li><a href="work.html">Track record</a></li><li><a href="services.html">Services</a></li><li><a href="guides.html">Guides</a></li><li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h2>Contact</h2><ul><li><a href="contact.html?topic=Demo">Request a demo</a></li><li><a href="mailto:enquiries@clarkesystemsgroup.com">enquiries@clarkesystemsgroup.com</a></li><!-- cfg:social --><!-- /cfg:social --><li><a href="privacy.html">Privacy and cookies</a></li><li><a href="terms.html">Terms</a></li></ul><p class="foot-note">Built on enterprise digital-commerce experience. UK-based. Delivering worldwide.</p></div>
+
+    </div>
+    <div class="foot-mark" aria-hidden="true"><span class="foot-word">Clarke Systems Group</span></div>
+    <div class="legal"><span>Services are provided to businesses only. Terms of business are supplied with every proposal, and our business details are in our <a href="terms.html">terms</a>.</span><span>© 2026 Clarke Systems Group. All rights reserved.</span></div>
+  </div>
+</footer>
+<script src="assets/site.js?v=c5d3b3caf7" defer></script>
+</body>
+</html>

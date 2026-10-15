@@ -12,6 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Apply site.config.json, as the Netlify build does
+        run: node scripts/configure.mjs
       - name: Links, anchors, structured data and page essentials
         run: node scripts/check-site.mjs
       - name: HTML validation

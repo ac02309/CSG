@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; form-action 'self' mailto:; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Choosing an AI classifier · Clarke Systems Group</title>
+<meta name="description" content="How to measure an AI model&#x27;s accuracy and cost per item on your own data before you commit, for teams replacing manual categorisation and routing.">
+<link rel="canonical" href="https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Clarke Systems Group">
+<meta property="og:url" content="https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html">
+<meta property="og:title" content="Choosing an AI classifier · Clarke Systems Group">
+<meta property="og:description" content="How to measure an AI model&#x27;s accuracy and cost per item on your own data before you commit, for teams replacing manual categorisation and routing.">
+<meta property="og:image" content="https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Choosing an AI model for classification: accuracy and cost">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.png">
+<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07090c" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css?v=620187229c">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Choosing an AI model for classification: accuracy and cost","description":"How to measure an AI model's accuracy and cost per item on your own data before you commit, for teams replacing manual categorisation and routing.","url":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html","mainEntityOfPage":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html","image":"https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.png","datePublished":"2026-10-15","dateModified":"2026-10-15","articleSection":"AI processing","timeRequired":"PT7M","author":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"publisher":{"@type":"Organization","name":"Clarke Systems Group","logo":{"@type":"ImageObject","url":"https://www.clarkesystemsgroup.com/apple-touch-icon.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://www.clarkesystemsgroup.com/guides.html"},{"@type":"ListItem","position":3,"name":"Choosing an AI classifier","item":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html"}]}]}</script>
+<!-- cfg:analytics --><!-- /cfg:analytics -->
+</head>
+<body data-page="guide">
+<a class="skip" href="#main" id="skip">Skip to content</a>
+<div class="glow" aria-hidden="true"><i></i><i></i></div>
+
+<div class="scrim" id="scrim" hidden></div>
+<header class="navbar" id="navbar">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html" aria-label="Clarke Systems Group home">
+      <span class="mark"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="orbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--lg1)"/><stop offset="1" stop-color="var(--lg2)"/></linearGradient></defs><circle cx="15" cy="15" r="11" fill="none" stroke="url(#orbG)" stroke-width="3.2" stroke-dasharray="52 17.1" transform="rotate(25 15 15)" stroke-linecap="round"/><circle cx="25.2" cy="11.2" r="3" fill="url(#orbG)"/></svg></span><span class="brand-name">Clarke Systems Group</span>
+    </a>
+    <ul class="navlinks" id="navlinks">
+      <li><a href="index.html#automate" data-nav="automate">What we automate</a></li>
+      <li><a href="work.html" data-nav="work">Track record</a></li>
+      <li><a href="services.html" data-nav="services">Services</a></li>
+      <li><a href="guides.html" aria-current="page" data-nav="guides">Guides</a></li>
+      <li><a href="faq.html" data-nav="faq">FAQ</a></li>
+      <li class="lens" id="lens" aria-hidden="true"></li>
+    </ul>
+    <a class="btn btn-p btn-sm" href="contact.html?topic=Demo">Request a demo</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path id="burgerPath" d="M4 9h16M4 15h16"/></svg>
+    </button>
+  </nav>
+  <div class="menu" id="menu" hidden>
+    <a href="index.html#automate">What we automate</a>
+    <a href="work.html">Track record</a>
+    <a href="services.html">Services</a>
+    <a href="guides.html">Guides</a>
+    <a href="faq.html">FAQ</a>
+    <a href="contact.html?topic=Demo">Request a demo</a>
+  </div>
+</header>
+
+<main class="app" id="main" tabindex="-1">
+<div class="view" data-view="guide">
+  <article>
+  <section class="case-hero wrap narrow">
+    <a class="back" href="guides.html"><svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 8H3M7 4L3 8l4 4"/></svg>Guides</a>
+    <div class="guide-meta"><span class="mono muted">Guide · AI processing</span><span class="mono muted">7 min read</span></div>
+    <h1 class="h-l">Choosing an AI model for classification: accuracy and cost</h1>
+    <p class="sub">Replacing manual categorisation with AI starts with evidence, not a leaderboard. Here is how to test candidate models on your own data, measure accuracy and cost per item, and choose with confidence.</p>
+  </section>
+  <div class="wrap narrow">
+    <div class="prose">
+<p>Most teams choose an AI model the wrong way round. They pick a well-known model, write a prompt, try it on a handful of items and declare it good enough. The real test comes later, in production, when nobody is measuring. This guide sets out a better order: define the task, build a test set, measure accuracy and cost, and only then commit.</p>
+
+<h2>Define the task before you test anything</h2>
+<p>A model cannot be more precise than the task you give it. Start by writing down exactly what goes in, what comes out and who acts on the result.</p>
+<ul>
+<li><strong>The input.</strong> A product title, a support ticket, an invoice line. State which fields the model sees and which it does not.</li>
+<li><strong>The category list.</strong> Fix it before testing. Every category needs a one-line definition and a clear boundary with its nearest neighbours.</li>
+<li><strong>The output format.</strong> One label, a ranked list, or a label with a confidence flag. Decide whether "none of these" is allowed.</li>
+<li><strong>The cost of an error.</strong> A misrouted ticket may cost minutes. A miscategorised product may replicate across every channel it is sold through. This decides how much accuracy you need.</li>
+</ul>
+<p>If two experienced members of your team would disagree on a category, the model will struggle too. Resolve that ambiguity in the definitions first.</p>
+
+<h2>Build a labelled test set from real data</h2>
+<p>Your test set is the ruler you measure every model against. Build it from real historical items, not invented examples.</p>
+<h3>Size and representativeness</h3>
+<p>Aim for enough items that every category appears a meaningful number of times, including the rare ones. A few hundred items is a sensible starting point for a modest category list. Larger lists need more. Sample across time periods, sources and formats, so the set reflects what the model will actually see.</p>
+<h3>Correct labels</h3>
+<p>Historical labels are often inconsistent, which is usually why you are replacing the manual process. Have a knowledgeable person review each label. Where reviewers disagree, record the agreed answer and update the category definitions.</p>
+<h3>Edge cases and hold-out</h3>
+<p>Deliberately include the difficult items: ambiguous wording, missing fields, items that sit between two categories. Then hold part of the set back. Use one portion while you refine prompts and keep a separate portion untouched for the final comparison. If you tune against the same items you score against, your results will flatter you.</p>
+
+<h2>Measure the right things</h2>
+<p>Overall accuracy is a starting point, not a verdict. A model can score well overall while failing badly on the categories that matter most.</p>
+<ul>
+<li><strong>Accuracy per category.</strong> Look for categories where performance drops. Rare categories often hide here.</li>
+<li><strong>Confusion between similar categories.</strong> Record which category the model chose when it was wrong. Repeated confusion between two neighbours usually points to a definition problem, not a model problem.</li>
+<li><strong>Consistency across runs.</strong> Run the same items more than once. A model that gives different answers to the same input is hard to trust and hard to audit.</li>
+<li><strong>Output validity.</strong> Count responses that are not on your category list or not in the required format. Each one needs handling in production.</li>
+</ul>
+<h3>Prompt design</h3>
+<p>Test every model with the same prompt first, so the comparison is fair. The prompt should include the full category list, each definition, and a short example or two for categories that are easily confused. Ask for a fixed output format. Once you have a baseline, refine the prompt using the development portion of the test set, never the hold-out.</p>
+
+<h2>Know the cost and speed per item</h2>
+<p>Every model has a cost per classification. Work it out before you commit, using your real items and your real prompt.</p>
+<ul>
+<li><strong>Tokens in and out.</strong> Input cost is driven by the prompt and the item. Long category lists and many examples make every call more expensive. Output cost is usually small if you ask for a label only.</li>
+<li><strong>Batching.</strong> Several providers offer lower rates for work that can wait. If results are not needed immediately, batch processing can reduce cost considerably.</li>
+<li><strong>Caching.</strong> The instructions and category list are identical on every call. Where a provider supports prompt caching, that repeated portion can be cheaper.</li>
+<li><strong>Latency.</strong> Measure the time per item and for a full daily volume. A routing step that sits in front of a person needs a fast answer. An overnight tagging run does not.</li>
+</ul>
+<p>Multiply the cost per item by your expected monthly volume. That figure, alongside accuracy, is what you are choosing on.</p>
+
+<h2>Hosted APIs or self-hosted open-weight models</h2>
+<p>There are two broad routes, and each suits a different situation.</p>
+<h3>Hosted API models</h3>
+<p>Models from the major providers are available through an API. There is no infrastructure to run, capability is generally strong and you pay per use. The trade-off is that your data leaves your environment, so contract terms and provider controls matter.</p>
+<h3>Self-hosted open-weight models</h3>
+<p>Open-weight models run on infrastructure you control. Data stays within your environment and the cost profile shifts from per-item charges to compute you provision. The trade-off is operational: someone must deploy, scale, patch and monitor the model. At low volumes that burden often outweighs the savings.</p>
+<h3>Choose on accuracy and cost together</h3>
+<p>The model at the top of a public leaderboard is not necessarily the right one for your task. Leaderboards measure general ability on other people's data. What matters is accuracy on your categories at a cost you can sustain. A model slightly below the best on your test set may cost a fraction as much per item. Decide your minimum acceptable accuracy first, then choose the cheapest model that meets it reliably.</p>
+<p>Our founder followed this approach in work for a previous employer, a global digital-commerce analytics business. It was not client work for Clarke Systems Group. Hosted models from OpenAI and Anthropic and self-hosted open-weight models were benchmarked on accuracy against real categories and on cost per classification before one was chosen. You can read <a href="work-ai-categorisation.html">the AI categorisation case study</a> for the shape of that system.</p>
+
+<h2>Protect the data and monitor after launch</h2>
+<p>Classification inputs often contain customer, supplier or commercial data. Treat the service like any other system that handles it.</p>
+<ul>
+<li>Use business API terms, under which your data is not used for model training by default.</li>
+<li>Restrict access to the service and its results to the people and systems that need it.</li>
+<li>Require multi-factor authentication for anyone with administrative access.</li>
+<li>Keep full audit logs of who accessed what, and when.</li>
+</ul>
+<p>Our <a href="faq.html">FAQ</a> sets out how we handle data on every project.</p>
+<h3>Monitoring accuracy</h3>
+<p>Accuracy at launch is not accuracy for ever. Your inputs change, new categories appear and providers update or retire models. Review a regular sample of live results against a human judgement and track accuracy over time. Watch for drift in particular categories. When a provider changes a model, or you change the prompt or the category list, re-run the hold-out test set before the change goes live.</p>
+
+<h2>A step-by-step evaluation plan</h2>
+<ol>
+<li>Write the task definition: inputs, output format, category list with definitions, and the cost of an error.</li>
+<li>Set a minimum acceptable accuracy, overall and for the categories that matter most.</li>
+<li>Sample real historical items, review the labels, and add deliberate edge cases.</li>
+<li>Split the set into a development portion and an untouched hold-out portion.</li>
+<li>Shortlist candidate models: a mix of hosted and, where data control matters, open-weight.</li>
+<li>Run every candidate on the development portion with the same prompt, then refine.</li>
+<li>Score each candidate on the hold-out: accuracy per category, confusion, consistency and output validity.</li>
+<li>Calculate cost per item and monthly cost at expected volume, and measure latency.</li>
+<li>Choose the cheapest model that meets your accuracy threshold reliably.</li>
+<li>Launch with sampling, accuracy tracking and a process for re-benchmarking.</li>
+</ol>
+<h3>Common mistakes</h3>
+<ul>
+<li>Testing on a few hand-picked examples instead of a representative set.</li>
+<li>Tuning the prompt against the same items used for the final score.</li>
+<li>Reporting only overall accuracy and missing weak categories.</li>
+<li>Choosing the most capable model without calculating cost at real volume.</li>
+<li>Leaving category definitions vague and blaming the model for the confusion.</li>
+<li>Treating launch as the end of measurement.</li>
+</ul>
+<p>If you are planning to replace manual categorisation, <a href="contact.html?topic=AI+processing">send us a brief of your process</a>. We will tell you whether it is a good fit.</p>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Define the task and every category precisely before you test a single model.</li>
+<li>Build a labelled test set from real historical data, include edge cases and keep a hold-out portion untouched.</li>
+<li>Measure accuracy per category, confusion between neighbours and consistency across runs, not just one overall figure.</li>
+<li>Calculate cost per item at real volume and choose the cheapest model that meets your accuracy threshold.</li>
+<li>Protect the data with business API terms, access control, MFA and audit logging, and keep measuring accuracy after launch.</li>
+</ul>
+    </div>
+    <a class="next glass" href="guide-what-to-automate-first.html"><div><small>Next guide</small><span class="h-s">Which processes should you automate first?</span></div><span class="link">Read <svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+  </div>
+  </article>
+  <section class="block-tight"><div class="wrap"><div class="closer glass"><h2 class="h-l">Still classifying data manually?</h2><p class="sub">See it applied to your categories in a 20-minute demo.</p><a class="btn btn-p" href="contact.html?topic=AI+processing">Request a demo</a></div></div></section>
+</div>
+</main>
+
+<footer class="app">
+  <div class="wrap">
+    <div class="foot">
+      
+      <div><h2>Explore</h2><ul><li><a href="index.html#automate">What we automate</a></li><li><a href="work.html">Track record</a></li><li><a href="services.html">Services</a></li><li><a href="guides.html">Guides</a></li><li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h2>Contact</h2><ul><li><a href="contact.html?topic=Demo">Request a demo</a></li><li><a href="mailto:enquiries@clarkesystemsgroup.com">enquiries@clarkesystemsgroup.com</a></li><!-- cfg:social --><!-- /cfg:social --><li><a href="privacy.html">Privacy and cookies</a></li><li><a href="terms.html">Terms</a></li></ul><p class="foot-note">Built on enterprise digital-commerce experience. UK-based. Delivering worldwide.</p></div>
+
+    </div>
+    <div class="foot-mark" aria-hidden="true"><span class="foot-word">Clarke Systems Group</span></div>
+    <div class="legal"><span>Services are provided to businesses only. Terms of business are supplied with every proposal, and our business details are in our <a href="terms.html">terms</a>.</span><span>© 2026 Clarke Systems Group. All rights reserved.</span></div>
+  </div>
+</footer>
+<script src="assets/site.js?v=c5d3b3caf7" defer></script>
+</body>
+</html>

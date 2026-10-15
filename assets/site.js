@@ -24,6 +24,16 @@
     window.addEventListener("load",function(){hold();setTimeout(hold,120);setTimeout(hold,600);});
   })();
   root.classList.add("js");
+  /* Conversion events. Sent only when an analytics provider that supports events (Plausible) is configured. */
+  window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments);};
+  function track(name,props){try{if(document.querySelector('script[src*="plausible.io"]'))window.plausible(name,props?{props:props}:undefined);}catch(err){}}
+  document.addEventListener("click",function(e){
+    var a=e.target.closest&&e.target.closest("a");if(!a)return;
+    var t=a.getAttribute("data-track");
+    if(t)track(t);
+    else if(/^mailto:/.test(a.getAttribute("href")||""))track("Email click");
+    else if(/contact\.html/.test(a.getAttribute("href")||""))track("CTA click",{page:document.body.getAttribute("data-page")||"",label:(a.textContent||"").trim().slice(0,40)});
+  });
   var mq=function(q){return !!(window.matchMedia&&window.matchMedia(q).matches);};
   var reduce=mq("(prefers-reduced-motion: reduce)");
   var hasVT=false; /* page swaps use a plain CSS animation: identical in every browser, nothing can stall */
@@ -53,7 +63,7 @@
     lens.style.opacity="1";
   }
   function setNav(key){
-    var k=(key&&key.indexOf("work")===0)?"work":key;
+    var k=(key&&key.indexOf("work")===0)?"work":(key&&key.indexOf("guide")===0)?"guides":key;
     activeLink=null;
     navLinks.forEach(function(a){var on=a.getAttribute("data-nav")===k;a.classList.toggle("on",on);if(on){activeLink=a;a.setAttribute("aria-current","page");}else a.removeAttribute("aria-current");});
     placeLens(activeLink);
@@ -157,7 +167,7 @@
   function words(v){return v.split(/\s+/).filter(function(w){return w.length>1;}).length;}
   function val(k){return F[k]?(F[k].value||"").trim():"";}
   var service=null,area=null;
-  var PREFILL_MAP={"Integrations":1,"Reporting":1,"Quality checks":1,"Scheduling":1,"AI processing":1,"Internal tools":1};
+  var PREFILL_MAP={"Integrations":1,"Reporting":1,"Quality checks":1,"Scheduling":1,"AI processing":1,"Internal tools":1,"Founding client programme":1};
   var prefillBox=$("#prefill"),prefillVal=$("#prefillVal"),prefillX=$("#prefillX");
   var cTitle=$("#contactTitle"),cLead=$("#contactLead"),modeSw=$("#modeSwitch");
   var MODES={
@@ -263,6 +273,7 @@
   if(ENDPOINT){var cmb=$("#copyMsg");if(cmb)cmb.style.display="none";}
   if(ENDPOINT&&viaNote)viaNote.innerHTML='Your request comes straight to the engineer who will review it. Prefer to write directly? Email <a href="mailto:'+EMAIL+'">'+EMAIL+'</a>. Your details are used as set out in our <a href="privacy.html">privacy notice</a>.';
   function viaEmail(m,msg){
+    track("Email fallback");
     copyText("To: "+EMAIL+"\nSubject: "+m.subject+"\n\n"+m.body,note,msg||"Opening your email app. Your request is also copied, so you can paste it into an email to "+EMAIL+" if nothing opens.");
     try{window.location.href=mailtoHref(m);}catch(err){}
   }
@@ -273,6 +284,7 @@
     box.querySelector("p").textContent=demo?"Thank you, "+val("name").split(" ")[0]+". Your brief is with the engineer who will review it. You will hear back within one business day"+(BOOKING?", or you can choose a time for the 20-minute demo now.":", with proposed times for a 20-minute demo."):"Thank you, "+val("name").split(" ")[0]+". Your brief is with the engineer who will review it. You will hear back within one business day, and receive your written outline within two.";
     if(demo&&BOOKING){var a=document.createElement("a");a.className="btn btn-p";a.href=BOOKING;a.target="_blank";a.rel="noopener";a.textContent="Choose a time now";box.appendChild(a);}
     form.innerHTML="";form.appendChild(box);
+    track(demo?"Demo request":"Assessment request",{topic:area||"None"});
     try{box.focus({preventScroll:false});}catch(err){}
   }
   if(form)form.addEventListener("submit",function(e){
@@ -349,4 +361,22 @@
   window.addEventListener("hashchange",function(){setTimeout(req,120);});
   window.addEventListener("load",req);
   req();
+})();
+/* Services: estimate what one manual process costs, and how quickly a starting build pays back */
+(function(){
+  var f=document.getElementById("roiCalc");if(!f)return;
+  var h=document.getElementById("roiHours"),r=document.getElementById("roiRate"),sh=document.getElementById("roiShare");
+  var ho=document.getElementById("roiHoursOut"),so=document.getElementById("roiShareOut");
+  var oc=document.getElementById("roiCost"),ot=document.getElementById("roiTime"),op=document.getElementById("roiPay"),opl=document.getElementById("roiPayLabel");
+  var WEEKS=46,BUILD=1250,gbp=function(v){return "£"+Math.round(v).toLocaleString("en-GB");};
+  function calc(){
+    var hours=Math.max(0,+h.value||0),rate=Math.min(500,Math.max(0,+r.value||0)),share=(+sh.value||0)/100;
+    ho.textContent=hours+(hours===1?" hour":" hours");so.textContent=Math.round(share*100)+"%";
+    oc.textContent=gbp(hours*rate*WEEKS);
+    ot.textContent=Math.round(hours*share*WEEKS).toLocaleString("en-GB")+" hours";
+    var weekly=hours*share*rate;
+    if(weekly>0){var w=Math.ceil(BUILD/weekly);op.textContent=w>WEEKS?"Over a year":w+(w===1?" week":" weeks");opl.textContent=w>WEEKS?"to recover a build starting at £1,250, so this process may not be the place to start":"to recover a build starting at £1,250";}
+    else{op.textContent="–";opl.textContent="to recover a build starting at £1,250";}
+  }
+  f.addEventListener("input",calc);calc();
 })();

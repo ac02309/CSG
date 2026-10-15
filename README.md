@@ -1,6 +1,8 @@
 # Clarke Systems Group website
 
-The marketing site for [clarkesystemsgroup.com](https://www.clarkesystemsgroup.com/): plain HTML, CSS and JavaScript, hosted on Netlify. There is no build step, so what is in this repository is what is served.
+The marketing site for [clarkesystemsgroup.com](https://www.clarkesystemsgroup.com/): plain HTML, CSS and JavaScript, hosted on Netlify.
+
+**Business details live in `site.config.json`.** Address, founder section, booking link, analytics, founding client programme and testimonials are all switched on from there. **[LAUNCH.md](LAUNCH.md)** explains every field and the decisions behind it.
 
 ## Layout
 
@@ -12,38 +14,28 @@ The marketing site for [clarkesystemsgroup.com](https://www.clarkesystemsgroup.c
 | `assets/sort.js` | The scroll-driven WebGL background on the home page. |
 | `og/` | Per-page social share images (1200×630). |
 | `_headers` | Netlify security and caching headers. |
+| `guides.html`, `guide-*.html` | Guides hub and long-form guides. |
+| `site.config.json` | Owner-supplied details and feature switches. |
+| `scripts/configure.mjs` | Applies the config to the pages and fingerprints CSS/JS references. Run by Netlify on every deploy. |
 | `scripts/check-site.mjs` | Dependency-free site checks, also run in CI. |
+| `netlify.toml`, `_redirects` | Netlify build command, and 404s for repository files that must not be served. |
 
 ## Before you push
 
 ```sh
+node scripts/configure.mjs         # apply site.config.json and refresh asset fingerprints
 node scripts/check-site.mjs        # links, anchors, structured data, page essentials, placeholders
 npx html-validate@8.24.1 "*.html"  # HTML validity
 ```
 
-Both run automatically on every push and pull request (`.github/workflows/checks.yml`).
+All three run automatically on every push and pull request (`.github/workflows/checks.yml`).
 
-When you change `assets/site.css`, `assets/site.js` or `assets/sort.js`, update the `?v=` value on every page that references it, so returning visitors don't get a stale copy.
+Stylesheet and script references carry a content fingerprint (`?v=…`) so returning visitors never get a stale copy. `configure.mjs` updates them automatically, locally and on every Netlify deploy.
 
 ## Contact form
 
-The request form posts to **Netlify Forms**. If a submission can't be sent (for example when the page is opened locally), it falls back to opening a pre-written email in the visitor's email app, so no enquiry is lost.
+The request form posts to **Netlify Forms**. If a submission can't be sent (for example when the page is opened locally, or before form detection is switched on), it falls back to opening a pre-written email in the visitor's email app, so no enquiry is lost. Setup steps are in [LAUNCH.md](LAUNCH.md#1-switch-on-the-contact-form-10-minutes-launch-blocker). To post to a different form service, set `data-endpoint` on `<form id="brief">` in `contact.html` (JSON body) and name the service in the privacy notice.
 
-To switch it on, in the Netlify dashboard:
+## Adding a guide
 
-1. **Forms → Enable form detection**, then redeploy. A form named `brief` should appear.
-2. **Forms → Form notifications → Add notification → Email**, to `enquiries@clarkesystemsgroup.com`.
-
-Optional attributes on `<form id="brief">` in `contact.html`:
-
-- `data-booking="https://…"`: a scheduling link (Cal.com, Calendly, etc.). After a demo request is submitted, the confirmation offers a "Choose a time now" button.
-- `data-endpoint="https://…"`: post to a different form service instead of Netlify Forms (JSON body). If you use one, name it in the privacy notice.
-
-## Launch checklist
-
-These need information only the business owner has:
-
-- [ ] Business address in `terms.html` and `privacy.html` (CI warns while the placeholder remains).
-- [ ] Enable Netlify form detection and email notifications (above).
-- [ ] Optional: add a booking link via `data-booking`.
-- [ ] Optional: privacy-friendly analytics (for example Plausible or Netlify Analytics). Add the provider's script domain to the Content-Security-Policy `<meta>` on each page, and mention it in the privacy notice.
+Copy an existing `guide-*.html`, replace the head metadata, headline, lede and the `.prose` body, add a card to `guides.html`, and add the page to `sitemap.xml`. Keep to the house style: British English, short declarative sentences, no invented statistics.

@@ -26,6 +26,11 @@ for (const page of pages) {
   for (const [, todo] of html.matchAll(/\[([^\]<]*before launch[^\]<]*)\]/gi)) warnings.push(`${page}: placeholder still present: [${todo}]`);
 }
 
+const sitemap = existsSync("sitemap.xml") ? readFileSync("sitemap.xml", "utf8") : "";
+for (const page of pages) {
+  if (page !== "404.html" && !sitemap.includes(`/${page === "index.html" ? "" : page}</loc>`)) errors.push(`sitemap.xml: ${page} is not listed`);
+}
+
 for (const w of warnings) console.log(process.env.GITHUB_ACTIONS ? `::warning::${w}` : `warning: ${w}`);
 for (const e of errors) console.log(process.env.GITHUB_ACTIONS ? `::error::${e}` : `error: ${e}`);
 console.log(`${pages.length} pages checked: ${errors.length} errors, ${warnings.length} warnings.`);

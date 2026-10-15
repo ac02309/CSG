@@ -1,0 +1,6 @@
+# Netlify applies site.config.json on every deploy, so editing the config in GitHub's web editor is
+# enough to update the live site. Running the same command locally and committing the result keeps
+# the repository's HTML in step too, but the deploy does not depend on it.
+[build]
+  command = "node scripts/configure.mjs"
+  publish = "."
