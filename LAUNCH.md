@@ -133,7 +133,7 @@ The config already contains a factual default bio built from the case studies. E
 
 - Third person ("Alex designed…"), two or three sentences.
 - Lead with what you have done, not adjectives about yourself.
-- End with what it means for the buyer: they deal with the engineer doing the work.
+- End with what it means for the buyer: they deal with the team doing the work, through one named lead.
 - Keep it consistent with your LinkedIn.
 
 The three `proof` lines appear as bullet points. Keep them to facts from the case studies.
@@ -149,7 +149,7 @@ The three `proof` lines appear as bullet points. Keep them to facts from the cas
 "founder": {
   "show": true,
   "name": "Alex Clarke",
-  "role": "Founder and lead engineer",
+  "role": "Founder",
   "photo": "assets/img/founder.jpg",
   "photoAlt": "Alex Clarke, founder of Clarke Systems Group",
   "linkedin": "https://www.linkedin.com/in/your-profile",
@@ -163,7 +163,7 @@ With `show: true` and no photo, the section shows your initials on the brand gra
 
 ## 4. Your first client result and testimonial
 
-Every case study on the site is, honestly, from previous employment. One real Clarke Systems Group client result changes the site from "capable engineer" to "proven supplier". The site is already built for it: the founding client programme brings the client in, and the testimonials section displays the result.
+Every case study on the site is, honestly, from previous employment. One real Clarke Systems Group client result changes the site from "capable team" to "proven supplier". The site is already built for it: the founding client programme brings the client in, and the testimonials section displays the result.
 
 ### Step 1: Decide the founding client offer
 
@@ -357,7 +357,7 @@ The headline *"Less admin. Fewer errors. Same team."* is well written but could 
 
 **C. Operations teams generally (today, sharpened)**
 
-- **Headline:** keep *"Less admin. Fewer errors. Same team."* but make the subline name the buyer: *"Automation and AI for operations teams in growing businesses, from the engineer who built them for global brands."*
+- **Headline:** keep *"Less admin. Fewer errors. Same team."* but make the subline name the buyer: *"Automation and AI for operations teams in growing businesses, from the team that built them for global brands."*
 - **Why:** the least change.
 - **Risk:** stays generic.
 

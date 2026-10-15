@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css?v=221739a07f">
+<link rel="stylesheet" href="assets/site.css?v=f2672ac320">
 <noscript><style>.slot{background-image:var(--poster)}.rv{opacity:1!important;transform:none!important}</style></noscript>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/","email":"enquiries@clarkesystemsgroup.com","description":"Automation, AI and data integrations for operations teams.","areaServed":"Worldwide","logo":"https://www.clarkesystemsgroup.com/apple-touch-icon.png","image":"https://www.clarkesystemsgroup.com/og-image.jpg","@id":"https://www.clarkesystemsgroup.com/#org","priceRange":"From £1,250","address":{"@type":"PostalAddress","addressCountry":"GB"},"knowsAbout":["Business process automation","Data integration","AI classification","Automated reporting","Data quality assurance","Capacity planning"]},{"@type":"WebSite","@id":"https://www.clarkesystemsgroup.com/#site","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/","publisher":{"@id":"https://www.clarkesystemsgroup.com/#org"}}]}</script>
 <!-- cfg:analytics --><!-- /cfg:analytics -->
@@ -78,14 +78,16 @@
   </div>
 </section>
 
-<section class="scrolly" id="story" data-drive style="--n:4" aria-labelledby="storyTitle">
-  <div class="wrap scrolly-pin">
-    <div class="scrolly-copy">
-      <h2 class="h2" data-split id="storyTitle">From manual work to finished work.</h2><p class="lede">Scroll to follow the records.</p>
-      <ol class="scrolly-steps"><li data-step><h3>Manual work.</h3><p>Data sits in many systems. People copy it by hand. <strong>Every copy is a chance for an error.</strong></p></li><li data-step><h3>One direct line.</h3><p>Your systems are connected. Data moves on its own. <strong>Nobody types it twice.</strong></p></li><li data-step><h3>Every record checked.</h3><p>Each record is checked against your rules. Errors are held back, with the reason. Good records go through.</p></li><li data-step><h3>Finished work.</h3><p>Reports, plans and updates arrive on time. <strong>Every step is logged</strong>, so you can see it working.</p></li></ol>
-      <div class="scrolly-dots"><button type="button" data-go="0" aria-label="Step 1: Manual work">1</button><button type="button" data-go="1" aria-label="Step 2: One direct line">2</button><button type="button" data-go="2" aria-label="Step 3: Every record checked">3</button><button type="button" data-go="3" aria-label="Step 4: Finished work">4</button><span class="bar" aria-hidden="true"><i></i></span></div>
+<section class="section" id="story" data-drive aria-labelledby="storyTitle">
+  <div class="wrap">
+    <div class="story-grid">
+      <div class="story-copy">
+        <h2 class="h2" data-split id="storyTitle">From manual work to finished work.</h2>
+        <ol class="story-steps"><li data-step><span class="story-n" aria-hidden="true">1</span><h3><button type="button" data-go="0">Manual work.</button></h3><p>Data sits in many systems. People copy it by hand. <strong>Every copy is a chance for an error.</strong></p><span class="story-bar" aria-hidden="true"><i></i></span></li><li data-step><span class="story-n" aria-hidden="true">2</span><h3><button type="button" data-go="1">One direct line.</button></h3><p>Your systems are connected. Data moves on its own. <strong>Nobody types it twice.</strong></p><span class="story-bar" aria-hidden="true"><i></i></span></li><li data-step><span class="story-n" aria-hidden="true">3</span><h3><button type="button" data-go="2">Every record checked.</button></h3><p>Each record is checked against your rules. Errors are held back, with the reason. Good records go through.</p><span class="story-bar" aria-hidden="true"><i></i></span></li><li data-step><span class="story-n" aria-hidden="true">4</span><h3><button type="button" data-go="3">Finished work.</button></h3><p>Reports, plans and updates arrive on time. <strong>Every step is logged</strong>, so you can see it working.</p><span class="story-bar" aria-hidden="true"><i></i></span></li></ol>
+        <button type="button" class="story-play" aria-pressed="false"><svg class="i-pause" aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.8v10.4a.8.8 0 0 0 1.2.7l8.3-5.2a.8.8 0 0 0 0-1.4L5.7 2.1a.8.8 0 0 0-1.2.7z"/></svg><span>Pause</span></button>
+      </div>
+      <div class="story-stage"><div class="slot" data-forms="scatter,line,gate,a" aria-hidden="true" style="--poster:url('/assets/posters/scatter.webp')"></div></div>
     </div>
-    <div class="scrolly-stage"><div class="slot" data-forms="scatter,line,gate,a" aria-hidden="true" style="--poster:url('/assets/posters/scatter.webp')"></div></div>
   </div>
 </section>
 
@@ -109,7 +111,7 @@
       <a class="case-card spot rv" href="work-capacity-planning.html"><span class="case-tag">Scheduling and capacity</span><span class="case-n grad" data-tally="290">290+</span><h3 class="h4">Client projects planned, with no unresolved clashes.</h3><span class="more">Read the case study</span></a>
       <a class="case-card spot rv" href="work-ai-categorisation.html"><span class="case-tag">AI processing</span><span class="case-n grad" data-tally="3">3</span><h3 class="h4">AI model families tested on accuracy and cost.</h3><span class="more">Read the case study</span></a>
     </div>
-    <p style="margin-top:36px"><a class="more" href="approach.html">How every project runs</a></p>
+    <p class="links-row"><a class="more" href="services.html">See prices</a><a class="more" href="approach.html">How every project runs</a></p>
   </div>
 </section>
 
@@ -121,7 +123,7 @@
   <div class="wrap">
     <div class="split rv">
       <div class="copy"><h2 class="h2" data-split id="demoTitle">Your process, automated.</h2>
-        <div class="ctas"><a class="btn btn-primary" data-cta href="contact.html?topic=Demo">Request a demo</a><a class="more" href="contact.html?topic=Assessment">Request a written assessment</a></div></div>
+        <div class="ctas"><a class="btn btn-primary" data-cta href="contact.html?topic=Demo">Request a demo</a><a class="more" href="contact.html?topic=Assessment">Request a written assessment</a></div><p class="cta-note">Free 20-minute demo on your process. Then a written plan and a fixed price, from £1,250. Nothing starts until you approve it.</p></div>
       <div class="slot wide" data-form="b" aria-hidden="true" style="--poster:url('/assets/posters/b.webp')"></div>
     </div>
   </div>
@@ -131,12 +133,7 @@
 <footer class="gfoot">
   <div class="wrap">
     <div class="gfoot-top">
-      <div><p>Talk directly to the engineer who will build your system.</p><a class="gfoot-mail" href="mailto:enquiries@clarkesystemsgroup.com">enquiries@<wbr>clarkesystemsgroup.com</a><p>Every enquiry is answered within one business day.</p></div>
-      <div class="clocks" role="group" aria-label="Local time">
-        <span>London <time data-tz="Europe/London">--:--</time></span>
-        <span>New York <time data-tz="America/New_York">--:--</time></span>
-        <span>Singapore <time data-tz="Asia/Singapore">--:--</time></span>
-      </div>
+      <div><p>Talk directly to the team who will build your system.</p><a class="gfoot-mail" href="mailto:enquiries@clarkesystemsgroup.com">enquiries@<wbr>clarkesystemsgroup.com</a><p>Every enquiry is answered within one business day.</p></div>
     </div>
     <div class="gfoot-cols">
       <div><h2>Solutions</h2><ul><li><a href="integrations.html">Integrations</a></li><li><a href="ai-processing.html">AI processing</a></li><li><a href="reporting.html">Reporting</a></li><li><a href="quality-checks.html">Quality checks</a></li><li><a href="scheduling.html">Scheduling</a></li><li><a href="internal-tools.html">Internal tools</a></li></ul></div>
@@ -148,8 +145,8 @@
   </div>
 </footer>
 <!-- /cfg:footer -->
-<script src="assets/site.js?v=9db075306b" defer></script>
-<script src="assets/motion.js?v=5b99731480" defer></script>
-<script src="assets/film.js?v=c2ab329692" defer></script>
+<script src="assets/site.js?v=efc46b9538" defer></script>
+<script src="assets/motion.js?v=87958229c1" defer></script>
+<script src="assets/film.js?v=3d3613ca87" defer></script>
 </body>
 </html>
