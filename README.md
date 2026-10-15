@@ -64,7 +64,7 @@ Stylesheet and script references carry a content fingerprint (`?v=…`) so retur
 - `[data-drift]`: the ethos in giant type that slides with the scroll.
 - `[data-tally]`: numbers count up quickly (0.8 s) once in view, and are always complete by the time they reach the middle of the screen.
 - `.fold`: every section after the first rises into place, hinged at its top edge, and is perfectly flat by the time it reaches the reading area.
-- `.build-rail`: on wide screens, one isometric block per section in the right margin; the page's stack is built as it is read. Hover names the section; click jumps to it.
+- `.page-scale`: on wide screens, a slim rule in the right margin with one tick per section. A gradient line fills down it as the page is read; the current section has the long tick. Hover names the section; click jumps to it.
 - `.spot`: cards that catch light under the pointer.
 
 The page generator adds `data-split` to every `h1` and section `h2`.

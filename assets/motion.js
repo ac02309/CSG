@@ -11,7 +11,7 @@
      [data-strike]   before and after: today's manual work is struck out, the automated version arrives
      [data-draw]     a process line that draws itself through its steps
      .fold           sections fold up into place as they arrive
-     .build-rail     a stack of blocks in the right margin, one per section, built as the page is read
+     .page-scale     a slim rule in the right margin, one tick per section, filled as the page is read
      .spot           cards that catch a soft light under the pointer
 */
 (function(){
@@ -221,19 +221,21 @@
     parts.push(m);
   });
 
-  /* ---------- the build stack: one block per section in the right margin ----------
-     Blocks below the reader's section are placed; the current one drops into place as the section is read;
-     the rest wait as outlines. Wide screens only, where the margin has room. Hover names the section. */
+  /* ---------- the page scale: a slim rule in the right margin, one tick per section ----------
+     A gradient line fills down the rule as the page is read; the section being read has the long tick, the ones
+     already read are solid, the rest are faint. Wide screens only, where the margin has room. Hover names a tick. */
   (function(){
     var secs=$$("main > section, main > div > section").filter(function(sec){return sec.querySelector("h1,h2");});
     if(secs.length<3||reduce)return;
-    var rail=document.createElement("div");rail.className="build-rail";rail.setAttribute("aria-hidden","true");
-    var blocks=secs.map(function(sec,i){
+    var rail=document.createElement("div");rail.className="page-scale";rail.setAttribute("aria-hidden","true");
+    rail.style.setProperty("--n",secs.length);
+    var fill=document.createElement("b");rail.appendChild(fill);
+    var ticks=secs.map(function(sec,i){
       if(!sec.id)sec.id="s"+(i+1);
       var h=sec.querySelector("h1,h2"),a=document.createElement("a");
-      a.className="br-b";a.href="#"+sec.id;a.tabIndex=-1;
+      a.className="ps-t";a.href="#"+sec.id;a.tabIndex=-1;
       a.innerHTML="<i></i><span></span>";a.querySelector("span").textContent=(h.textContent||"").replace(/\s+/g," ").trim().replace(/\.$/,"");
-      rail.insertBefore(a,rail.firstChild);
+      rail.appendChild(a);
       return a;
     });
     document.body.appendChild(rail);
@@ -242,9 +244,9 @@
     m.update=function(){
       var line=Y+VH*.5,cur=0;
       for(var i=0;i<secs.length;i++)if(m.t[i]<=line)cur=i;
-      var f=clamp((line-m.t[cur])/Math.max(1,Math.min(m.h[cur],VH)),0,1);
-      if(cur!==m.cur){m.cur=cur;blocks.forEach(function(b,i){b.classList.toggle("on",i===cur);b.classList.toggle("set",i<cur);});}
-      blocks[cur].style.setProperty("--d",(1-f*f*(3-2*f)).toFixed(3));
+      var f=clamp((line-m.t[cur])/Math.max(1,m.h[cur]),0,1);
+      if(cur!==m.cur){m.cur=cur;ticks.forEach(function(t,i){t.classList.toggle("on",i===cur);t.classList.toggle("set",i<cur);});}
+      rail.style.setProperty("--p",((cur+(cur<secs.length-1?f:0))/Math.max(1,secs.length-1)).toFixed(4));
     };
     parts.push(m);
   })();
