@@ -5,12 +5,11 @@
 
      [data-split]    headline words rise into place once
      [data-fill]     a statement fills in, word by word, as it is read
-     [data-drive]    a pinned section: its [data-step] children take turns as it scrolls (the 3D follows it)
-     [data-hscroll]  a row of cards that travels sideways while the page scrolls down (wide screens)
-     [data-focus]    a typographic list: the line at the centre of the screen is in focus
+     [data-drive]    scrollytelling: the [data-step] being read drives the scene beside it
+     [data-tally]    numbers that add up as they come into view
+     [data-focus]    a typographic list whose lines fill in as each one is reached
      [data-strike]   before and after: today's manual work is struck out, the automated version arrives
      [data-draw]     a process line that draws itself through its steps
-     [data-drift]    giant words that slide sideways with the scroll
      [data-thread]   anchors for one line that runs down the page through them, drawn as you scroll
      .spot           cards that catch a soft light under the pointer
 */
@@ -71,37 +70,40 @@
     parts.push(m);
   });
 
-  /* ---------- pinned sections: steps take turns ---------- */
+  /* ---------- scrollytelling: the text scrolls as normal; the step being read drives the scene ----------
+     The reading line is the middle of the free screen (below the scene on phones, where it sits on top).
+     The scene's stage is written to el.csgStage for the 3D: whole numbers at rest, blends between. */
+  var ease=function(a,b,x){var t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
   $$("[data-drive]").forEach(function(el){
-    var steps=$$("[data-step]",el),n=Math.max(1,steps.length),m={el:el,t:0,h:1,cur:-1};
-    m.measure=function(){m.t=top(el);m.h=el.offsetHeight;};
+    var steps=$$("[data-step]",el),n=steps.length,pin=el.querySelector(".scrolly-pin"),m={el:el,c:[],line:.5,cur:-1};
+    if(!n)return;
+    el.csgStage=0;
+    m.measure=function(){
+      m.c=steps.map(function(s){return top(s)+s.offsetHeight/2;});
+      var stacked=pin&&getComputedStyle(el.querySelector(".scrolly-grid")).gridTemplateColumns.split(" ").length<2;
+      m.line=stacked?(pin.offsetHeight+(parseFloat(getComputedStyle(pin).top)||0)+VH)/2:VH*.5;
+    };
     m.update=function(){
-      var p=clamp((Y-m.t)/Math.max(1,m.h-VH),0,1);
-      el.style.setProperty("--p",p.toFixed(4));
-      var k=Math.min(n-1,Math.floor(p*n));
-      if(k!==m.cur){m.cur=k;steps.forEach(function(s,i){s.classList.toggle("on",i===k);s.classList.toggle("past",i<k);});}
+      var L=Y+m.line,c=m.c,st;
+      if(L<=c[0])st=0;
+      else if(L>=c[n-1])st=n-1;
+      else{var k=0;while(k<n-2&&L>=c[k+1])k++;st=k+ease(.3,.7,(L-c[k])/(c[k+1]-c[k]));}
+      el.csgStage=st;
+      var a=Math.round(st);
+      if(a!==m.cur){m.cur=a;steps.forEach(function(s,i){s.classList.toggle("on",i===a);s.classList.toggle("past",i<a);});}
     };
     parts.push(m);
   });
 
-  /* ---------- a row that travels sideways on wide screens ---------- */
-  $$("[data-hscroll]").forEach(function(el){
-    var track=el.querySelector(".hs-track"),sticky=el.querySelector(".hs-sticky"),m={el:el,t:0,dist:0,s:0,on:false};
-    if(!track||!sticky)return;
-    m.measure=function(){
-      el.style.height="";track.style.transform="";
-      m.on=!reduce&&VW>=1000;
-      el.classList.toggle("hs-on",m.on);
-      if(!m.on)return;
-      m.dist=Math.max(0,track.scrollWidth-track.clientWidth);
-      el.style.height=(sticky.offsetHeight+m.dist)+"px";
-      m.t=top(el);m.s=parseFloat(getComputedStyle(sticky).top)||0;
-    };
+  /* ---------- numbers that add up as they come into view ---------- */
+  $$("[data-tally]").forEach(function(el){
+    var to=+el.getAttribute("data-tally"),txt=el.textContent,suf=txt.replace(/^[\d,.\s]+/,""),m={el:el,t:0,last:-1};
+    if(reduce)return;
+    m.measure=function(){m.t=top(el);};
     m.update=function(){
-      if(!m.on)return;
-      var p=clamp((Y-m.t+m.s)/Math.max(1,m.dist),0,1);
-      track.style.transform="translate3d("+(-p*m.dist).toFixed(1)+"px,0,0)";
-      el.style.setProperty("--p",p.toFixed(4));
+      var p=clamp((Y+VH*.95-m.t)/(VH*.45),0,1),e=1-Math.pow(1-p,3),v=Math.round(to*e);
+      if(v===m.last)return;m.last=v;
+      el.textContent=v.toLocaleString("en-GB")+(p>=1?suf:"");
     };
     parts.push(m);
   });
@@ -112,8 +114,8 @@
     if(reduce){items.forEach(function(it){it.style.setProperty("--f",1);});return;}
     m.measure=function(){m.c=items.map(function(it){return top(it)+it.offsetHeight/2;});};
     m.update=function(){
-      var mid=Y+VH*.5;
-      items.forEach(function(it,i){var d=Math.abs(m.c[i]-mid)/(VH*.38);it.style.setProperty("--f",(1-clamp(d,0,1)).toFixed(3));});
+      var mid=Y+VH*.62;
+      items.forEach(function(it,i){it.style.setProperty("--f",clamp(1-(m.c[i]-mid)/(VH*.3),0,1).toFixed(3));});
     };
     parts.push(m);
   });
@@ -140,19 +142,6 @@
       var p=clamp((Y+VH*.62-m.t)/m.h,0,1);
       el.style.setProperty("--p",p.toFixed(4));
       steps.forEach(function(s,i){s.classList.toggle("on",p>=m.o[i]);});
-    };
-    parts.push(m);
-  });
-
-  /* ---------- giant words that slide with the scroll ---------- */
-  $$("[data-drift]").forEach(function(el){
-    var rows=$$(".drift-row",el),m={el:el,t:0,h:1};
-    if(reduce)return;
-    m.measure=function(){m.t=top(el);m.h=el.offsetHeight;};
-    m.update=function(){
-      var p=(Y+VH-m.t)/(VH+m.h);
-      if(p<-.1||p>1.1)return;
-      rows.forEach(function(r,i){var dir=i%2?1:-1;r.style.transform="translate3d("+(dir*(p-.5)*VW*.32).toFixed(1)+"px,0,0)";});
     };
     parts.push(m);
   });

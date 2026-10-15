@@ -11,7 +11,7 @@
      b        the Clarke Systems Group mark                     (the call to action)
 
    A [data-forms="scatter,line,gate,a"] element inside a [data-drive] section plays the formations in order,
-   scrubbed by how far the reader has scrolled through that section. Every state is a pure function of the
+   following the step the reader has reached (assets/motion.js works that out from the text itself). Every state is a pure function of the
    scroll position, so scrolling fast, slow or backwards always shows a correct frame.
 
    The numbers are real: 4,000 records (records validated) and 180 errors (errors intercepted), from the
@@ -446,14 +446,12 @@ function fit(v) {
   v.scales = v.forms.map((f) => Math.min(ew / EXT[f].w, eh / EXT[f].h) * 0.94);
 }
 
-// how far through its section the reader is, mapped to a formation index (or a blend of two)
+// which step the reader is on (written by motion.js as el.csgStage: whole numbers at rest, blends between)
 function stageOf(v) {
   if (still !== null) return clamp(still, 0, v.forms.length - 1);
   if (!v.drive || v.forms.length < 2) return 0;
-  const r = v.drive.getBoundingClientRect();
-  const p = clamp(-r.top / Math.max(1, r.height - VH), 0, 1);
-  const n = v.forms.length, s = p * n - 0.5, k = Math.floor(s);
-  return clamp(k + smooth(0.2, 0.8, s - k), 0, n - 1);
+  const st = v.drive.csgStage;
+  return typeof st === "number" && Number.isFinite(st) ? clamp(st, 0, v.forms.length - 1) : 0;
 }
 
 function draw(v, dt) {
