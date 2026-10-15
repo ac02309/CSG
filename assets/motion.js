@@ -73,23 +73,21 @@
   /* ---------- scrollytelling: the text scrolls as normal; the step being read drives the scene ----------
      The reading line is the middle of the free screen (below the scene on phones, where it sits on top).
      The scene's stage is written to el.csgStage for the 3D: whole numbers at rest, blends between. */
-  var ease=function(a,b,x){var t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
   $$("[data-drive]").forEach(function(el){
     var steps=$$("[data-step]",el),n=steps.length,pin=el.querySelector(".scrolly-pin"),m={el:el,c:[],line:.5,cur:-1};
     if(!n)return;
     el.csgStage=0;
     m.measure=function(){
-      m.c=steps.map(function(s){return top(s)+s.offsetHeight/2;});
+      /* a step counts as reached as soon as its top enters the lower part of the screen,
+         so the scene starts changing early and has time to finish while the step is read */
+      m.c=steps.map(function(s){return top(s);});
       var stacked=pin&&getComputedStyle(el.querySelector(".scrolly-grid")).gridTemplateColumns.split(" ").length<2;
-      m.line=stacked?(pin.offsetHeight+(parseFloat(getComputedStyle(pin).top)||0)+VH)/2:VH*.5;
+      m.line=stacked?VH*.8:VH*.68;
     };
     m.update=function(){
-      var L=Y+m.line,c=m.c,st;
-      if(L<=c[0])st=0;
-      else if(L>=c[n-1])st=n-1;
-      else{var k=0;while(k<n-2&&L>=c[k+1])k++;st=k+ease(.1,.9,(L-c[k])/(c[k+1]-c[k]));}
-      el.csgStage=st;
-      var a=Math.round(st);
+      var L=Y+m.line,a=0;
+      for(var i=1;i<n;i++)if(L>=m.c[i])a=i;
+      el.csgStage=a;
       if(a!==m.cur){m.cur=a;steps.forEach(function(s,i){s.classList.toggle("on",i===a);s.classList.toggle("past",i<a);});}
     };
     parts.push(m);

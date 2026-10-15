@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css?v=05efb893ae">
+<link rel="stylesheet" href="assets/site.css?v=431b6cf7d2">
 <noscript><style>.slot{background-image:var(--poster)}.rv{opacity:1!important;transform:none!important}</style></noscript>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"How to catch data errors before they go live","description":"A practical guide to automated quality checks: validation rules, quarantining failures, daily reporting and a step-by-step plan to roll them out.","url":"https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html","mainEntityOfPage":"https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html","image":"https://www.clarkesystemsgroup.com/og/guide-automated-quality-checks.jpg","datePublished":"2026-10-15","dateModified":"2026-10-15","articleSection":"Quality checks","timeRequired":"PT6M","author":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"publisher":{"@type":"Organization","name":"Clarke Systems Group","logo":{"@type":"ImageObject","url":"https://www.clarkesystemsgroup.com/apple-touch-icon.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://www.clarkesystemsgroup.com/guides.html"},{"@type":"ListItem","position":3,"name":"Catching data errors","item":"https://www.clarkesystemsgroup.com/guide-automated-quality-checks.html"}]}]}</script>
 <!-- cfg:analytics --><!-- /cfg:analytics -->
@@ -85,16 +85,16 @@
 <p>Reviewers get tired. They check the fields they expect to be wrong and skim the rest. Two people apply the same rule differently. Under deadline, review is the step that gets shortened. And when an error does reach a live listing, there is rarely a record of what was checked, by whom, or against which rule.</p>
 <p>The failure is structural, not personal. A person can apply judgement. A system can apply the same rule to every record, every time, and write down the result. You need both, but the second should come first.</p>
 
-<h2>Designing validation rules</h2>
-<p>A validation rule is a precise, testable statement about what a correct record looks like. If you cannot express it as pass or fail, it is not yet a rule. Most useful rules fall into five types.</p>
+<h2>Designing checking rules</h2>
+<p>A checking rule is a precise, testable statement about what a correct record looks like. If you cannot express it as pass or fail, it is not yet a rule. Most useful rules fall into five types.</p>
 <h3>Completeness</h3>
-<p>Are the required fields present? A product record for the German market may need a size, a colour, a material and an EAN. If any is blank, the record fails. Define required fields per market or channel, because requirements differ.</p>
+<p>Are the required fields present? A product record for the German market may need a size, a colour, a material and an EAN. If any is blank, the record fails. Define required fields per market or channel, because needs differ.</p>
 <h3>Format</h3>
 <p>Is each value in the expected shape? Barcodes have a fixed length and check digit. Prices use the right decimal separator. Titles sit within the retailer's character limit. Image URLs resolve.</p>
 <h3>Consistency against a source of truth</h3>
 <p>Does the value match the system that owns it? The price in your listing should match the retailer feed or your pricing system. The stock status should match the warehouse. Name the source of truth for each field explicitly, or you will end up comparing two copies of the same error.</p>
 <h3>Cross-field</h3>
-<p>Do fields agree with each other? A product marked as a three-pack should not carry a single-unit barcode. A sale price should be lower than the regular price. A garment in the footwear category is probably miscategorised.</p>
+<p>Do fields agree with each other? A product marked as a three-pack should not carry a single-unit barcode. A sale price should be lower than the regular price. A garment in the footwear category is probably missorted.</p>
 <h3>Business rules</h3>
 <p>Does the record meet your own standards? A minimum of four images per product. No launch before the agreed date. No discount above a set threshold without approval. These rules carry the most value, because nobody outside your organisation will enforce them for you.</p>
 <p>Write each rule down with a short name, the fields it touches, the condition for failure and the reason message a reviewer will see. That last part matters more than it seems.</p>
@@ -111,21 +111,21 @@
 
 <h2>Reporting and measurement</h2>
 <h3>Report daily</h3>
-<p>A check that runs silently is easy to forget. Send a short report every day, automatically, to the people who own the data. Keep it plain: how many records were checked, how many passed, how many were quarantined, and the reasons grouped by rule and market.</p>
+<p>A check that runs silently is easy to forget. Send a short report every day, automatically, to the people who own the data. Keep it plain: how many records were checked, how many passed, how many were held back, and the reasons grouped by rule and market.</p>
 <p>The report should answer two questions at a glance. Is today's release safe to go? What needs fixing first? If it takes longer than a minute to read, it is too long.</p>
 
 <h3>Measure the system</h3>
 <p>Three measures tell you whether your checks are working.</p>
 <ul>
-<li><strong>Errors intercepted.</strong> The number of records quarantined and later corrected before release. This is the clearest evidence of value.</li>
+<li><strong>Errors stopped.</strong> The number of records held back and later corrected before release. This is the clearest evidence of value.</li>
 <li><strong>Rule coverage.</strong> The proportion of known error types that have a rule. Review past incidents and ask whether a rule would have caught each one. If not, write it.</li>
-<li><strong>False positives.</strong> Records quarantined that were actually correct. A rule that fires wrongly erodes trust quickly. Track these and tighten the rule rather than tolerating them.</li>
+<li><strong>False positives.</strong> Records held back that were actually correct. A rule that fires wrongly erodes trust quickly. Track these and tighten the rule rather than tolerating them.</li>
 </ul>
 <p>Review these monthly. Retire rules that never fire and add rules for errors that slipped through.</p>
 
 <h2>Start small, then scale</h2>
 <p>You do not need a data platform to begin. A shared spreadsheet with one row per record, a column per rule and a status column is enough to prove the approach. Google Apps Script or a similar tool can run the checks on a schedule, write the reasons into the sheet and email the daily summary.</p>
-<p>This is not a toy. Our founder designed and delivered a <a href="work-launch-qa.html">launch quality system built in Google Apps Script</a> while employed at a global digital-commerce analytics business. It covered more than 30 markets and over 100 retailer lines, validated more than 4,000 records and intercepted more than 180 errors before release, with daily progress reporting fully automated.</p>
+<p>This is not a toy. Our founder designed and delivered a <a href="work-launch-qa.html">launch quality system built in Google Apps Script</a> while employed at a global digital-commerce analytics business. It covered more than 30 markets and over 100 retailer lines, checked more than 4,000 records and stopped more than 180 errors before release, with daily progress reporting fully automated.</p>
 <p>Move to heavier tooling when the volume, the number of sources or the speed required outgrows the spreadsheet. By then you will know exactly which rules matter.</p>
 
 <h2>A step-by-step rollout plan</h2>
@@ -159,7 +159,7 @@
 <li>Every rule should be testable as pass or fail and carry a clear reason message.</li>
 <li>Cover completeness, format, consistency against a named source of truth, cross-field logic and your own business rules.</li>
 <li>Quarantine failing records with the reason recorded, rather than blocking the whole release.</li>
-<li>Report daily and measure errors intercepted, rule coverage and false positives.</li>
+<li>Report daily and measure errors stopped, rule coverage and false positives.</li>
 <li>Start with a spreadsheet and a script. Scale the tooling once the rules have proved themselves.</li>
 </ul></div><a class="next" href="guide-ai-classification-model-selection.html"><div><small>Next guide</small><span class="h4">Choosing an AI model for classification: accuracy and cost</span></div><span class="link">Read </span></a></div></div>
 </article>
@@ -195,7 +195,7 @@
 </footer>
 <!-- /cfg:footer -->
 <script src="assets/site.js?v=9db075306b" defer></script>
-<script src="assets/motion.js?v=7402c4feb6" defer></script>
-<script src="assets/film.js?v=873e4d632c" defer></script>
+<script src="assets/motion.js?v=73f3e2e765" defer></script>
+<script src="assets/film.js?v=96d7686dec" defer></script>
 </body>
 </html>
