@@ -161,8 +161,8 @@
   var prefillBox=$("#prefill"),prefillVal=$("#prefillVal"),prefillX=$("#prefillX");
   var cTitle=$("#contactTitle"),cLead=$("#contactLead"),modeSw=$("#modeSwitch");
   var MODES={
-    demo:{t:"Request a demo.",l:"Every demo is tailored to your operations, so we begin with a short brief. Each request is reviewed within one business day and, where there is a strong fit, we will propose times for a 20-minute session.",b:"Request a demo",sw:"Request a written assessment instead",to:"Assessment",title:"Request a demo · Clarke Systems Group"},
-    written:{t:"Request a written assessment.",l:"Share a short brief of the process. Each request is reviewed within one business day and, where there is a strong fit, you will receive a written outline and estimate within two business days. No call required.",b:"Request an assessment",sw:"Request a tailored demo instead",to:"Demo",title:"Request a written assessment · Clarke Systems Group"}
+    demo:{t:"Request a demo.",l:"Every demo is built around your operations, so we start with a brief. We review every request within one business day. If we can deliver measurable value, we propose times for a 20-minute session.",b:"Request a demo",sw:"Request a written assessment instead",to:"Assessment",title:"Request a demo · Clarke Systems Group"},
+    written:{t:"Request a written assessment.",l:"Send a short brief of the process. We review every request within one business day. If we can deliver measurable value, you receive a written outline and estimate within two business days. No call required.",b:"Request an assessment",sw:"Request a demo instead",to:"Demo",title:"Request a written assessment · Clarke Systems Group"}
   };
   function showPrefill(){
     var demo=service==="Demo",M=MODES[demo?"demo":"written"];

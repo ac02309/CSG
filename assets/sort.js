@@ -241,6 +241,16 @@
     stacked=true;
     var ss=mobile?Math.min(W*.25,92):108;return {x:r.left+ss*1.1,y:r.top-(mobile?108:118),s:ss,a:1};
   }
+  /* How it works sits in two columns on desktop: the shape fills the left column, under the heading */
+  function procField(head){
+    if(!head)return null;
+    var split=head.parentElement&&head.parentElement.classList.contains("flow-split"),flowEl=document.getElementById("flow");
+    if(!split||!flowEl||mobile||window.innerWidth<=1000)return headField(head);
+    var r=docRect(head),f=docRect(flowEl),colW=Math.max(160,f.left-r.left-40);
+    var below=Math.max(160,f.top+f.height-(r.top+r.height));
+    var s=Math.min(colW*.36,below*.34,190);
+    return {x:r.left+colW*.46,y:r.top+r.height+below*.48,s:s,a:1};
+  }
   function layout(){
     var small=window.innerWidth<900;
     DPR=Math.min(window.devicePixelRatio||1,small?2.5:1.5);
@@ -261,8 +271,8 @@
     var ht=home.querySelector('.hero-top');D.mask=ht?docRect(ht):null;
     stacked=false;
     D.work=headField(home.querySelector('[aria-labelledby="workTitle"] .head'));
-    D.proc=headField(home.querySelector('#process .head'));
-    if(root.classList.contains("sort-stack")!==stacked){root.classList.toggle("sort-stack",stacked);D.work=headField(home.querySelector('[aria-labelledby="workTitle"] .head'));D.proc=headField(home.querySelector('#process .head'));}
+    D.proc=procField(home.querySelector('#process .head'));
+    if(root.classList.contains("sort-stack")!==stacked){root.classList.toggle("sort-stack",stacked);D.work=headField(home.querySelector('[aria-labelledby="workTitle"] .head'));D.proc=procField(home.querySelector('#process .head'));}
     D.mark=null;
     if(markEl){var mr=docRect(markEl);if(mr.width>10)D.mark={x:mr.left+mr.width/2,y:mr.top+mr.height*.46,s:mr.width/2,a:mobile?1.6:1};}
     D.max=Math.max(0,root.scrollHeight-H);

@@ -549,3 +549,29 @@ textarea.input.input-sm,.contact-grid textarea.input.input-sm{min-height:72px}
 .fstep+.fstep .fbody::before{display:block!important;top:calc(-1 * clamp(28px,3.4vw,44px))}
 .fdesc{max-width:62ch}
 @media (max-width:760px){.fbody{grid-column:2;grid-row:auto}.fstep+.fstep .fbody::before{top:-26px}}
+/* how it works: tuned rhythm. Readable measure, even spacing, titles centred on their nodes */
+#process .head{margin-bottom:clamp(32px,3.6vw,48px)}
+.flow{--nd:52px;max-width:860px}
+.fstep{column-gap:clamp(22px,2.6vw,36px);padding:clamp(22px,2.2vw,30px) 0}
+.flow-fill+.fstep{padding-top:0}
+.fstep+.fstep .fbody::before{top:calc(-1 * clamp(22px,2.2vw,30px))}
+.fbody{gap:8px}
+.fstep .h-s{padding-top:0;font-size:clamp(22px,2vw,28px);line-height:1.15;margin-top:calc(var(--nd) / 2 - .575em)}
+.fdesc{max-width:60ch;font-size:clamp(16px,1.15vw,18px)}
+.fnode{font-size:18px}
+@media (max-width:760px){
+  .flow{--nd:44px}
+  .fstep{column-gap:16px;padding:20px 0}
+  .fstep+.fstep .fbody::before{top:-20px}
+  .fstep .h-s{font-size:21px}
+}
+/* how it works: heading left, steps right on desktop */
+.flow-split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);column-gap:clamp(40px,6vw,104px);align-items:start}
+.flow-split .head{margin-bottom:0}
+.flow-split .flow{max-width:none}
+.flow-split .fdesc{max-width:62ch}
+@media (max-width:1000px){
+  .flow-split{grid-template-columns:minmax(0,1fr)}
+  .flow-split .head{margin-bottom:clamp(32px,3.6vw,48px)}
+}
+@media (min-width:1001px){.flow-split .head{position:sticky;top:calc(env(safe-area-inset-top,0px) + 120px)}}
