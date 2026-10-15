@@ -78,15 +78,15 @@
     if(!n)return;
     el.csgStage=0;
     m.measure=function(){
-      /* a step counts as reached as soon as its top enters the lower part of the screen,
-         so the scene starts changing early and has time to finish while the step is read */
-      m.c=steps.map(function(s){return top(s);});
+      /* the step being read is the one nearest the middle of the reading area: the middle of the screen,
+         or, on phones where the scene sits on top, the middle of the space below it */
+      m.c=steps.map(function(s){var h=s.querySelector("h3")||s;return top(h)+h.offsetHeight/2;});
       var stacked=pin&&getComputedStyle(el.querySelector(".scrolly-grid")).gridTemplateColumns.split(" ").length<2;
-      m.line=stacked?VH*.8:VH*.68;
+      m.line=stacked?(pin.offsetHeight+(parseFloat(getComputedStyle(el.querySelector(".scrolly-stage")).top)||0)+VH)/2:VH*.5;
     };
     m.update=function(){
-      var L=Y+m.line,a=0;
-      for(var i=1;i<n;i++)if(L>=m.c[i])a=i;
+      var L=Y+m.line,a=0,best=1e9;
+      for(var i=0;i<n;i++){var d=Math.abs(m.c[i]-L);if(d<best){best=d;a=i;}}
       el.csgStage=a;
       if(a!==m.cur){m.cur=a;steps.forEach(function(s,i){s.classList.toggle("on",i===a);s.classList.toggle("past",i<a);});}
     };
@@ -235,6 +235,6 @@
   window.addEventListener("resize",onResize);
   window.addEventListener("load",measure);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
-  if("ResizeObserver" in window){var lastH=0;new ResizeObserver(function(){var h=document.body.offsetHeight;if(Math.abs(h-lastH)>40){lastH=h;onResize();}}).observe(document.body);}
+  if("ResizeObserver" in window){var lastH=0;new ResizeObserver(function(){var h=document.body.offsetHeight;if(h!==lastH){lastH=h;onResize();}}).observe(document.body);}
   measure();
 })();

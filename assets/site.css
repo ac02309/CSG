@@ -52,7 +52,7 @@ main{position:relative;z-index:0}
 .slot{position:relative;width:100%;aspect-ratio:1/1;background:transparent center/contain no-repeat;z-index:1}
 .slot.wide{aspect-ratio:16/10}
 .slot.cinema{aspect-ratio:2/1}
-.slot canvas.view{position:absolute;left:-14%;top:-14%;width:128%;height:128%;pointer-events:none}
+.slot canvas.view{position:absolute;left:-14%;top:-14%;width:128%;height:128%;max-width:none;pointer-events:none}
 .scene-off .slot,.slot.view-off{background-image:var(--poster)}
 
 /* ---------- type ---------- */
@@ -554,7 +554,7 @@ main{animation:pageIn .6s var(--ease) both}
 
 /* scrollytelling: the steps scroll as normal text; the scene holds beside them and follows the step being read */
 .scrolly-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,80px);align-items:start}
-.scrolly-steps{list-style:none;margin:0;padding:6vh 0 46vh}
+ol.scrolly-steps{list-style:none;margin:0;padding:24vh 0 46vh}
 .scrolly-steps>li{min-height:44vh;display:grid;align-content:center;gap:14px;padding-block:24px;opacity:.28;transition:opacity .5s var(--ease)}
 .scrolly-steps>li.on{opacity:1}
 .motion-off .scrolly-steps>li,html:not(.js) .scrolly-steps>li{opacity:1;min-height:0;padding-block:28px}
@@ -565,15 +565,15 @@ main{animation:pageIn .6s var(--ease) both}
 .scrolly-steps .meta{font-size:14px;color:var(--cobalt);font-weight:600}
 .scrolly-stage{height:100%}
 .scrolly-pin{position:sticky;top:calc(var(--stick) + 4vh);height:calc(92vh - var(--stick));display:grid;place-items:center}
-.scrolly-pin .slot{width:100%;max-height:100%;aspect-ratio:1/1}
+.scrolly-pin .slot{width:min(100%,calc((92vh - var(--stick)) * .78));aspect-ratio:1/1}
 .scrolly-dots{position:absolute;left:0;bottom:2vh;display:flex;gap:8px}
 .scrolly-dots i{width:24px;height:3px;border-radius:3px;background:var(--rule);transition:background-color .4s}
 @media (max-width:860px){
   .scrolly-grid{grid-template-columns:minmax(0,1fr);gap:0}
   .scrolly-stage{order:-1;position:sticky;top:var(--stick);z-index:2;height:auto}
   .scrolly-pin{position:relative;top:0;height:40vh;background:linear-gradient(var(--mist) 82%,rgba(243,245,248,0))}
-  .scrolly-pin .slot{height:100%;width:auto;max-width:100%}
-  .scrolly-steps{padding:2vh 0 34vh}
+  .scrolly-pin .slot{height:78%;width:auto;max-width:78%}
+  ol.scrolly-steps{padding:4vh 0 30vh}
   .scrolly-steps>li{min-height:38vh}
 }
 
