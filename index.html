@@ -2,6 +2,8 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; form-action 'self' mailto:; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Clarke Systems Group | Automation and AI for operations teams</title>
 <meta name="description" content="Automation, AI and data integrations for operations teams, built on enterprise digital-commerce experience. Fixed-scope builds from £1,250. UK-based. Delivering worldwide.">
@@ -16,14 +18,16 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Clarke Systems Group: less admin, fewer errors, same team.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.clarkesystemsgroup.com/og-image.png">
 <meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07090c" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/","email":"enquiries@clarkesystemsgroup.com","description":"Automation, AI and data integrations for operations teams.","areaServed":"Worldwide","logo":"https://www.clarkesystemsgroup.com/apple-touch-icon.png","image":"https://www.clarkesystemsgroup.com/og-image.png"}</script>
+<link rel="stylesheet" href="assets/site.css?v=04bb2e3c1d">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/","email":"enquiries@clarkesystemsgroup.com","description":"Automation, AI and data integrations for operations teams.","areaServed":"Worldwide","logo":"https://www.clarkesystemsgroup.com/apple-touch-icon.png","image":"https://www.clarkesystemsgroup.com/og-image.png","@id":"https://www.clarkesystemsgroup.com/#org","priceRange":"From £1,250","address":{"@type":"PostalAddress","addressCountry":"GB"},"knowsAbout":["Business process automation","Data integration","AI classification","Automated reporting","Data quality assurance","Capacity planning"]},{"@type":"WebSite","@id":"https://www.clarkesystemsgroup.com/#site","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/","publisher":{"@id":"https://www.clarkesystemsgroup.com/#org"}}]}</script>
+<!-- cfg:analytics --><!-- /cfg:analytics -->
 </head>
 <body data-page="home">
 <a class="skip" href="#main" id="skip">Skip to content</a>
@@ -40,6 +44,7 @@
       <li><a href="index.html#automate" data-nav="automate">What we automate</a></li>
       <li><a href="work.html" data-nav="work">Track record</a></li>
       <li><a href="services.html" data-nav="services">Services</a></li>
+      <li><a href="guides.html" data-nav="guides">Guides</a></li>
       <li><a href="faq.html" data-nav="faq">FAQ</a></li>
       <li class="lens" id="lens" aria-hidden="true"></li>
     </ul>
@@ -52,6 +57,7 @@
     <a href="index.html#automate">What we automate</a>
     <a href="work.html">Track record</a>
     <a href="services.html">Services</a>
+    <a href="guides.html">Guides</a>
     <a href="faq.html">FAQ</a>
     <a href="contact.html?topic=Demo">Request a demo</a>
   </div>
@@ -109,7 +115,7 @@
         </a>
         <a class="case-card glass rv" href="work-ai-categorisation.html">
           <span class="tag">AI processing and integrations</span>
-          <div><span class="big" data-count="3" data-suffix="">3</span><p class="cap">AI model families benchmarked for accuracy and cost before deployment</p></div>
+          <div><span class="big" data-count="3" data-suffix="">3</span><p class="cap">AI model families benchmarked on accuracy and cost per item before one went live</p></div>
           <div><h3 class="h-s">AI categorisation replacing manual classification</h3><span class="link">Read the case study <svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </a>
       </div>
@@ -119,16 +125,20 @@
       </div>
     </div>
   </section>
+  <!-- cfg:testimonials --><!-- /cfg:testimonials -->
+
   <section class="block" id="why" aria-labelledby="whyTitle">
     <div class="wrap">
       <div class="head rv"><h2 class="h-l" id="whyTitle">Why Clarke Systems Group.</h2><p class="sub">Enterprise discipline. Any size of business.</p></div>
       <ul class="why rv">
         <li><h3 class="h-s">Accuracy as standard</h3><p>We come from product data for global consumer brands, where one error can replicate across every retailer and market. Every system we deliver validates its own output.</p></li>
-        <li><h3 class="h-s">Proven at scale</h3><p>Quality assurance across 30+ markets. Capacity planning for 290+ client projects. AI selected on measured accuracy and cost.</p></li>
+        <li><h3 class="h-s">Built to run unattended</h3><p>Scheduled reporting, audit trails and accuracy monitoring are built in, so you can see a system is working without checking it by hand.</p></li>
         <li><h3 class="h-s">Engineering-led delivery</h3><p>The engineer who scopes your system builds and supports it. One accountable lead, from discovery to go-live.</p></li>
       </ul>
     </div>
   </section>
+  <!-- cfg:founder --><!-- /cfg:founder -->
+
   <section class="block" id="process" aria-labelledby="processTitle">
     <div class="wrap">
       <div class="head rv"><h2 class="h-l" id="processTitle">How it works.</h2><p class="sub">Four stages, from brief to live system.</p></div>
@@ -171,8 +181,8 @@
   <div class="wrap">
     <div class="foot">
       
-      <div><h2>Explore</h2><ul><li><a href="index.html#automate">What we automate</a></li><li><a href="work.html">Track record</a></li><li><a href="services.html">Services</a></li><li><a href="faq.html">FAQ</a></li></ul></div>
-      <div><h2>Contact</h2><ul><li><a href="contact.html?topic=Demo">Request a demo</a></li><li><a href="mailto:enquiries@clarkesystemsgroup.com">enquiries@clarkesystemsgroup.com</a></li><li><a href="privacy.html">Privacy and cookies</a></li><li><a href="terms.html">Terms</a></li></ul><p class="foot-note">Built on enterprise digital-commerce experience. UK-based. Delivering worldwide.</p></div>
+      <div><h2>Explore</h2><ul><li><a href="index.html#automate">What we automate</a></li><li><a href="work.html">Track record</a></li><li><a href="services.html">Services</a></li><li><a href="guides.html">Guides</a></li><li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h2>Contact</h2><ul><li><a href="contact.html?topic=Demo">Request a demo</a></li><li><a href="mailto:enquiries@clarkesystemsgroup.com">enquiries@clarkesystemsgroup.com</a></li><!-- cfg:social --><!-- /cfg:social --><li><a href="privacy.html">Privacy and cookies</a></li><li><a href="terms.html">Terms</a></li></ul><p class="foot-note">Built on enterprise digital-commerce experience. UK-based. Delivering worldwide.</p></div>
 
     </div>
     <div class="foot-mark" aria-hidden="true"><span class="foot-word">Clarke Systems Group</span></div>
@@ -191,7 +201,7 @@
     <div class="ctas"><a class="btn btn-p" href="contact.html" id="sheetCta">Request a demo</a><a class="btn btn-g" href="work.html" id="sheetCase">View related case study</a></div>
   </div>
 </dialog>
-<script src="assets/site.js" defer></script>
-<script src="assets/sort.js" defer></script>
+<script src="assets/site.js?v=c5d3b3caf7" defer></script>
+<script src="assets/sort.js?v=17cb20d531" defer></script>
 </body>
 </html>

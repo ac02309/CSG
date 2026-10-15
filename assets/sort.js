@@ -42,8 +42,7 @@
   "    sz=(1.3+aSeed.y*1.9)*q.z+bok*(7.+aSeed.z*12.);",
   "    col=mix(uHi,uAcc,smoothstep(0.,.32,r));col=mix(col,uBlue,smoothstep(.35,1.,r)*(.35+.65*aSeed.z));",
   "    a=(.45+.55*(1.-smoothstep(0.,1.3,r)))*(.65+.35*sin(t*.9+aSeed.x*40.))*depth(q.z);",
-  "    float inM=smoothstep(uMask.x-40.,uMask.x+20.,pos.x)*smoothstep(uMask.z+40.,uMask.z-20.,pos.x)*smoothstep(uMask.y-40.,uMask.y+20.,pos.y)*smoothstep(uMask.w+40.,uMask.w-20.,pos.y);",
-  "    a=mix(a,.05,bok)*uF[0].w*(1.-.72*inM);",
+  "    a=mix(a,.05,bok)*uF[0].w;",
   "  }else if(k==1){",
   "    float u=fract(aRib.x+t*.011);float side=step(.5,aSeed.z);",
   "    float ph=u*6.2832*1.05+t*.17;",
@@ -106,6 +105,7 @@
   "    pos=mix(pA,pB,e)+n*sin(PI*e)*(aSeed.y-.5)*.55;",
   "    sz=mix(sA,sB,e);col=mix(cA,cB,e);a=mix(aA,aB,e)*(1.-.25*sin(PI*e));",
   "  }",
+  "  float inM=smoothstep(uMask.x-40.,uMask.x+20.,pos.x)*smoothstep(uMask.z+40.,uMask.z-20.,pos.x)*smoothstep(uMask.y-40.,uMask.y+20.,pos.y)*smoothstep(uMask.w+40.,uMask.w-20.,pos.y);a*=1.-.72*inM;",
   "  vec2 c=pos/uRes*2.-1.;gl_Position=vec4(c.x,-c.y,0.,1.);",
   "  gl_PointSize=min(max(sz,1.5)*uSizeMul,64.)*uDpr;vCol=col;vA=a*uGain*uAlphaMul;",
   "}"].join("\n");

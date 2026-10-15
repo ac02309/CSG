@@ -1,0 +1,61 @@
+{
+  "_readme": "Business details that only the owner can supply. Edit, then run: node scripts/configure.mjs. Leave a value empty to keep that feature switched off. See LAUNCH.md for what to put in each field.",
+
+  "business": {
+    "legalName": "Alex Clarke",
+    "address": {
+      "line1": "",
+      "line2": "",
+      "town": "",
+      "postcode": "",
+      "country": "United Kingdom"
+    },
+    "linkedin": ""
+  },
+
+  "founder": {
+    "show": false,
+    "name": "Alex Clarke",
+    "role": "Founder and lead engineer",
+    "photo": "",
+    "photoAlt": "Alex Clarke, founder of Clarke Systems Group",
+    "linkedin": "",
+    "bio": "Alex designed and delivered automation systems in enterprise digital commerce, where one wrong record can repeat across every retailer and market. Every Clarke Systems Group project is scoped, built and supported by Alex personally, so you deal with the engineer doing the work from the first call to go-live.",
+    "proof": [
+      "Launch quality assurance across 30+ markets",
+      "Capacity planning for 290+ client projects",
+      "AI categorisation selected on measured accuracy and cost"
+    ]
+  },
+
+  "booking": {
+    "url": ""
+  },
+
+  "analytics": {
+    "provider": "none",
+    "domain": "www.clarkesystemsgroup.com",
+    "cloudflareToken": ""
+  },
+
+  "foundingClients": {
+    "show": false,
+    "places": 3,
+    "offer": "",
+    "closes": ""
+  },
+
+  "testimonials": [
+    {
+      "consent": false,
+      "quote": "",
+      "name": "",
+      "role": "",
+      "company": "",
+      "result": "",
+      "resultLabel": "",
+      "caseStudy": "",
+      "foundingClient": false
+    }
+  ]
+}
