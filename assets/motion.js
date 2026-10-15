@@ -5,11 +5,13 @@
 
      [data-split]    headline words rise into place once
      [data-fill]     a statement fills in, word by word, as it is read
-     [data-drive]    the story: every step listed; the scene plays them once while in view, then rests
-     [data-tally]    numbers that add up as they come into view
+     [data-drive]    the story: every step listed; the scene plays them once while in view, then rests, replays on return
+     [data-tally]    numbers that count up quickly once in view, always complete by the middle of the screen
      [data-focus]    a typographic list whose lines fill in as each one is reached
      [data-strike]   before and after: today's manual work is struck out, the automated version arrives
      [data-draw]     a process line that draws itself through its steps
+     .fold           sections fold up into place as they arrive
+     .build-rail     a stack of blocks in the right margin, one per section, built as the page is read
      .spot           cards that catch a soft light under the pointer
 */
 (function(){
@@ -22,6 +24,7 @@
   var VH=window.innerHeight,VW=window.innerWidth,Y=window.pageYOffset,DOC=1;
   var parts=[];
   function top(el){var r=el.getBoundingClientRect();return r.top+window.pageYOffset;}
+  function layoutTop(el){var y=0;while(el){y+=el.offsetTop;el=el.offsetParent;}return y;}
 
   /* wrap every word of an element's text in spans, keeping inner markup (strong, em, line spans) */
   function wrapWords(el,outer,inner){
@@ -71,21 +74,14 @@
 
   /* ---------- the story: plays once while in view, every step listed, any step can be chosen ----------
      Each step is a short change into it (MOVE) and then a rest on it (HOLD). The step's text is highlighted from
-     the moment the change starts, and its bar fills over its turn. It plays once, from step 1 to step 4, and then
-     stays on the finished state; scrolled past before the end, it finishes at once, so it is never left half-built.
+     the moment the change starts, and its bar fills over its turn. It plays from step 1 to step 4, rests on the
+     finished state, and plays again from step 1 whenever it comes back on screen after leaving it.
      The scene's stage is written to el.csgStage for the 3D. Nothing here depends on the scroll speed. */
   $$("[data-drive]").forEach(function(el){
-    var steps=$$("[data-step]",el),n=steps.length,box=el.querySelector(".story-grid")||el,btn=el.querySelector(".story-play");
+    var steps=$$("[data-step]",el),n=steps.length,box=el.querySelector(".story-grid")||el;
     if(!n)return;
-    var MOVE=1.8,HOLD=3.6,S=MOVE+HOLD,END=n*S,t=MOVE,seen=false,inView=false,paused=reduce,done=false,raf=0,last=0,cur=-1;
-    var label=btn&&btn.querySelector("span");
+    var MOVE=1.1,HOLD=1.7,S=MOVE+HOLD,END=n*S,t=MOVE,seen=false,inView=false,paused=reduce,done=false,raf=0,last=0,cur=-1;
     var ease=function(x){return x*x*(3-2*x);};
-    function setBtn(){
-      if(!btn)return;
-      btn.setAttribute("aria-pressed",paused&&!done?"true":"false");
-      label.textContent=done?"Play again":paused?"Play":"Pause";
-      btn.classList.toggle("is-done",done);
-    }
     function render(){
       var tt=Math.min(t,END-1e-6),j=Math.floor(tt/S),r=tt-j*S,st=r<MOVE&&j>0?j-1+ease(r/MOVE):j;
       el.csgStage=st;
@@ -95,7 +91,7 @@
       }
       steps.forEach(function(s,i){s.style.setProperty("--t",i<j?1:i>j?0:(done?1:r/S).toFixed(4));});
     }
-    function finish(){t=END;done=true;stop();render();setBtn();}
+    function finish(){t=END;done=true;stop();render();}
     function tick(now){
       raf=0;
       /* real elapsed time, so a slow frame never slows the story down */
@@ -107,44 +103,49 @@
     function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
     el.csgStage=0;
     if(reduce){done=true;t=END;}
-    render();setBtn();
+    render();
     if("IntersectionObserver" in window&&!reduce){
+      /* playing needs a third of it on screen; it replays from step 1 each time it comes back after leaving the
+         screen completely, so it can always be seen again, and a small scroll never restarts it */
+      var left=false;
       new IntersectionObserver(function(es){
         es.forEach(function(e){
-          inView=e.isIntersecting;
-          if(inView){seen=true;run();}
-          else{stop();if(seen&&!done&&e.boundingClientRect.top<0)finish();}
+          if(!e.isIntersecting)left=true;
+          inView=e.isIntersecting&&e.intersectionRatio>=.34;
+          if(inView){
+            if(left&&seen){t=MOVE;done=false;render();}
+            seen=true;left=false;run();
+          }else stop();
         });
-      },{threshold:.35}).observe(box);
+      },{threshold:[0,.35]}).observe(box);
     }else if(!reduce){inView=true;run();}
     document.addEventListener("visibilitychange",function(){if(document.hidden)stop();else run();});
     steps.forEach(function(s,i){
       var b=s.querySelector("[data-go]");
       if(b)b.addEventListener("click",function(){
-        /* a chosen step is shown and the story rests on it; Play continues from there */
-        t=i*S+(i===0?MOVE:0);done=false;paused=true;
-        if(reduce){t=i*S+MOVE;}
-        stop();render();setBtn();
-        if(!reduce){var t0=performance.now(),from=i*S,go=function(now){t=Math.min(i*S+MOVE,from+(now-t0)/1000);render();if(t<i*S+MOVE)requestAnimationFrame(go);};if(i>0)requestAnimationFrame(go);}
+        /* a chosen step plays its change, then the story carries on from there */
+        t=reduce?i*S+MOVE:i*S+(i===0?MOVE:0);done=reduce;paused=reduce;
+        stop();render();run();
       });
-    });
-    if(btn)btn.addEventListener("click",function(){
-      if(done){t=MOVE;done=false;paused=false;}
-      else paused=!paused;
-      setBtn();render();
-      if(paused)stop();else run();
     });
   });
 
   /* ---------- numbers that add up as they come into view ---------- */
   $$("[data-tally]").forEach(function(el){
-    var to=+el.getAttribute("data-tally"),txt=el.textContent,suf=txt.replace(/^[\d,.\s]+/,""),m={el:el,t:0,last:-1};
+    var to=+el.getAttribute("data-tally"),txt=el.textContent,suf=txt.replace(/^[\d,.\s]+/,""),m={el:el,t:0,state:0};
     if(reduce)return;
+    el.textContent="0";
+    function show(v,end){el.textContent=v.toLocaleString("en-GB")+(end?suf:"");}
+    function done(){m.state=2;show(to,true);}
     m.measure=function(){m.t=top(el);};
     m.update=function(){
-      var p=clamp((Y+VH*.95-m.t)/(VH*.45),0,1),e=1-Math.pow(1-p,3),v=Math.round(to*e);
-      if(v===m.last)return;m.last=v;
-      el.textContent=v.toLocaleString("en-GB")+(p>=1?suf:"");
+      if(m.state===2)return;
+      var at=m.t-Y;
+      if(at<VH*.5){done();return;}
+      if(m.state===0&&at<VH*.9){
+        m.state=1;var t0=performance.now(),D=800;
+        (function step(now){if(m.state===2)return;var k=Math.min(1,(now-t0)/D);if(k>=1){done();return;}show(Math.round(to*(1-Math.pow(1-k,3))),false);requestAnimationFrame(step);})(t0);
+      }
     };
     parts.push(m);
   });
@@ -199,6 +200,55 @@
   var bar=document.querySelector(".progress i");
   if(bar)parts.push({measure:function(){DOC=Math.max(1,document.documentElement.scrollHeight-VH);},update:function(){bar.style.transform="scaleX("+clamp(Y/DOC,0,1).toFixed(4)+")";}});
 
+  /* ---------- sections fold up into place ----------
+     Each section after the first rises like a panel hinged at its top edge: tilted back while its top is in the
+     lower part of the screen, flat by the time it reaches the reading area. Pure function of scroll; flat (no
+     transform at all) whenever it is not moving, so sticky headings and layout are untouched. */
+  var folds=reduce?[]:$$("main > section, main > div > section").filter(function(sec,i,all){return !sec.classList.contains("hero")&&sec!==all[0]&&!sec.closest(".hero");});
+  folds.forEach(function(sec){
+    var m={el:sec,t:0,last:-1};
+    sec.classList.add("fold");
+    m.measure=function(){m.t=layoutTop(sec);};
+    m.update=function(){
+      var at=m.t-Y,q=clamp((at-VH*.6)/(VH*.4),0,1);
+      q=Math.round(q*1000)/1000;
+      if(q===m.last)return;m.last=q;
+      if(q<=0){sec.style.transform="";sec.style.opacity="";return;}
+      var e=q*q*(3-2*q);
+      sec.style.transform="perspective(100rem) translate3d(0,"+(e*2.5).toFixed(3)+"rem,0) rotateX("+(-e*8).toFixed(3)+"deg) scale("+(1-e*.035).toFixed(4)+")";
+      sec.style.opacity=(1-e*.45).toFixed(3);
+    };
+    parts.push(m);
+  });
+
+  /* ---------- the build stack: one block per section in the right margin ----------
+     Blocks below the reader's section are placed; the current one drops into place as the section is read;
+     the rest wait as outlines. Wide screens only, where the margin has room. Hover names the section. */
+  (function(){
+    var secs=$$("main > section, main > div > section").filter(function(sec){return sec.querySelector("h1,h2");});
+    if(secs.length<3||reduce)return;
+    var rail=document.createElement("div");rail.className="build-rail";rail.setAttribute("aria-hidden","true");
+    var blocks=secs.map(function(sec,i){
+      if(!sec.id)sec.id="s"+(i+1);
+      var h=sec.querySelector("h1,h2"),a=document.createElement("a");
+      a.className="br-b";a.href="#"+sec.id;a.tabIndex=-1;
+      a.innerHTML="<i></i><span></span>";a.querySelector("span").textContent=(h.textContent||"").replace(/\s+/g," ").trim().replace(/\.$/,"");
+      rail.insertBefore(a,rail.firstChild);
+      return a;
+    });
+    document.body.appendChild(rail);
+    var m={t:[],h:[],cur:-1};
+    m.measure=function(){m.t=secs.map(layoutTop);m.h=secs.map(function(s){return s.offsetHeight;});};
+    m.update=function(){
+      var line=Y+VH*.5,cur=0;
+      for(var i=0;i<secs.length;i++)if(m.t[i]<=line)cur=i;
+      var f=clamp((line-m.t[cur])/Math.max(1,Math.min(m.h[cur],VH)),0,1);
+      if(cur!==m.cur){m.cur=cur;blocks.forEach(function(b,i){b.classList.toggle("on",i===cur);b.classList.toggle("set",i<cur);});}
+      blocks[cur].style.setProperty("--d",(1-f*f*(3-2*f)).toFixed(3));
+    };
+    parts.push(m);
+  })();
+
   /* ---------- soft light under the pointer ---------- */
   if(fine&&!reduce){
     document.addEventListener("pointermove",function(e){
@@ -209,7 +259,12 @@
 
   /* ---------- the loop: measure on resize, update on scroll ---------- */
   var ticking=false;
-  function measure(){VH=window.innerHeight;VW=document.documentElement.clientWidth;parts.forEach(function(m){if(m.measure)m.measure();});update();}
+  function measure(){
+    VH=window.innerHeight;VW=document.documentElement.clientWidth;
+    /* measure the page flat: folded sections are reset first, then put back by update() */
+    folds.forEach(function(f){f.style.transform="";});
+    parts.forEach(function(m){if(m.last!==undefined)m.last=-1;if(m.measure)m.measure();});update();
+  }
   function update(){ticking=false;Y=window.pageYOffset;parts.forEach(function(m){m.update();});}
   function onScroll(){if(!ticking){ticking=true;requestAnimationFrame(update);}}
   var rt=0;

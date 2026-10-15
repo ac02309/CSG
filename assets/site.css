@@ -566,13 +566,7 @@ main{animation:pageIn .6s var(--ease) both}
 .story-steps>li.on .story-n{background:var(--ink);color:#fff;box-shadow:none}
 .story-steps>li.on .story-bar i{transform:scaleX(var(--t,0))}
 .story-steps>li.past .story-n{color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
-.story-play{justify-self:start;display:inline-flex;align-items:center;gap:.5rem;appearance:none;border:0;background:none;padding:.375rem 0;font:inherit;font-size:.875rem;font-weight:600;color:var(--muted);cursor:pointer}
-.story-play:hover{color:var(--ink)}
-.story-play svg{width:1rem;height:1rem}
-.story-play .i-play,.story-play[aria-pressed="true"] .i-pause,.story-play.is-done .i-pause{display:none}
-.story-play[aria-pressed="true"] .i-play,.story-play.is-done .i-play{display:inline}
-.motion-off .story-play,html:not(.js) .story-play{display:none}
-.story-stage{display:grid;place-items:center;min-width:0}
+.motion-off .story-stage{display:grid;place-items:center;min-width:0}
 .story-stage .slot{width:min(100%,34rem);aspect-ratio:1/1}
 @media (max-width:860px){
   .story-grid{grid-template-columns:minmax(0,1fr)}
@@ -699,3 +693,46 @@ main{animation:pageIn .6s var(--ease) both}
 .cta-plain .cta-note{margin-inline:auto}
 .links-row{display:flex;flex-wrap:wrap;gap:.75rem 2rem;margin-top:2.25rem}
 @media (max-width:860px) and (max-height:700px){.story-stage .slot{width:min(100%,26vh)}.story-copy{gap:.75rem}.story-grid{gap:.75rem}.story-copy .h2{font-size:1.5rem}}
+
+/* what every project includes: four statements on one line, each ticked off as it arrives */
+.pledges{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule)}
+.pledges li{display:grid;gap:.625rem;align-content:start;padding:2rem 1.75rem 0}
+.pledges li:first-child{padding-left:0}
+.pledges li+li{border-left:1px solid var(--rule)}
+.pledges h3{margin:0;font-size:clamp(1.375rem,2vw,1.875rem);line-height:1.1;font-weight:700;letter-spacing:-.035em}
+.pledges p{margin:0;color:var(--muted)}
+.pledge-ic{width:2.5rem;height:2.5rem;border-radius:50%;display:grid;place-items:center;color:var(--cobalt);background:var(--signal-soft);margin-bottom:.5rem}
+.pledge-ic svg{width:1.375rem;height:1.375rem}
+.js:not(.motion-off) .pledge-ic path{stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .9s var(--ease) calc(var(--i,0) * 140ms + 200ms)}
+.js:not(.motion-off) .pledges li.in .pledge-ic path{stroke-dashoffset:0}
+@media (max-width:1068px){.pledges{grid-template-columns:repeat(2,minmax(0,1fr))}.pledges li:nth-child(3){padding-left:0;border-left:0}.pledges li:nth-child(n+3){padding-top:2rem;margin-top:2rem;border-top:1px solid var(--rule)}}
+@media (max-width:640px){.pledges{grid-template-columns:minmax(0,1fr)}.pledges li{padding-left:0!important;border-left:0!important}.pledges li+li{margin-top:1.75rem;padding-top:1.75rem;border-top:1px solid var(--rule)}}
+
+/* your data, kept safe: the rules beside the heading, as a plain list */
+.safe{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(2rem,6vw,6rem);align-items:start}
+.safe .head{margin:0}
+.safe-list{margin:0;border-top:1px solid var(--rule)}
+.safe-list>div{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:1rem 2rem;padding:1.25rem 0;border-bottom:1px solid var(--rule)}
+.safe-list dt{font-weight:700;font-size:1.125rem;letter-spacing:-.015em}
+.safe-list dd{margin:0;color:var(--muted)}
+@media (max-width:860px){.safe{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.safe-list>div{grid-template-columns:minmax(0,1fr);gap:.25rem}}
+
+/* sections fold up into place: hinged at the top edge, flat while being read */
+.fold{transform-origin:50% 0;backface-visibility:hidden}
+
+/* the build stack: one isometric block per section, in the right margin, built as the page is read */
+.build-rail{display:none}
+@media (min-width:1280px) and (min-height:560px){
+  .build-rail{position:fixed;right:.875rem;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:.375rem;padding:.75rem .25rem}
+}
+.br-b{position:relative;display:block;width:1.375rem;height:.625rem;margin-top:.3125rem;outline:none}
+.br-b i{position:absolute;inset:0;border-radius:.125rem;background:rgba(255,255,255,.6);box-shadow:inset 0 0 0 1px rgba(11,18,32,.22);transition:background .5s var(--ease),box-shadow .5s var(--ease),opacity .4s}
+.br-b i::before{content:"";position:absolute;left:.15625rem;right:-.15625rem;top:-.3125rem;height:.3125rem;transform:skewX(-45deg);transform-origin:0 100%;border-radius:.125rem .125rem 0 0;box-shadow:inset 0 0 0 1px rgba(11,18,32,.22);background:rgba(255,255,255,.6);transition:inherit}
+.br-b i::after{content:"";position:absolute;top:-.15625rem;bottom:.15625rem;right:-.3125rem;width:.3125rem;transform:skewY(-45deg);transform-origin:0 0;box-shadow:inset 0 0 0 1px rgba(11,18,32,.22);background:rgba(255,255,255,.6);transition:inherit}
+.br-b.set i,.br-b.on i{background:linear-gradient(90deg,#12b5a0,#2d4fe0);box-shadow:none}
+.br-b.set i::before,.br-b.on i::before{background:linear-gradient(90deg,#5fd3c4,#7d93ff);box-shadow:none}
+.br-b.set i::after,.br-b.on i::after{background:#1f3fc4;box-shadow:none}
+.br-b.on i{transform:translate3d(0,calc(var(--d,0) * -1.75rem),0);opacity:calc(1 - var(--d,0) * .6);transition:background .5s var(--ease),box-shadow .5s var(--ease)}
+.br-b span{position:absolute;right:calc(100% + 1rem);top:50%;transform:translate(.25rem,-50%);white-space:nowrap;font-size:.8125rem;font-weight:600;color:var(--ink);background:#fff;padding:.375rem .625rem;border-radius:.5rem;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.br-b:hover span{opacity:1;transform:translate(0,-50%)}
