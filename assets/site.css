@@ -587,7 +587,7 @@ main{animation:pageIn .6s var(--ease) both}
 .cases.one{grid-template-columns:minmax(0,1fr);max-width:45rem}
 /* one call to action on screen at a time: the navigation's button steps aside when the page shows its own */
 .gnav-cta{transition:opacity .35s var(--ease),transform .35s var(--ease),visibility .35s}
-.cta-shown .gnav-cta,body[data-nav="contact"] .gnav-cta{opacity:0;visibility:hidden;transform:translateY(-0.25rem);pointer-events:none}
+html:not(.cta-free) body:has(.hero [data-cta]) .gnav-cta,body[data-nav="contact"] .gnav-cta{opacity:0;visibility:hidden;transform:translateY(-0.25rem);pointer-events:none}
 
 /* the six solutions */
 .solgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
