@@ -56,7 +56,7 @@ Stylesheet and script references carry a content fingerprint (`?v=…`) so retur
 
 - `[data-split]`: headline words rise into place.
 - `[data-fill]`: a statement fills in as it is read.
-- `[data-drive]`: one compact pinned panel. The scroll plays its `[data-step]` items and the scene beside them; numbered buttons jump to each step. Used once, on the home page.
+- `[data-drive]`: the home story. All four `[data-step]` items are listed beside the scene; once in view it plays them once (about 5 seconds each), then rests on the finished state. Scrolled past early, it finishes at once. Any step can be chosen; a Pause / Play again button is included. The page itself never stops scrolling.
 - `[data-hscroll]`: cards travel sideways on wide screens and become a swipeable row elsewhere.
 - `[data-focus]`: a typographic list with the centre line in focus.
 - `[data-strike]`: before and after, with today's manual work struck out.
@@ -66,7 +66,7 @@ Stylesheet and script references carry a content fingerprint (`?v=…`) so retur
 
 The page generator adds `data-split` to every `h1` and section `h2`.
 
-Each 3D formation is used on one page only (home: orbit, the story and the mark; Integrations: link; AI processing: bins; Reporting: grid; Quality checks: scan; Scheduling: gantt; Internal tools: kanban; 404: the broken line). Scenes below the fold are built by the scroll that brings them in, so they cannot finish out of sight. Text never sits on a formation. The numbers in it are real: 4,000 records (records validated) and 180 errors (errors intercepted), from the launch QA case study. Keep it that way.
+Each 3D formation is used on one page only (home: orbit, the story and the mark; Integrations: link; AI processing: bins; Reporting: report (data streaming into a dashboard that refreshes itself); Quality checks: scan; Scheduling: gantt; Internal tools: kanban; 404: the broken line). Scenes below the fold are built by the scroll that brings them in, so they cannot finish out of sight. Text never sits on a formation. The numbers in it are real: 4,000 records (records validated) and 180 errors (errors intercepted), from the launch QA case study. Keep it that way.
 
 To change it:
 

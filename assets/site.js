@@ -229,7 +229,7 @@
   var ENDPOINT=form?((form.getAttribute("data-endpoint")||"").trim()||(NETLIFY&&/^https?:$/.test(location.protocol)?"/":"")):"",BOOKING=form?(form.getAttribute("data-booking")||"").trim():"";
   var viaNote=$("#viaNote"),trap=$("#f-website");
   if(ENDPOINT){var cmb=$("#copyMsg");if(cmb)cmb.style.display="none";}
-  if(ENDPOINT&&viaNote)viaNote.innerHTML='Your request comes straight to the engineer who will review it. Prefer to write directly? Email <a href="mailto:'+EMAIL+'">'+EMAIL+'</a>. Your details are used as set out in our <a href="privacy.html">privacy notice</a>.';
+  if(ENDPOINT&&viaNote)viaNote.innerHTML='Your request comes straight to our team. Prefer to write directly? Email <a href="mailto:'+EMAIL+'">'+EMAIL+'</a>. Your details are used as set out in our <a href="privacy.html">privacy notice</a>.';
   function viaEmail(m,msg){
     track("Email fallback");
     copyText("To: "+EMAIL+"\nSubject: "+m.subject+"\n\n"+m.body,note,msg||"Opening your email app. Your request is also copied, so you can paste it into an email to "+EMAIL+" if nothing opens.");
@@ -239,7 +239,7 @@
     var demo=service==="Demo",box=document.createElement("div");
     box.className="sent";box.setAttribute("tabindex","-1");
     box.innerHTML='<span class="sent-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h2 class="h-m">Request received.</h2><p></p>';
-    box.querySelector("p").textContent=demo?"Thank you, "+val("name").split(" ")[0]+". Your brief is with the engineer who will review it. You will hear back within one business day"+(BOOKING?", or you can choose a time for the 20-minute demo now.":", with proposed times for a 20-minute demo."):"Thank you, "+val("name").split(" ")[0]+". Your brief is with the engineer who will review it. You will hear back within one business day, and receive your written outline within two.";
+    box.querySelector("p").textContent=demo?"Thank you, "+val("name").split(" ")[0]+". Your brief is with our team. You will hear back within one business day"+(BOOKING?", or you can choose a time for the 20-minute demo now.":", with proposed times for a 20-minute demo."):"Thank you, "+val("name").split(" ")[0]+". Your brief is with our team. You will hear back within one business day, and receive your written outline within two.";
     if(demo&&BOOKING){var a=document.createElement("a");a.className="btn btn-p";a.href=BOOKING;a.target="_blank";a.rel="noopener";a.textContent="Choose a time now";box.appendChild(a);}
     form.innerHTML="";form.appendChild(box);
     track(demo?"Demo request":"Assessment request",{topic:area||"None"});
@@ -300,18 +300,4 @@
     else{op.textContent="–";opl.textContent="to recover a build starting at £1,250";}
   }
   f.addEventListener("input",calc);calc();
-})();
-/* Local time in London, New York and Singapore: the working day, worldwide */
-(function(){
-  var els=[].slice.call(document.querySelectorAll("time[data-tz]"));
-  if(!els.length||!window.Intl)return;
-  var fmt={};
-  function tick(){
-    var now=new Date();
-    els.forEach(function(el){
-      var tz=el.getAttribute("data-tz");
-      try{fmt[tz]=fmt[tz]||new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:tz});el.textContent=fmt[tz].format(now);el.setAttribute("datetime",now.toISOString());}catch(err){}
-    });
-  }
-  tick();setInterval(tick,15000);
 })();

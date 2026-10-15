@@ -7,7 +7,7 @@
      line     one straight conveyor                             (direct)
      gate     every record checked, failures held back          (no nonsense)
      a        the result: stacks, even capacity or bins         (efficiency)
-     grid     a live, tidy sheet: reports and records           (automate)
+     report   data streams into a live dashboard that refreshes itself (reporting)
      b        the Clarke Systems Group mark                     (the call to action)
      link     two systems kept in step, records crossing both ways  (integrations)
      scan     a wall of records swept by a check; errors pulled out (quality checks)
@@ -15,8 +15,7 @@
      kanban   cards moving To do, Doing, Done                       (internal tools)
 
    A [data-forms="scatter,line,gate,a"] element inside a [data-drive] section plays the formations in order,
-   following the step the reader has reached (assets/motion.js works that out from the text itself). Every state is a pure function of the
-   scroll position, so scrolling fast, slow or backwards always shows a correct frame.
+   following the step assets/motion.js is showing.
 
    The numbers are real: 4,000 records (records validated) and 180 errors (errors intercepted), from the
    launch quality-control case study. */
@@ -31,7 +30,7 @@ ColorManagement.enabled = false;
 
 const RECORDS = 4000, ERRORS = 180, LANES = 8, COLS = RECORDS / LANES, SPACING = 0.15, MAXF = 8;
 const RINGS = [[1.5, 0.2], [1.68, -0.42], [1.86, 0.62], [2.05, -0.1], [2.26, 0.38]];
-const FORM = { orbit: 0, line: 1, gate: 2, a: 3, b: 4, scatter: 5, grid: 6, link: 7, scan: 8, gantt: 9, kanban: 10 };
+const FORM = { orbit: 0, line: 1, gate: 2, a: 3, b: 4, scatter: 5, report: 6, link: 7, scan: 8, gantt: 9, kanban: 10 };
 const FOV = 24, CAMZ = 40;
 const root = document.documentElement, body = document.body;
 const params = new URLSearchParams(location.search);
@@ -158,14 +157,14 @@ const qMul = (a, b) => [a[3] * b[0] + b[3] * a[0] + a[1] * b[2] - a[2] * b[1], a
 const qRot = (q, v) => { const [x, y, z, w] = q; const t = [2 * (y * v[2] - z * v[1]), 2 * (z * v[0] - x * v[2]), 2 * (x * v[1] - y * v[0])]; return [v[0] + w * t[0] + (y * t[2] - z * t[1]), v[1] + w * t[1] + (z * t[0] - x * t[2]), v[2] + w * t[2] + (x * t[1] - y * t[0])]; };
 
 // size of each formation (for fitting it to its element) and its resting orientation
-const EXT = { 0: { w: 4.6, h: 4.4 }, 1: { w: 7.2, h: 1.9 }, 2: { w: 7.4, h: 2.6 }, 3: { w: extA.w * 0.92 + 0.3, h: extA.h + 0.8 }, 4: { w: extB.w * 0.96, h: extB.h * 0.96 }, 5: { w: 4.6, h: 3.0 }, 6: { w: 8.0, h: 3.4 }, 7: { w: 6.6, h: 2.5 }, 8: { w: 5.9, h: 2.0 }, 9: { w: 5.4, h: 2.3 }, 10: { w: 4.0, h: 3.7 } };
+const EXT = { 0: { w: 4.6, h: 4.4 }, 1: { w: 7.2, h: 1.9 }, 2: { w: 7.4, h: 2.6 }, 3: { w: extA.w * 0.92 + 0.3, h: extA.h + 0.8 }, 4: { w: extB.w * 0.96, h: extB.h * 0.96 }, 5: { w: 4.6, h: 3.0 }, 6: { w: 6.8, h: 3.4 }, 7: { w: 6.6, h: 2.5 }, 8: { w: 5.9, h: 2.0 }, 9: { w: 5.4, h: 2.3 }, 10: { w: 4.0, h: 3.7 } };
 const BASEQ = {
   0: [0, 0, 0, 1], 1: qMul(qAxis([1, 0, 0], 0.42), qAxis([0, 1, 0], -0.62)), 2: qMul(qAxis([1, 0, 0], 0.4), qAxis([0, 1, 0], -0.6)),
-  3: qMul(qAxis([1, 0, 0], 0.34), qAxis([0, 1, 0], -0.55)), 4: [0, 0, 0, 1], 5: [0, 0, 0, 1], 6: qMul(qAxis([1, 0, 0], -0.62), qAxis([0, 1, 0], -0.28)),
+  3: qMul(qAxis([1, 0, 0], 0.34), qAxis([0, 1, 0], -0.55)), 4: [0, 0, 0, 1], 5: [0, 0, 0, 1], 6: qMul(qAxis([1, 0, 0], 0.14), qAxis([0, 1, 0], -0.36)),
   7: qMul(qAxis([1, 0, 0], 0.22), qAxis([0, 1, 0], -0.32)), 8: qMul(qAxis([1, 0, 0], 0.18), qAxis([0, 1, 0], -0.48)),
   9: qMul(qAxis([1, 0, 0], 0.36), qAxis([0, 1, 0], -0.4)), 10: qMul(qAxis([1, 0, 0], 0.16), qAxis([0, 1, 0], -0.36)),
 };
-const SHADOW = { 0: [0, -1.4, 2.6, 0.5], 1: [0, -0.4, 8, 1.4], 2: [0, -0.4, 8, 1.6], 3: [0, -(extA.h / 2 + 0.25), extA.w + 0.8, 0.9], 4: [0, -1.6, 2.4, 0.35], 5: [0, -1.7, 4.2, 0.6], 6: [0, -1.5, 7, 0.9], 7: [0, -1.25, 7, 0.7], 8: [0, -0.95, 6.2, 0.8], 9: [0, -1.15, 6, 0.8], 10: [0, -1.95, 4.4, 0.7] };
+const SHADOW = { 0: [0, -1.4, 2.6, 0.5], 1: [0, -0.4, 8, 1.4], 2: [0, -0.4, 8, 1.6], 3: [0, -(extA.h / 2 + 0.25), extA.w + 0.8, 0.9], 4: [0, -1.6, 2.4, 0.35], 5: [0, -1.7, 4.2, 0.6], 6: [0.3, -1.75, 6.6, 0.7], 7: [0, -1.25, 7, 0.7], 8: [0, -0.95, 6.2, 0.8], 9: [0, -1.15, 6, 0.8], 10: [0, -1.95, 4.4, 0.7] };
 
 const VERT = /* glsl */`
   precision highp float;
@@ -233,14 +232,62 @@ const VERT = /* glsl */`
       c += vec3(sin(uTime * .35 + aSeed.x * 31.), cos(uTime * .29 + aSeed.y * 23.), sin(uTime * .23 + aSeed.z * 17.)) * .07;
       p = c; q = tumble(.22); s = .95;
     } else if (id < 6.5) {
-      // a live sheet: every record in its row, a soft update rippling across it
+      // a report that builds itself: data streams in from the left and lands in a live dashboard. Every few seconds it
+      // refreshes: the bars move to their new values, the trend line redraws left to right, the headline figures fill
       float i = aLine.x + aLine.y * LANES;
-      float col = mod(i, 80.), row = floor(i / 80.);
-      p = vec3((col - 39.5) * .1, (row - 24.5) * .068, 0.);
-      float wave = sin(col * .16 - uTime * 1.1 + row * .05);
-      p.z = wave * .045;
+      float P = 6., cyc = floor(uTime / P), ph = fract(uTime / P);
       q = vec4(0., 0., 0., 1.); s = 1.;
-      st.x = .55 + .45 * smoothstep(.6, 1., wave);
+      float sweep = mix(-3.2, 3.2, clamp(ph * 2.2, 0., 1.));
+      if (i < 576.) {
+        // three headline figures: a track that fills to this cycle's value
+        float k = floor(i / 192.), m = mod(i, 192.);
+        float col = mod(m, 16.), row = mod(floor(m / 16.), 6.), lay = floor(m / 96.);
+        p = vec3((k - 1.) * 1.95 + (col - 7.5) * .105, 1.36 + (row - 2.5) * .068, (lay - .5) * .03);
+        float v0 = .35 + .6 * h1(cyc * 3.1 + k), v1 = .35 + .6 * h1((cyc - 1.) * 3.1 + k);
+        float v = mix(v1, v0, smoothstep(.0, .3, ph - k * .05));
+        st.x = col < v * 16. ? 1. : .12;
+      } else if (i < 2016.) {
+        // the bar chart
+        float m = i - 576., b = floor(m / 180.), c = mod(m, 180.);
+        float col = mod(c, 3.), row = mod(floor(c / 3.), 30.), lay = floor(c / 90.);
+        p = vec3(-2.6 + b * .365 + (col - 1.) * .105, -1.5 + row * .068, (lay - .5) * .03);
+        float v0 = .25 + .75 * h1(cyc * 7.7 + b), v1 = .25 + .75 * h1((cyc - 1.) * 7.7 + b);
+        float H = mix(v1, v0, smoothstep(0., .32, ph - b * .025)) * 30.;
+        s = clamp(H - row, 0., 1.);
+        st.x = .55 + .45 * (row / 30.);
+      } else if (i < 2916.) {
+        // the trend line, redrawn from left to right each refresh
+        float m = i - 2016., xi = mod(m, 300.), th = floor(m / 300.);
+        float xn = xi / 299.;
+        float a0 = h1(cyc * 5.3) * 6.283, a1 = h1((cyc - 1.) * 5.3) * 6.283, b0 = h1(cyc * 2.9) * 6.283, b1 = h1((cyc - 1.) * 2.9) * 6.283;
+        float w = smoothstep(0., 1., clamp(ph * 3. - xn * 1.6, 0., 1.));
+        float a = mix(a1, a0, w), bb = mix(b1, b0, w);
+        float y = -.6 + (xn - .5) * .9 + .32 * sin(xn * 5. + a) + .16 * sin(xn * 11. + bb);
+        float dy = (.9 + .32 * 5. * cos(xn * 5. + a) + .16 * 11. * cos(xn * 11. + bb)) * (1. / 2.25);
+        p = vec3(.6 + xn * 2.25, y + (th - 1.) * .028, 0.);
+        q = qAxis(vec3(0., 0., 1.), atan(dy));
+        st.x = 1.;
+      } else {
+        float m = i - 2916.;
+        if (m < 480.) {
+          // the axis both charts stand on
+          p = vec3(-2.85 + m / 479. * 5.75, -1.57, 0.); s = .7; st.x = .1;
+        } else {
+        // the data arriving: records travel in from your systems and drop into the bars
+        m -= 480.;
+        float u = fract(uTime * .16 + h1(m * 1.31));
+        float b = mod(m, 8.);
+        float H = (.25 + .75 * h1(cyc * 7.7 + b)) * 30.;
+        vec3 from = vec3(-3.4 - h1(m) * .6, (h1(m + 7.) - .5) * 2.6, (h1(m + 3.) - .5) * 1.2);
+        vec3 to = vec3(-2.6 + b * .365, -1.5 + H * .068, 0.);
+        float e = smoothstep(0., 1., u);
+        p = mix(from, to, e) + vec3(0., sin(3.14159 * e) * .5, 0.);
+        q = tumble(.5);
+        s = smoothstep(0., .12, u) * (1. - smoothstep(.82, 1., u)) * step(.35, h1(m + 11.));
+        st.x = e;
+        }
+      }
+      if (i < 2916.) { float g = exp(-abs(p.x - sweep) * 5.) * (1. - smoothstep(.45, .5, ph)); p.z += g * .1; st.x = max(st.x, g); }
     } else if (id < 7.5) {
       // two systems kept in step: records cross one way over the top and come back underneath
       float i = aLine.x + aLine.y * LANES;
@@ -555,10 +602,11 @@ function draw(v, dt) {
   fit(v);
   const r = v.el.getBoundingClientRect();
   const c = clamp((r.top + r.height / 2) / VH - 0.5, -1, 1);
-  // the story is scrubbed by the scroll itself (motion.js pins it and spreads the steps over the pinned stretch), with a
-  // light smoothing so a flick of the wheel still reads as motion rather than a jump
+  // the story's stage comes from motion.js (it plays the steps in turn), with a light smoothing
   const target = stageOf(v);
   if (v.shown === undefined || reduce || still !== null) v.shown = target;
+  // a jump of more than one step (a chosen step, or finishing early) cuts straight to it instead of passing through the others
+  else if (Math.abs(target - v.shown) > 1.01) v.shown = target;
   else v.shown += (target - v.shown) * (1 - Math.exp(-dt * 10));
   if (Math.abs(target - v.shown) < 1e-4) v.shown = target;
   const stage = v.shown;
