@@ -97,7 +97,7 @@ body[data-page="home"] .film-scrim::after{opacity:0}
 .btn-p:hover{background:var(--line)}
 .btn-g{background:rgba(0,0,0,.4);border-color:var(--rule-2);color:var(--paper)}
 .btn-g:hover{border-color:var(--paper)}
-.btn-sm{min-height:40px;padding:0 16px;font-size:15px}
+.btn-sm{min-height:44px;padding:0 18px;font-size:15px}
 .btn:disabled{opacity:.6;cursor:progress}
 .ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 @media (max-width:560px){.ctas .btn{flex:1 1 100%}}
@@ -145,7 +145,7 @@ body[data-page="home"] .film-scrim::after{opacity:0}
 
 /* chapter index: where you are in the film */
 .chapters{position:fixed;right:var(--gutter);top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:2px}
-.chapters a{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:6px 0;font-size:13.5px;color:var(--dim);transition:color .25s}
+.chapters a{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:44px;font-size:13.5px;color:var(--dim);transition:color .25s}
 .chapters a span{opacity:0;transition:opacity .25s}
 .chapters a::after{content:"";width:18px;height:2px;background:currentColor;transition:width .3s var(--ease),background-color .3s}
 .chapters:hover a span,.chapters a.on span,.chapters a:focus-visible span{opacity:1}
@@ -478,7 +478,7 @@ textarea.input-sm{min-height:84px}
 .note{font-size:15px;color:var(--line)}
 .note:empty{display:none}
 .prefill{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--rule-2);border-left:2px solid var(--line);font-size:15px}
-.prefill-x{background:none;border:0;color:var(--steel);text-decoration:underline;cursor:pointer;padding:4px}
+.prefill-x{background:none;border:0;color:var(--steel);text-decoration:underline;cursor:pointer;padding:0 8px;min-height:44px;min-width:44px}
 .dd{position:relative}
 .dd-btn{text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .dd-btn::after{content:"";width:8px;height:8px;border-right:2px solid var(--steel);border-bottom:2px solid var(--steel);transform:rotate(45deg) translate(-2px,-2px)}
