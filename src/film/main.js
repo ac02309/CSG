@@ -465,7 +465,17 @@ function draw(v, dt) {
   fit(v);
   const r = v.el.getBoundingClientRect();
   const c = clamp((r.top + r.height / 2) / VH - 0.5, -1, 1);
-  const stage = stageOf(v);
+  // the scene follows the reader at its own unhurried pace: scrolling picks the formation, and the change
+  // itself always plays out in full, however fast the page is scrolled
+  const target = stageOf(v);
+  if (v.shown === undefined || reduce || still !== null) v.shown = target;
+  else {
+    const toA = v.forms[Math.min(v.forms.length - 1, Math.ceil(Math.min(target, v.shown + 0.999)))] === 3;
+    const rate = toA ? 0.3 : 0.4;
+    const d = target - v.shown, step = rate * Math.min(dt, 0.05);
+    v.shown = Math.abs(d) <= step ? target : v.shown + Math.sign(d) * step;
+  }
+  const stage = v.shown;
   if (!reduce) v.intro = Math.min(1, v.intro + dt / (v.forms[0] === 3 ? 2.4 : 1.3));
   const sway = reduce ? [0, 0, 0, 1] : qMul(qAxis([0, 1, 0], -c * 0.3 + tilt.x * 0.22), qAxis([1, 0, 0], c * 0.1 + tilt.y * 0.12));
   const A = v.mat.uniforms.uAnchor.value, Q = v.mat.uniforms.uAnchorQ.value;
