@@ -290,11 +290,21 @@
   var ho=document.getElementById("roiHoursOut"),so=document.getElementById("roiShareOut");
   var oc=document.getElementById("roiCost"),ot=document.getElementById("roiTime"),op=document.getElementById("roiPay"),opl=document.getElementById("roiPayLabel");
   var WEEKS=46,BUILD=1250,gbp=function(v){return "£"+Math.round(v).toLocaleString("en-GB");};
+  /* time in the largest unit that reads naturally: a working day is 7.5 hours, a working year 46 weeks of 37.5 hours */
+  var DAY=7.5,YEAR=WEEKS*37.5,MONTH=YEAR/12,otl=ot&&ot.nextElementSibling;
+  function one(v){var r=Math.round(v*10)/10;return r%1===0?String(r):r.toFixed(1);}
+  function span(h){
+    if(h<DAY){var hh=Math.round(h);return hh+(hh===1?" hour":" hours");}
+    if(h<MONTH){var d=Math.round(h/DAY);return d+(d===1?" working day":" working days");}
+    if(h<YEAR){var m=one(h/MONTH);return m+(m==="1"?" working month":" working months");}
+    var y=one(h/YEAR);return y+(y==="1"?" working year":" working years");
+  }
   function calc(){
     var hours=Math.max(0,+h.value||0),rate=Math.min(500,Math.max(0,+r.value||0)),share=(+sh.value||0)/100;
     ho.textContent=hours+(hours===1?" hour":" hours");so.textContent=Math.round(share*100)+"%";
     oc.textContent=gbp(hours*rate*WEEKS);
-    ot.textContent=Math.round(hours*share*WEEKS).toLocaleString("en-GB")+" hours";
+    var saved=hours*share*WEEKS;ot.textContent=span(saved);
+    if(otl)otl.textContent="returned to your team each year"+(saved>=DAY?" ("+Math.round(saved).toLocaleString("en-GB")+" hours)":"");
     var weekly=hours*share*rate;
     if(weekly>0){var w=Math.ceil(BUILD/weekly);op.textContent=w>WEEKS?"Over a year":w+(w===1?" week":" weeks");opl.textContent=w>WEEKS?"to recover a build starting at £1,250, so this process may not be the place to start":"to recover a build starting at £1,250";}
     else{op.textContent="–";opl.textContent="to recover a build starting at £1,250";}

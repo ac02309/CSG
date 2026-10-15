@@ -50,18 +50,21 @@ Stylesheet and script references carry a content fingerprint (`?v=…`) so retur
 | `grid` | A live, tidy sheet of records (reports and dashboards). |
 | `b` | The Clarke Systems Group mark (the call to action). |
 
-`data-forms="scatter,line,gate,a"` inside a pinned `[data-drive]` section plays the formations in order, scrubbed by scroll position.
+`data-forms="scatter,line,gate,a"` inside the `[data-drive]` section plays the formations in order, following the step the story is showing.
 
 **Motion (`assets/motion.js`).** Every effect is a pure function of the scroll position, measured against layout read once per resize, so fast, slow or backwards scrolling always shows a correct frame:
 
 - `[data-split]`: headline words rise into place.
 - `[data-fill]`: a statement fills in as it is read.
-- `[data-drive]`: the home story. All four `[data-step]` items are listed beside the scene; once in view it plays them once (about 5 seconds each), then rests on the finished state. Scrolled past early, it finishes at once. Any step can be chosen; a Pause / Play again button is included. The page itself never stops scrolling.
+- `[data-drive]`: the home story. All four `[data-step]` items are listed beside the scene; once in view it plays them (about 2.8 seconds each, the whole story in about 11 seconds), then rests on the finished state. It plays again from step 1 whenever it comes back on screen after leaving it. Clicking a step plays from that step. The page itself never stops scrolling.
 - `[data-hscroll]`: cards travel sideways on wide screens and become a swipeable row elsewhere.
 - `[data-focus]`: a typographic list with the centre line in focus.
 - `[data-strike]`: before and after, with today's manual work struck out.
 - `[data-draw]`: a process line that draws itself.
 - `[data-drift]`: the ethos in giant type that slides with the scroll.
+- `[data-tally]`: numbers count up quickly (0.8 s) once in view, and are always complete by the time they reach the middle of the screen.
+- `.fold`: every section after the first rises into place, hinged at its top edge, and is perfectly flat by the time it reaches the reading area.
+- `.build-rail`: on wide screens, one isometric block per section in the right margin; the page's stack is built as it is read. Hover names the section; click jumps to it.
 - `.spot`: cards that catch light under the pointer.
 
 The page generator adds `data-split` to every `h1` and section `h2`.
