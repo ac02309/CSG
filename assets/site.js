@@ -144,14 +144,14 @@
      A short structured breakdown, so every demo can be prepared around the visitor's process. */
   var EMAIL="enquiries@clarkesystemsgroup.com";
   var form=$("#brief"),sendBtn=$("#sendBtn"),note=$("#formNote");
-  var F={name:$("#f-name"),role:$("#f-role"),company:$("#f-company"),size:$("#f-size"),business:$("#f-business"),process:$("#f-process"),hours:$("#f-hours"),tools:$("#f-tools"),goal:$("#f-goal")};
+  var F={name:$("#f-name"),email:$("#f-email"),role:$("#f-role"),company:$("#f-company"),size:$("#f-size"),business:$("#f-business"),process:$("#f-process"),hours:$("#f-hours"),tools:$("#f-tools"),goal:$("#f-goal")};
   var REQ=[
     ["name","Add your name.",function(v){return v.length>=2;}],
-    ["role","Add your role.",function(v){return v.length>=2;}],
+    ["email","Add a valid work email.",function(v){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);}],
     ["company","Add your company name.",function(v){return v.length>=2;}],
-    ["size","Select your team size.",function(v){return !!v;}],
     ["business","Briefly describe what your company does.",function(v){return words(v)>=3;}],
-    ["process","Describe the process in a few sentences so we can prepare.",function(v){return words(v)>=15;}],
+    ["size","Select your team size.",function(v){return !!v;}],
+    ["process","Add a little more detail: who does it, how often and what goes wrong.",function(v){return words(v)>=8;}],
     ["hours","Select the approximate hours spent each week.",function(v){return !!v;}]
   ];
   function words(v){return v.split(/\s+/).filter(function(w){return w.length>1;}).length;}
@@ -201,7 +201,7 @@
     L.push(demo?"I'd like to request a demo.":"I'd like to request a written assessment.");
     if(service&&!demo&&service!=="Assessment")L.push("Interested in: "+service+".");
     if(area)L.push("Area: "+area+".");
-    L.push("","ABOUT US","Name: "+val("name"),"Role: "+val("role"),"Company: "+co,"Team size: "+val("size"),"What we do: "+val("business"));
+    L.push("","ABOUT US","Name: "+val("name"),"Email: "+val("email"),"Role: "+(val("role")||"Not given"),"Company: "+co,"Team size: "+val("size"),"What we do: "+val("business"));
     L.push("","THE PROCESS",val("process"),"","Hours spent: "+(val("hours")||"").toLowerCase()+" a week");
     if(val("tools"))L.push("Tools involved: "+val("tools"));
     if(val("goal"))L.push("Desired outcome: "+val("goal"));
@@ -255,13 +255,40 @@
       else fail();
     }catch(err){fail();}
   }
-  /* Send: copy first so nothing is lost, then hand over to the email app. */
+  /* Send. The request is posted directly: to Netlify Forms by default, or to data-endpoint when one is set.
+     If the post fails, it is copied and handed to the visitor's email app instead, so nothing is lost. */
+  var NETLIFY=!!(form&&form.hasAttribute("data-netlify")&&!(form.getAttribute("data-endpoint")||"").trim());
+  var ENDPOINT=form?((form.getAttribute("data-endpoint")||"").trim()||(NETLIFY&&/^https?:$/.test(location.protocol)?"/":"")):"",BOOKING=form?(form.getAttribute("data-booking")||"").trim():"";
+  var viaNote=$("#viaNote"),trap=$("#f-website");
+  if(ENDPOINT){var cmb=$("#copyMsg");if(cmb)cmb.style.display="none";}
+  if(ENDPOINT&&viaNote)viaNote.innerHTML='Your request comes straight to the engineer who will review it. Prefer to write directly? Email <a href="mailto:'+EMAIL+'">'+EMAIL+'</a>. Your details are used as set out in our <a href="privacy.html">privacy notice</a>.';
+  function viaEmail(m,msg){
+    copyText("To: "+EMAIL+"\nSubject: "+m.subject+"\n\n"+m.body,note,msg||"Opening your email app. Your request is also copied, so you can paste it into an email to "+EMAIL+" if nothing opens.");
+    try{window.location.href=mailtoHref(m);}catch(err){}
+  }
+  function sent(){
+    var demo=service==="Demo",box=document.createElement("div");
+    box.className="sent";box.setAttribute("tabindex","-1");
+    box.innerHTML='<span class="sent-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h2 class="h-m">Request received.</h2><p></p>';
+    box.querySelector("p").textContent=demo?"Thank you, "+val("name").split(" ")[0]+". Your brief is with the engineer who will review it. You will hear back within one business day"+(BOOKING?", or you can choose a time for the 20-minute demo now.":", with proposed times for a 20-minute demo."):"Thank you, "+val("name").split(" ")[0]+". Your brief is with the engineer who will review it. You will hear back within one business day, and receive your written outline within two.";
+    if(demo&&BOOKING){var a=document.createElement("a");a.className="btn btn-p";a.href=BOOKING;a.target="_blank";a.rel="noopener";a.textContent="Choose a time now";box.appendChild(a);}
+    form.innerHTML="";form.appendChild(box);
+    try{box.focus({preventScroll:false});}catch(err){}
+  }
   if(form)form.addEventListener("submit",function(e){
     e.preventDefault();
     var m=compose();
     if(!m.ok){needDetail(m);return;}
-    copyText("To: "+EMAIL+"\nSubject: "+m.subject+"\n\n"+m.body,note,"Opening your email app. Your request is also copied, so you can paste it into an email to "+EMAIL+" if nothing opens.");
-    try{window.location.href=mailtoHref(m);}catch(err){}
+    if(!ENDPOINT||!window.fetch){viaEmail(m);return;}
+    if(trap&&trap.value){sent();return;}
+    sendBtn.disabled=true;sendBtn.setAttribute("aria-busy","true");var label=sendBtn.textContent;sendBtn.textContent="Sending…";note.textContent="";
+    var hid={subject:m.subject,request:service==="Demo"?"Demo":"Written assessment",topic:area||""};
+    Object.keys(hid).forEach(function(k){var el=$("#f-"+k);if(el)el.value=hid[k];});
+    var req=NETLIFY?{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams(new FormData(form)).toString()}
+      :{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(Object.assign(Object.fromEntries(new FormData(form)),{_subject:m.subject,message:m.body}))};
+    fetch(ENDPOINT,req)
+      .then(function(r){if(!r.ok)throw new Error(r.status);sent();})
+      .catch(function(){sendBtn.disabled=false;sendBtn.removeAttribute("aria-busy");sendBtn.textContent=label;viaEmail(m,"We couldn't send that directly, so we're opening your email app instead. Your request is also copied, so you can paste it into an email to "+EMAIL+".");});
   });
   var copyMsg=$("#copyMsg");
   if(copyMsg)copyMsg.addEventListener("click",function(){

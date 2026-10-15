@@ -2,6 +2,8 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; form-action 'self' mailto:; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Request a demo · Clarke Systems Group</title>
 <meta name="description" content="Request a demo. Send a short brief of your process. Response within one business day.">
@@ -11,18 +13,20 @@
 <meta property="og:url" content="https://www.clarkesystemsgroup.com/contact.html">
 <meta property="og:title" content="Request a demo · Clarke Systems Group">
 <meta property="og:description" content="Request a demo. Send a short brief of your process. Response within one business day.">
-<meta property="og:image" content="https://www.clarkesystemsgroup.com/og-image.png">
+<meta property="og:image" content="https://www.clarkesystemsgroup.com/og/contact.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Clarke Systems Group: less admin, fewer errors, same team.">
+<meta property="og:image:alt" content="Request a demo: your process, automated.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.clarkesystemsgroup.com/og/contact.png">
 <meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07090c" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=20261015">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ContactPage","name":"Request a demo","url":"https://www.clarkesystemsgroup.com/contact.html","about":{"@id":"https://www.clarkesystemsgroup.com/#org"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Request a demo","item":"https://www.clarkesystemsgroup.com/contact.html"}]}]}</script>
 </head>
 <body data-page="contact">
 <a class="skip" href="#main" id="skip">Skip to content</a>
@@ -63,27 +67,29 @@
         <h1 class="h-xl" id="contactTitle">Request a demo.</h1>
         <p class="sub" id="contactLead">Every demo is built around your operations, so we start with a brief. We review every request within one business day. If we can deliver measurable value, we propose times for a 20-minute session.</p>
         <a class="mode-switch" id="modeSwitch" href="contact.html?topic=Assessment">Request a written assessment instead</a>
-        <p class="hero-note">Five minutes to complete. Sessions are scheduled to your time zone.</p>
+        <p class="hero-note">Three minutes to complete. Sessions are scheduled to your time zone.</p>
       </div>
-      <form class="form glass" id="brief" novalidate>
+      <form class="form glass" id="brief" name="brief" method="POST" novalidate data-netlify="true" netlify-honeypot="website" data-endpoint="" data-booking="">
+        <input type="hidden" name="form-name" value="brief"><input type="hidden" name="subject" id="f-subject" value=""><input type="hidden" name="request" id="f-request" value=""><input type="hidden" name="topic" id="f-topic" value="">
         <p class="prefill" id="prefill" hidden><span>Regarding: <b id="prefillVal"></b></span><button type="button" class="prefill-x" id="prefillX" aria-label="Remove topic">Remove</button></p>
         <fieldset class="fs"><legend>About you</legend>
-          <div class="two"><div class="field"><label for="f-name">Your name</label><input class="input" id="f-name" type="text" autocomplete="name" required aria-describedby="err-name"><span class="err" id="err-name" role="alert"></span></div><div class="field"><label for="f-role">Your role</label><input class="input" id="f-role" type="text" autocomplete="organization-title" placeholder="e.g. Operations Manager" required aria-describedby="err-role"><span class="err" id="err-role" role="alert"></span></div></div>
-          <div class="two"><div class="field"><label for="f-company">Company</label><input class="input" id="f-company" type="text" autocomplete="organization" required aria-describedby="err-company"><span class="err" id="err-company" role="alert"></span></div><div class="field"><label id="l-size" for="f-size-btn">Team size</label><input type="hidden" id="f-size" value=""><div class="dd" id="dd-size" data-input="f-size"><button class="input dd-btn empty" id="f-size-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="l-size f-size-btn" aria-describedby="err-size"><span class="dd-val">Choose</span></button><ul class="dd-list" id="dd-size-list" role="listbox" aria-labelledby="l-size" tabindex="-1" hidden><li role="option" data-v="1 to 10" aria-selected="false">1 to 10</li><li role="option" data-v="11 to 50" aria-selected="false">11 to 50</li><li role="option" data-v="51 to 200" aria-selected="false">51 to 200</li><li role="option" data-v="201 to 1,000" aria-selected="false">201 to 1,000</li><li role="option" data-v="Over 1,000" aria-selected="false">Over 1,000</li></ul></div><span class="err" id="err-size" role="alert"></span></div></div>
+          <div class="two"><div class="field"><label for="f-name">Your name</label><input class="input" id="f-name" name="name" type="text" autocomplete="name" required aria-describedby="err-name"><span class="err" id="err-name" role="alert"></span></div><div class="field"><label for="f-email">Work email</label><input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="err-email"><span class="err" id="err-email" role="alert"></span></div></div>
+          <div class="two"><div class="field"><label for="f-company">Company</label><input class="input" id="f-company" name="company" type="text" autocomplete="organization" required aria-describedby="err-company"><span class="err" id="err-company" role="alert"></span></div><div class="field"><label for="f-role">Your role <span class="hint">(optional)</span></label><input class="input" id="f-role" name="role" type="text" autocomplete="organization-title" placeholder="e.g. Operations Manager"></div></div>
         </fieldset>
         <fieldset class="fs"><legend>Your business</legend>
-          <div class="field"><label for="f-business">What does your company do?</label><input class="input" id="f-business" type="text" placeholder="e.g. We sell furniture online across the UK and EU" required aria-describedby="err-business"><span class="err" id="err-business" role="alert"></span></div>
+          <div class="field"><label for="f-business">What does your company do?</label><input class="input" id="f-business" name="business" type="text" placeholder="e.g. We sell furniture online across the UK and EU" required aria-describedby="err-business"><span class="err" id="err-business" role="alert"></span></div>
+          <div class="two"><div class="field"><label id="l-size" for="f-size-btn">Team size</label><input type="hidden" id="f-size" name="team_size" value=""><div class="dd" id="dd-size" data-input="f-size"><button class="input dd-btn empty" id="f-size-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="l-size f-size-btn" aria-describedby="err-size"><span class="dd-val">Choose</span></button><ul class="dd-list" id="dd-size-list" role="listbox" aria-labelledby="l-size" tabindex="-1" hidden><li role="option" data-v="1 to 10" aria-selected="false">1 to 10</li><li role="option" data-v="11 to 50" aria-selected="false">11 to 50</li><li role="option" data-v="51 to 200" aria-selected="false">51 to 200</li><li role="option" data-v="201 to 1,000" aria-selected="false">201 to 1,000</li><li role="option" data-v="Over 1,000" aria-selected="false">Over 1,000</li></ul></div><span class="err" id="err-size" role="alert"></span></div><div class="field trap" aria-hidden="true"><label for="f-website">Website</label><input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off"></div></div>
         </fieldset>
         <fieldset class="fs"><legend>The process</legend>
           <div class="field">
             <label for="f-process">Which process consumes the most time?</label>
-            <textarea class="input" id="f-process" required aria-describedby="err-process" placeholder="Walk us through it: who does it, how often, the main steps, and what goes wrong."></textarea>
+            <textarea class="input" id="f-process" name="process" required aria-describedby="err-process" placeholder="Walk us through it: who does it, how often, the main steps, and what goes wrong."></textarea>
             <span class="err" id="err-process" role="alert"></span>
           </div>
-          <div class="two"><div class="field"><label id="l-hours" for="f-hours-btn">Hours spent each week</label><input type="hidden" id="f-hours" value=""><div class="dd" id="dd-hours" data-input="f-hours"><button class="input dd-btn empty" id="f-hours-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="l-hours f-hours-btn" aria-describedby="err-hours"><span class="dd-val">Choose</span></button><ul class="dd-list" id="dd-hours-list" role="listbox" aria-labelledby="l-hours" tabindex="-1" hidden><li role="option" data-v="Under 2 hours" aria-selected="false">Under 2 hours</li><li role="option" data-v="2 to 5 hours" aria-selected="false">2 to 5 hours</li><li role="option" data-v="5 to 10 hours" aria-selected="false">5 to 10 hours</li><li role="option" data-v="10 to 20 hours" aria-selected="false">10 to 20 hours</li><li role="option" data-v="More than 20 hours" aria-selected="false">More than 20 hours</li></ul></div><span class="err" id="err-hours" role="alert"></span></div><div class="field"><label for="f-tools">Tools involved <span class="hint">(optional)</span></label><input class="input" id="f-tools" type="text" placeholder="e.g. Google Sheets, Xero, Shopify"></div></div>
+          <div class="two"><div class="field"><label id="l-hours" for="f-hours-btn">Hours spent each week</label><input type="hidden" id="f-hours" name="hours_per_week" value=""><div class="dd" id="dd-hours" data-input="f-hours"><button class="input dd-btn empty" id="f-hours-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="l-hours f-hours-btn" aria-describedby="err-hours"><span class="dd-val">Choose</span></button><ul class="dd-list" id="dd-hours-list" role="listbox" aria-labelledby="l-hours" tabindex="-1" hidden><li role="option" data-v="Under 2 hours" aria-selected="false">Under 2 hours</li><li role="option" data-v="2 to 5 hours" aria-selected="false">2 to 5 hours</li><li role="option" data-v="5 to 10 hours" aria-selected="false">5 to 10 hours</li><li role="option" data-v="10 to 20 hours" aria-selected="false">10 to 20 hours</li><li role="option" data-v="More than 20 hours" aria-selected="false">More than 20 hours</li></ul></div><span class="err" id="err-hours" role="alert"></span></div><div class="field"><label for="f-tools">Tools involved <span class="hint">(optional)</span></label><input class="input" id="f-tools" name="tools" type="text" placeholder="e.g. Google Sheets, Xero, Shopify"></div></div>
           <div class="field">
             <label for="f-goal">What outcome are you looking for? <span class="hint">(optional)</span></label>
-            <textarea class="input input-sm" id="f-goal" placeholder="e.g. Orders reach accounts without anyone re-typing them"></textarea>
+            <textarea class="input input-sm" id="f-goal" name="outcome" placeholder="e.g. Orders reach accounts without anyone re-typing them"></textarea>
           </div>
         </fieldset>
         <div class="ctas">
@@ -91,7 +97,7 @@
           <button class="btn btn-g" id="copyMsg" type="button">Copy message</button>
         </div>
         <p class="note" id="formNote" role="status" aria-live="polite"></p>
-        <p class="hero-note">Submitting opens a pre-written email in your own email app, so you can review it before sending. Prefer to write directly? Email <a href="mailto:enquiries@clarkesystemsgroup.com">enquiries@clarkesystemsgroup.com</a>. Your details are used as set out in our <a href="privacy.html">privacy notice</a>.</p>
+        <p class="hero-note" id="viaNote">Submitting opens a pre-written email in your own email app, so you can review it before sending. Prefer to write directly? Email <a href="mailto:enquiries@clarkesystemsgroup.com">enquiries@clarkesystemsgroup.com</a>. Your details are used as set out in our <a href="privacy.html">privacy notice</a>.</p>
       </form>
     </div>
   </section>
@@ -110,6 +116,6 @@
     <div class="legal"><span>Services are provided to businesses only. Terms of business are supplied with every proposal, and our business details are in our <a href="terms.html">terms</a>.</span><span>© 2026 Clarke Systems Group. All rights reserved.</span></div>
   </div>
 </footer>
-<script src="assets/site.js" defer></script>
+<script src="assets/site.js?v=20261015" defer></script>
 </body>
 </html>

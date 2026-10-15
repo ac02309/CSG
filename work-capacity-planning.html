@@ -2,6 +2,8 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; form-action 'self' mailto:; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Capacity planning · Clarke Systems Group</title>
 <meta name="description" content="How a plan for 290+ client projects was rebuilt around real capacity, with zero unresolved conflicts.">
@@ -11,18 +13,20 @@
 <meta property="og:url" content="https://www.clarkesystemsgroup.com/work-capacity-planning.html">
 <meta property="og:title" content="Capacity planning · Clarke Systems Group">
 <meta property="og:description" content="How a plan for 290+ client projects was rebuilt around real capacity, with zero unresolved conflicts.">
-<meta property="og:image" content="https://www.clarkesystemsgroup.com/og-image.png">
+<meta property="og:image" content="https://www.clarkesystemsgroup.com/og/work-capacity-planning.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Clarke Systems Group: less admin, fewer errors, same team.">
+<meta property="og:image:alt" content="290+ client projects planned, with zero unresolved conflicts.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.clarkesystemsgroup.com/og/work-capacity-planning.png">
 <meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07090c" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=20261015">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"A self-maintaining plan for 290+ client projects.","description":"How a plan for 290+ client projects was rebuilt around real capacity, with zero unresolved conflicts.","url":"https://www.clarkesystemsgroup.com/work-capacity-planning.html","mainEntityOfPage":"https://www.clarkesystemsgroup.com/work-capacity-planning.html","image":"https://www.clarkesystemsgroup.com/og/work-capacity-planning.png","author":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"publisher":{"@type":"Organization","name":"Clarke Systems Group","logo":{"@type":"ImageObject","url":"https://www.clarkesystemsgroup.com/apple-touch-icon.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Track record","item":"https://www.clarkesystemsgroup.com/work.html"},{"@type":"ListItem","position":3,"name":"Capacity planning","item":"https://www.clarkesystemsgroup.com/work-capacity-planning.html"}]}]}</script>
 </head>
 <body data-page="work-scheduling">
 <a class="skip" href="#main" id="skip">Skip to content</a>
@@ -71,6 +75,22 @@
     </div>
     <div class="story"><h2>The problem</h2><div class="story-body"><p>Projects ran across several regions, workstreams and delivery stages. The plan lived in a manually maintained spreadsheet, so every holiday, absence or late booking forced manual re-planning, and conflicts surfaced too late.</p></div></div>
     <div class="story"><h2>The system</h2><div class="story-body"><p>A scheduling engine that allocates every project against available capacity, weighing:</p><ul><li>the volume and complexity of each project</li><li>estimated effort per delivery stage</li><li>staff availability, holidays and absences</li><li>daily capacity per team</li></ul><p>It flags projects at risk, recommends resourcing changes, re-plans within capacity, supports approvals for exceptions and records every change in an audit trail.</p></div></div>
+    <figure class="sysfig glass" aria-labelledby="sfCap">
+      <div class="sf-top"><span class="sf-dot" aria-hidden="true"></span><span class="sf-title" id="sfCap">Capacity plan · week 14</span><span class="sf-tag">Illustrative · not real data</span></div>
+      <div class="sf-bars" role="list">
+        <div class="sf-row" role="listitem"><span>Team A</span><span class="sf-track" aria-hidden="true"><span class="sf-fill" style="width:57.6%"></span><span class="sf-cap" style="left:80%"></span></span><span class="sf-val">72%</span></div>
+        <div class="sf-row" role="listitem"><span>Team B</span><span class="sf-track" aria-hidden="true"><span class="sf-fill" style="width:68.8%"></span><span class="sf-cap" style="left:80%"></span></span><span class="sf-val">86%</span></div>
+        <div class="sf-row" role="listitem"><span>Team C <span class="st st-q">At risk</span></span><span class="sf-track" aria-hidden="true"><span class="sf-fill over" style="width:89.6%"></span><span class="sf-cap" style="left:80%"></span></span><span class="sf-val">112%</span></div>
+        <div class="sf-row" role="listitem"><span>Team D</span><span class="sf-track" aria-hidden="true"><span class="sf-fill" style="width:46.4%"></span><span class="sf-cap" style="left:80%"></span></span><span class="sf-val">58%</span></div>
+      </div>
+      <div class="sf-legend" aria-hidden="true"><span><i></i>Planned load</span><span><i class="cap"></i>Available capacity</span></div>
+      <ul class="sf-log">
+        <li><span class="id">Flag</span>Team C over capacity after two absences are logged.</li>
+        <li><span class="id">Re-plan</span>Two projects moved to Team D, within both teams' capacity.</li>
+        <li><span class="id">Approval</span>Exception approved and recorded in the audit trail. <span class="st st-ok">Resolved</span></li>
+      </ul>
+      <figcaption>The shape of the weekly output: load against real capacity, conflicts flagged early, and every change approved and logged.</figcaption>
+    </figure>
     <div class="story"><h2>The result</h2><div class="story-body"><p>More than 200 incoming projects were scheduled with zero unresolved conflicts. The team now manages by exception rather than rebuilding the plan.</p><ul class="chips"><li>Google Apps Script</li><li>Scheduling logic</li><li>Audit trail</li><li>Approvals</li></ul></div></div>
     <p class="disclose">Designed and delivered by our founder while employed at a global digital-commerce analytics business. Not client work for Clarke Systems Group. Clarke Systems Group is independent and not affiliated with, or endorsed by, any current or former employer.</p>
     <a class="next glass" href="work-launch-qa.html"><div><small>Next case</small><span class="h-s">Launch quality assurance across 30+ markets</span></div><span class="link">Read <svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
@@ -91,6 +111,6 @@
     <div class="legal"><span>Services are provided to businesses only. Terms of business are supplied with every proposal, and our business details are in our <a href="terms.html">terms</a>.</span><span>© 2026 Clarke Systems Group. All rights reserved.</span></div>
   </div>
 </footer>
-<script src="assets/site.js" defer></script>
+<script src="assets/site.js?v=20261015" defer></script>
 </body>
 </html>
