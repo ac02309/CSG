@@ -352,6 +352,19 @@
   if(home&&window.MutationObserver){new MutationObserver(function(){setTimeout(function(){measure();setRunning();},40);}).observe(home,{attributes:true,attributeFilter:["hidden"]});}
   if(window.MutationObserver){new MutationObserver(readColors).observe(root,{attributes:true,attributeFilter:["data-theme"]});}
   if(window.matchMedia){var dm=matchMedia("(prefers-color-scheme: dark)");if(dm.addEventListener)dm.addEventListener("change",readColors);}
-  if(window.ResizeObserver){var ro=new ResizeObserver(function(){measure();});if(home)ro.observe(home);ro.observe(document.body);}
+  if(window.ResizeObserver){
+    /* Re-measure on the next frame, and only when a size really changed, so measuring never feeds back into the observer */
+    var roRaf=0,roW=-1,roH=-1;
+    var ro=new ResizeObserver(function(){
+      if(roRaf)return;
+      roRaf=requestAnimationFrame(function(){
+        roRaf=0;
+        var w=document.body.offsetWidth,h=home?home.offsetHeight:0;
+        if(w===roW&&h===roH)return;
+        roW=w;roH=h;measure();
+      });
+    });
+    if(home)ro.observe(home);ro.observe(document.body);
+  }
   setRunning();
 })();

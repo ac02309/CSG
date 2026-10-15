@@ -565,13 +565,19 @@ textarea.input.input-sm,.contact-grid textarea.input.input-sm{min-height:72px}
   .fstep+.fstep .fbody::before{top:-20px}
   .fstep .h-s{font-size:21px}
 }
-/* how it works: heading left, steps right on desktop */
-.flow-split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);column-gap:clamp(40px,6vw,104px);align-items:start}
-.flow-split .head{margin-bottom:0}
-.flow-split .flow{max-width:none}
-.flow-split .fdesc{max-width:62ch}
-@media (max-width:1000px){
-  .flow-split{grid-template-columns:minmax(0,1fr)}
-  .flow-split .head{margin-bottom:clamp(32px,3.6vw,48px)}
+/* how it works: full-width rows. Number, title, then the description across the rest of the row */
+#process .head{margin-bottom:clamp(36px,4vw,56px)}
+.flow{max-width:none}
+@media (min-width:861px){
+  .fstep{grid-template-columns:var(--nd) minmax(0,1fr)}
+  .fbody{grid-template-columns:minmax(220px,.62fr) minmax(0,1.6fr);column-gap:clamp(28px,4vw,72px);align-items:start}
+  .fstep .h-s{margin-top:calc(var(--nd) / 2 - .575em)}
+  .fdesc{max-width:70ch;margin-top:calc(var(--nd) / 2 - .78em)}
 }
-@media (min-width:1001px){.flow-split .head{position:sticky;top:calc(env(safe-area-inset-top,0px) + 120px)}}
+/* tap targets: every control at least 44px, per WCAG 2.5.5 / platform guidance */
+.burger{width:44px;height:44px}
+.navlinks a{padding:11px 15px}
+.btn-sm{height:44px}
+.brand{min-height:44px}
+.back{min-height:44px;margin-bottom:4px}
+.mode-switch,.dc-alt{display:inline-flex;align-items:center;min-height:44px}
