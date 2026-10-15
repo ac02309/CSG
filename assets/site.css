@@ -553,7 +553,7 @@ main{animation:pageIn .6s var(--ease) both}
 
 /* scrollytelling: the steps scroll as normal text; the scene holds beside them and follows the step being read */
 .scrolly-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,80px);align-items:start}
-.scrolly-steps{list-style:none;margin:0;padding:6vh 0 18vh}
+.scrolly-steps{list-style:none;margin:0;padding:6vh 0 46vh}
 .scrolly-steps>li{min-height:44vh;display:grid;align-content:center;gap:14px;padding-block:24px;opacity:.28;transition:opacity .5s var(--ease)}
 .scrolly-steps>li.on{opacity:1}
 .motion-off .scrolly-steps>li,html:not(.js) .scrolly-steps>li{opacity:1;min-height:0;padding-block:28px}
@@ -572,7 +572,7 @@ main{animation:pageIn .6s var(--ease) both}
   .scrolly-stage{order:-1;position:sticky;top:var(--stick);z-index:2;height:auto}
   .scrolly-pin{position:relative;top:0;height:40vh;background:linear-gradient(var(--mist) 82%,rgba(243,245,248,0))}
   .scrolly-pin .slot{height:100%;width:auto;max-width:100%}
-  .scrolly-steps{padding:2vh 0 14vh}
+  .scrolly-steps{padding:2vh 0 34vh}
   .scrolly-steps>li{min-height:38vh}
 }
 

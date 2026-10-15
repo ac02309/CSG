@@ -465,13 +465,13 @@ function draw(v, dt) {
   fit(v);
   const r = v.el.getBoundingClientRect();
   const c = clamp((r.top + r.height / 2) / VH - 0.5, -1, 1);
-  // the scene follows the reader at its own unhurried pace: scrolling picks the formation, and the change
+  // the scene follows the reader at its own steady pace (about 2 s per change): scrolling picks the formation, and the change
   // itself always plays out in full, however fast the page is scrolled
   const target = stageOf(v);
   if (v.shown === undefined || reduce || still !== null) v.shown = target;
   else {
     const toA = v.forms[Math.min(v.forms.length - 1, Math.ceil(Math.min(target, v.shown + 0.999)))] === 3;
-    const rate = toA ? 0.3 : 0.4;
+    const rate = toA ? 0.45 : 0.6;
     const d = target - v.shown, step = rate * Math.min(dt, 0.05);
     v.shown = Math.abs(d) <= step ? target : v.shown + Math.sign(d) * step;
   }
