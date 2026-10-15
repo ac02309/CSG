@@ -9,6 +9,10 @@
      a        the result: stacks, even capacity or bins         (efficiency)
      grid     a live, tidy sheet: reports and records           (automate)
      b        the Clarke Systems Group mark                     (the call to action)
+     link     two systems kept in step, records crossing both ways  (integrations)
+     scan     a wall of records swept by a check; errors pulled out (quality checks)
+     gantt    a cascade of planned bars, filled as the day moves    (scheduling)
+     kanban   cards moving To do, Doing, Done                       (internal tools)
 
    A [data-forms="scatter,line,gate,a"] element inside a [data-drive] section plays the formations in order,
    following the step the reader has reached (assets/motion.js works that out from the text itself). Every state is a pure function of the
@@ -27,7 +31,7 @@ ColorManagement.enabled = false;
 
 const RECORDS = 4000, ERRORS = 180, LANES = 8, COLS = RECORDS / LANES, SPACING = 0.15, MAXF = 8;
 const RINGS = [[1.5, 0.2], [1.68, -0.42], [1.86, 0.62], [2.05, -0.1], [2.26, 0.38]];
-const FORM = { orbit: 0, line: 1, gate: 2, a: 3, b: 4, scatter: 5, grid: 6 };
+const FORM = { orbit: 0, line: 1, gate: 2, a: 3, b: 4, scatter: 5, grid: 6, link: 7, scan: 8, gantt: 9, kanban: 10 };
 const FOV = 24, CAMZ = 40;
 const root = document.documentElement, body = document.body;
 const params = new URLSearchParams(location.search);
@@ -154,12 +158,14 @@ const qMul = (a, b) => [a[3] * b[0] + b[3] * a[0] + a[1] * b[2] - a[2] * b[1], a
 const qRot = (q, v) => { const [x, y, z, w] = q; const t = [2 * (y * v[2] - z * v[1]), 2 * (z * v[0] - x * v[2]), 2 * (x * v[1] - y * v[0])]; return [v[0] + w * t[0] + (y * t[2] - z * t[1]), v[1] + w * t[1] + (z * t[0] - x * t[2]), v[2] + w * t[2] + (x * t[1] - y * t[0])]; };
 
 // size of each formation (for fitting it to its element) and its resting orientation
-const EXT = { 0: { w: 4.6, h: 4.4 }, 1: { w: 7.2, h: 1.9 }, 2: { w: 7.4, h: 2.6 }, 3: { w: extA.w * 0.92 + 0.3, h: extA.h + 0.8 }, 4: { w: extB.w * 0.96, h: extB.h * 0.96 }, 5: { w: 4.6, h: 3.0 }, 6: { w: 8.0, h: 3.4 } };
+const EXT = { 0: { w: 4.6, h: 4.4 }, 1: { w: 7.2, h: 1.9 }, 2: { w: 7.4, h: 2.6 }, 3: { w: extA.w * 0.92 + 0.3, h: extA.h + 0.8 }, 4: { w: extB.w * 0.96, h: extB.h * 0.96 }, 5: { w: 4.6, h: 3.0 }, 6: { w: 8.0, h: 3.4 }, 7: { w: 6.6, h: 2.5 }, 8: { w: 5.9, h: 2.0 }, 9: { w: 5.4, h: 2.3 }, 10: { w: 4.0, h: 3.7 } };
 const BASEQ = {
   0: [0, 0, 0, 1], 1: qMul(qAxis([1, 0, 0], 0.42), qAxis([0, 1, 0], -0.62)), 2: qMul(qAxis([1, 0, 0], 0.4), qAxis([0, 1, 0], -0.6)),
   3: qMul(qAxis([1, 0, 0], 0.34), qAxis([0, 1, 0], -0.55)), 4: [0, 0, 0, 1], 5: [0, 0, 0, 1], 6: qMul(qAxis([1, 0, 0], -0.62), qAxis([0, 1, 0], -0.28)),
+  7: qMul(qAxis([1, 0, 0], 0.22), qAxis([0, 1, 0], -0.32)), 8: qMul(qAxis([1, 0, 0], 0.18), qAxis([0, 1, 0], -0.48)),
+  9: qMul(qAxis([1, 0, 0], 0.36), qAxis([0, 1, 0], -0.4)), 10: qMul(qAxis([1, 0, 0], 0.16), qAxis([0, 1, 0], -0.36)),
 };
-const SHADOW = { 0: [0, -1.4, 2.6, 0.5], 1: [0, -0.4, 8, 1.4], 2: [0, -0.4, 8, 1.6], 3: [0, -(extA.h / 2 + 0.25), extA.w + 0.8, 0.9], 4: [0, -1.6, 2.4, 0.35], 5: [0, -1.7, 4.2, 0.6], 6: [0, -1.5, 7, 0.9] };
+const SHADOW = { 0: [0, -1.4, 2.6, 0.5], 1: [0, -0.4, 8, 1.4], 2: [0, -0.4, 8, 1.6], 3: [0, -(extA.h / 2 + 0.25), extA.w + 0.8, 0.9], 4: [0, -1.6, 2.4, 0.35], 5: [0, -1.7, 4.2, 0.6], 6: [0, -1.5, 7, 0.9], 7: [0, -1.25, 7, 0.7], 8: [0, -0.95, 6.2, 0.8], 9: [0, -1.15, 6, 0.8], 10: [0, -1.95, 4.4, 0.7] };
 
 const VERT = /* glsl */`
   precision highp float;
@@ -171,6 +177,7 @@ const VERT = /* glsl */`
   ${QUAT}
   const float LANES = ${LANES}.0, COLS = ${COLS}.0, SP = ${SPACING}, HALF = 4.3;
   bool isErr(){ return aErr > .5 && uErrMode > .5; }
+  float h1(float n){ return fract(sin(n * 12.9898 + 4.1414) * 43758.5453); }
   vec4 tumble(float speed){ return qAxis(aSeed.yzw - .5 + .001, uTime * speed * (.3 + aSeed.x) + aSeed.w * 6.283); }
 
   // the conveyor: a short visible stretch of one long line; records outside it are not drawn
@@ -225,7 +232,7 @@ const VERT = /* glsl */`
       vec3 c = dir * pow(fract(aSeed.x * 7.31 + aSeed.w * 3.7), .42) * vec3(2.25, 1.3, 1.25);
       c += vec3(sin(uTime * .35 + aSeed.x * 31.), cos(uTime * .29 + aSeed.y * 23.), sin(uTime * .23 + aSeed.z * 17.)) * .07;
       p = c; q = tumble(.22); s = .95;
-    } else {
+    } else if (id < 6.5) {
       // a live sheet: every record in its row, a soft update rippling across it
       float i = aLine.x + aLine.y * LANES;
       float col = mod(i, 80.), row = floor(i / 80.);
@@ -234,6 +241,86 @@ const VERT = /* glsl */`
       p.z = wave * .045;
       q = vec4(0., 0., 0., 1.); s = 1.;
       st.x = .55 + .45 * smoothstep(.6, 1., wave);
+    } else if (id < 7.5) {
+      // two systems kept in step: records cross one way over the top and come back underneath
+      float i = aLine.x + aLine.y * LANES;
+      q = vec4(0., 0., 0., 1.); s = 1.;
+      if (i < 3600.) {
+        float side = i < 1800. ? -1. : 1., m = mod(i, 1800.);
+        float col = mod(m, 15.), row = mod(floor(m / 15.), 24.), lay = floor(m / 360.);
+        p = vec3(side * 2.4 + (col - 7.) * .11, (row - 11.5) * .072, (lay - 2.) * .03);
+        // the cells a packet leaves from or lands on light up as it passes
+        float near = 1. - smoothstep(0., .6, abs(row - 11.5 - side * 3.) / 8. + abs(col - 7. + side * 7.) / 15.);
+        st.x = .32 + .3 * near * (.5 + .5 * sin(uTime * 2.2 + side));
+      } else {
+        float m = i - 3600., pk = floor(m / 8.), sub = mod(m, 8.);
+        if (pk >= 32.) { p = vec3(0., -50., 0.); s = 0.; return; }
+        float lane = mod(pk, 2.), k = floor(pk / 2.);
+        float u = fract(k / 16. + uTime * .07 + lane * .5);
+        float dir = lane < .5 ? 1. : -1.;
+        float x = dir * mix(-1.5, 1.5, u);
+        float y = (lane < .5 ? 1. : -1.) * (.22 + sin(PI * u) * .62);
+        vec3 o = vec3(mod(sub, 2.) - .5, mod(floor(sub / 2.), 2.) - .5, floor(sub / 4.) - .5) * vec3(.11, .072, .05);
+        p = vec3(x, y, (lane - .5) * .3) + o;
+        q = qAxis(vec3(0., 0., 1.), dir * cos(PI * u) * .55);
+        s = smoothstep(0., .08, u) * smoothstep(1., .92, u);
+        st.x = 1.;
+      }
+    } else if (id < 8.5) {
+      // every record checked: a sweep crosses the wall, records lift as it passes, errors are pulled out, fixed and put back
+      float i = aLine.x + aLine.y * LANES;
+      float col = mod(i, 50.), row = mod(floor(i / 50.), 20.), lay = floor(i / 1000.);
+      p = vec3((col - 24.5) * .11, (row - 9.5) * .072, (lay - 1.5) * -.05);
+      q = vec4(0., 0., 0., 1.); s = 1.;
+      float span = 8.5, sx = mod(uTime * .7, span) - 3.4;
+      float d = mod(sx - p.x, span);
+      float pass = exp(-d * 3.5);
+      p.z += pass * .14;
+      st.x = .38 + .62 * pass;
+      if (h1(i * 1.37) < .045 && lay < .5) {
+        float out_ = smoothstep(0., .35, d) * (1. - smoothstep(span * .62, span * .9, d));
+        p += vec3(0., .05, .55) * out_;
+        q = qAxis(vec3(1., 0., 0.), -out_ * .5);
+        st = vec2(mix(1., st.x, out_), out_);
+      }
+    } else if (id < 9.5) {
+      // the plan: a cascade of jobs, one row each; finished work fills in as the day moves across
+      float lane = aLine.x, j = aLine.y;
+      float sub = mod(j, 3.), c = mod(floor(j / 3.), 50.), lay = floor(j / 150.);
+      p = vec3((c - 24.5) * .105, (3.5 - lane) * .27 + (sub - 1.) * .068, (lay - 1.) * .022);
+      q = vec4(0., 0., 0., 1.);
+      float a0 = 1. + floor(lane * 2.6), a1 = a0 + 8. + floor(h1(lane) * 7.), b0 = a1 + 1., b1 = b0 + 6. + floor(h1(lane + 9.) * 8.);
+      bool on = lay < 2.5 && ((c >= a0 && c < a1) || (c >= b0 && c < b1));
+      s = on ? 1. : 0.;
+      float tl = mod(uTime * 2.4, 64.) - 4.;
+      float reset = smoothstep(50., 58., tl);
+      bool live = on && ((c >= a0 && c < a1 && tl >= a0 && tl < a1) || (c >= b0 && c < b1 && tl >= b0 && tl < b1));
+      st.x = mix(c < tl ? 1. : .14, .14, reset);
+      if (live) { p.z += .08; st.x = max(st.x, .55 + .2 * sin(uTime * 5.)); }
+      if (!on) p.y -= 50.;
+    } else {
+      // the work, on a board: cards move from To do, through Doing, to Done, one step at a time
+      float i = aLine.x + aLine.y * LANES;
+      float k = floor(i / 180.), m = mod(i, 180.);
+      if (k >= 22.) { p = vec3(0., -50., 0.); s = 0.; return; }
+      vec3 o = vec3((mod(m, 10.) - 4.5) * .105, (mod(floor(m / 10.), 6.) - 2.5) * .068, (floor(m / 60.) - 1.) * .03);
+      float T = uTime * .55 + k, P = mod(floor(T), 22.), e = smoothstep(.55, 1., fract(T));
+      // serpentine: To do runs up, Doing runs down, Done runs up, so every hop between columns is a straight move across
+      vec3 a = vec3(0.), b = vec3(0.);
+      for (int n = 0; n < 2; n++) {
+        float pp = mod(P + float(n), 22.);
+        float cc = min(floor(pp / 7.), 2.), r = pp - cc * 7.;
+        float y = mod(cc, 2.) < .5 ? r : 6. - r;
+        vec3 at = vec3((cc - 1.) * 1.38, (y - 3.) * .5, 0.);
+        if (n == 0) a = at; else b = at;
+      }
+      float fadeIn = P > 20.5 ? e : 1., fadeOut = P > 19.5 && P < 20.5 ? 1. - e : 1.;
+      if (P > 20.5) { a = vec3(-1.38, -2.1, 0.); b = vec3(-1.38, -1.5, 0.); }
+      if (P > 19.5 && P < 20.5) b = vec3(1.38, 2.1, 0.);
+      vec3 c = mix(a, b, e);
+      c.z += sin(PI * e) * .12;
+      p = c + o; q = vec4(0., 0., 0., 1.); s = fadeIn * fadeOut;
+      st.x = clamp((c.x + 1.38) / 2.76, 0., 1.) * .85 + .1;
     }
   }
 
@@ -377,6 +464,8 @@ function makeView(el) {
   }
   const drive = el.closest("[data-drive]");
   const v = { el, canvas, renderer, scene, camera, mat, shadow, globe, gate, forms, drive, scales: forms.map(() => 1), intro: still !== null || reduce ? 1 : 0, visible: false, w: 0, h: 0, frames: 0, dpr: 1 };
+  // below the fold when first built: its arrival follows the scroll
+  v.scrub = el.getBoundingClientRect().top > innerHeight * 0.9;
   fit(v);
   return v;
 }
@@ -466,18 +555,19 @@ function draw(v, dt) {
   fit(v);
   const r = v.el.getBoundingClientRect();
   const c = clamp((r.top + r.height / 2) / VH - 0.5, -1, 1);
-  // the scene follows the reader at its own steady pace (about 2 s per change): scrolling picks the formation, and the change
-  // itself always plays out in full, however fast the page is scrolled
+  // the story is scrubbed by the scroll itself (motion.js pins it and spreads the steps over the pinned stretch), with a
+  // light smoothing so a flick of the wheel still reads as motion rather than a jump
   const target = stageOf(v);
   if (v.shown === undefined || reduce || still !== null) v.shown = target;
-  else {
-    const toA = v.forms[Math.min(v.forms.length - 1, Math.ceil(Math.min(target, v.shown + 0.999)))] === 3;
-    const rate = toA ? 0.45 : 0.6;
-    const d = target - v.shown, step = rate * Math.min(dt, 0.05);
-    v.shown = Math.abs(d) <= step ? target : v.shown + Math.sign(d) * step;
-  }
+  else v.shown += (target - v.shown) * (1 - Math.exp(-dt * 10));
+  if (Math.abs(target - v.shown) < 1e-4) v.shown = target;
   const stage = v.shown;
-  if (!reduce) v.intro = Math.min(1, v.intro + dt / (v.forms[0] === 3 ? 2.4 : 1.3));
+  // a scene that starts above the fold arrives on its own; one further down is built by the scroll that brings it in,
+  // so it can never finish out of sight: half-built when its top is 3/4 of the way up the screen, complete at 45%
+  if (!reduce && still === null) {
+    if (v.scrub) v.intro = Math.max(v.intro, clamp((VH - r.top) / (VH * 0.55), 0, 1));
+    else v.intro = Math.min(1, v.intro + dt / (v.forms[0] === 3 ? 2.4 : 1.3));
+  }
   const sway = reduce ? [0, 0, 0, 1] : qMul(qAxis([0, 1, 0], -c * 0.3 + tilt.x * 0.22), qAxis([1, 0, 0], c * 0.1 + tilt.y * 0.12));
   const A = v.mat.uniforms.uAnchor.value, Q = v.mat.uniforms.uAnchorQ.value;
   v.forms.forEach((f, k) => { A.set([0, 0, 0, v.scales[k]], k * 4); Q.set(qMul(sway, BASEQ[f]), k * 4); });

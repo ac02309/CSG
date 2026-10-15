@@ -177,7 +177,7 @@ Checked on 2026-10-15.
 | Keyboard navigation and screen readers | ✅ | Skip link, visible focus and labelled controls. The menus have keyboard support, Escape to close and a focus trap on mobile. The 3D canvases are hidden from screen readers. |
 | Translations and locale formats | ➖ | English-only by design (UK business). Numbers use `en-GB` formatting. |
 | A back button that does what people expect | ✅ | Ordinary links between pages. No history tricks. Back and forward restore the scroll position. |
-| Works at every zoom level and scroll speed | ✅ | Tested at 50, 67, 80, 90, 100, 110, 125, 150, 175, 200 and 300% zoom, plus 320, 390, 820 and 2560px screens, across 9 page types. One real defect was found and fixed: a 52px-wide table on 320px phones. Scroll stress test: 150 random jumps per page on 4 pages, at 1440, 390 and 720px wide. Every story step, counter, progress bar and rule line was in its correct state. The 3D also re-measures when zoom changes the pixel density. |
+| Works at every zoom level and scroll speed | ✅ | Tested at 50, 67, 80, 90, 100, 110, 125, 150, 175, 200 and 300% zoom, plus 320, 390, 820 and 2560px screens, across 9 page types. One real defect was found and fixed: a 52px-wide table on 320px phones. Scroll stress test: 150 random jumps per page on 4 pages, at 1440, 390 and 720px wide. Every story step, counter, progress bar and rule line was in its correct state. The pinned home story is also checked at 61 positions on 9 screens (2560 to 360px): the panel stays fully on screen below the navigation, and its text, scene and numbered buttons always agree. The 3D also re-measures when zoom changes the pixel density. |
 
 ## Code and people
 
