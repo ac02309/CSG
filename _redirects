@@ -1,0 +1,5 @@
+# Redirect-only Netlify site for the bare domain, used only if www moves to Cloudflare Pages (docs/HOSTING.md
+# on the main branch). Domain-scoped, so a request that still reaches Netlify for www during DNS propagation
+# is not redirected to itself.
+https://clarkesystemsgroup.com/*   https://www.clarkesystemsgroup.com/:splat   301!
+http://clarkesystemsgroup.com/*    https://www.clarkesystemsgroup.com/:splat   301!

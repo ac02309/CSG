@@ -1,0 +1,4 @@
+# No build, no functions, no forms: one redirect rule. About 2 credits per 10,000 visits on the free plan.
+[build]
+  command = ""
+  publish = "."
