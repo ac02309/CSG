@@ -97,7 +97,9 @@
       /* real elapsed time, so a slow frame never slows the story down */
       t+=Math.max(0,Math.min(.5,(now-last)/1000));last=now;
       if(t>=END){finish();return;}
-      render();run();
+      render();
+      /* chain frames on the frame clock itself, so drawing time is never dropped from the story's time */
+      if(inView&&!paused&&!done&&!document.hidden)raf=requestAnimationFrame(tick);
     }
     function run(){if(!raf&&inView&&!paused&&!done&&!document.hidden){last=performance.now();raf=requestAnimationFrame(tick);}}
     function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
