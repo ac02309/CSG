@@ -36,6 +36,7 @@ ok(!robotsVerdict("User-agent: *\nDisallow: /*?*page=", "/products.json?limit=25
 ok(!robotsVerdict("User-agent: CSG-research/1.0\nDisallow: /", "/products.json"), "group naming us with a version applies");
 ok(robotsVerdict("User-agent: r\nDisallow: /\n\nUser-agent: *\nAllow: /", "/products.json"), "a fragment of our name is not us");
 ok(!robotsVerdict("User-agent: *\rDisallow: /", "/products.json"), "CR-only line endings");
+ok(!robotsVerdict("\uFEFFUser-agent: *\nDisallow: /", "/products.json"), "byte order mark does not hide the first group");
 
 console.log("analysis");
 const prods = Array.from({ length: 300 }, (_, i) => ({ id: i, title: i === 0 ? "Gift Card" : `Rug ${i}`, product_type: i < 30 ? "" : (i === 31 ? "rugs" : "Rugs"),
@@ -82,6 +83,15 @@ ok(await rejects(checkStore("busy.example.com", { resolve: res(["23.227.38.65"])
   const shy = async (url) => { seen2.push(url); return url.includes("robots.txt") ? mk(200, "User-agent: *\nDisallow: /products.json") : mk(200, page(1, 0)); };
   ok(await rejects(checkStore("shy2.example.com", { resolve: res(["23.227.38.65"]), fetcher: shy }), "robots"), "robots refusal before any catalogue request");
   ok(!seen2.some((u) => u.includes("products.json")), "not even the first probe is sent when robots.txt says no");
+  const chain = (n, last) => async (url) => {
+    const m = url.match(/robots(\d*)\.txt/);
+    if (m) { const i = Number(m[1] || 0); return i < n ? mk(301, "", { location: `https://hop.example.com/robots${i + 1}.txt` }) : mk(200, last); }
+    return mk(200, page(1, 0));
+  };
+  ok(await rejects(checkStore("hop.example.com", { resolve: res(["23.227.38.65"]), fetcher: chain(4, "User-agent: *\nDisallow: /") }), "robots"),
+    "4 robots.txt redirects followed to a Disallow");
+  ok(await rejects(checkStore("hop.example.com", { resolve: res(["23.227.38.65"]), fetcher: chain(9, "User-agent: *\nAllow: /") }), "robots"),
+    "an endless robots.txt redirect chain is refused, not treated as permission");
 }
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");

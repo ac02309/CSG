@@ -110,7 +110,7 @@ async function fetchJson(url, fetcher) {
 export function robotsVerdict(txt, path, agent = "csg-research") {
   const groups = [];
   let cur = null, lastWasAgent = false;
-  for (const raw of txt.split(/\r\n|\r|\n/)) {
+  for (const raw of txt.replace(/^\uFEFF/, "").split(/\r\n|\r|\n/)) {
     const line = raw.replace(/#.*/, "").trim();
     const m = line.match(/^(user-agent|disallow|allow)\s*:\s*(.*)$/i);
     if (!m) continue;
@@ -145,14 +145,16 @@ export function robotsVerdict(txt, path, agent = "csg-research") {
 // server is failing (crawling not allowed).
 async function loadRobots(base, fetcher, resolve) {
   let url = `${base}/robots.txt`;
-  for (let hop = 0; hop < 4; hop++) {
+  // RFC 9309: follow at least five redirects; past that, refuse rather than assume permission
+  for (let hop = 0; hop <= 5; hop++) {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 2500);
     try {
       const r = await fetcher(url, { headers: { "User-Agent": UA }, redirect: "manual", signal: ctl.signal });
       if (r.status >= 300 && r.status < 400) {
         const loc = r.headers.get("location");
-        if (!loc || hop === 3) return "";                         // unreadable robots file: treated as none (RFC 9309)
+        if (!loc) return "";                                      // redirect with nowhere to go: no robots file
+        if (hop === 5) return null;
         const u = new URL(loc, url);
         const host = u.protocol === "https:" ? normaliseStore(u.hostname) : null;
         if (!host) return null;                                   // redirect to http or an odd host: do not proceed
@@ -169,7 +171,7 @@ async function loadRobots(base, fetcher, resolve) {
       clearTimeout(t);
     }
   }
-  return "";
+  return null;
 }
 
 const robotsOk = (txt, pathAndQuery) => txt !== null && (txt === "" || robotsVerdict(txt, pathAndQuery));
