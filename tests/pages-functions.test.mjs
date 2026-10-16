@@ -120,6 +120,14 @@ r = await lead.onRequestPost(ctx(post("/api/lead", { "form-name": "brief", email
 ok(r.status === 200, "a long contact brief (12k characters) is accepted");
 csv = await (await leads.onRequestGet(ctx(get("?form=brief&all=1", auth), env))).text();
 ok(csv.split("\n")[0].includes("business") && csv.includes("Acme") && csv.split("\n")[0].includes("subject"), "business and subject exported");
+r = await lead.onRequestPost(ctx(form({ store: "x.com", email: "+sales@x.com" }, "10.4.4.1"), env));
+ok(r.status === 200, "+sales@ address accepted");
+r = await lead.onRequestPost(ctx(form({ store: "x.com", email: "jo@münchen.de" }, "10.4.4.2"), env));
+ok(r.status === 200, "Unicode domain accepted");
+env.LEADS._db.prepare("INSERT INTO leads (at, form, store, email, name, updates, summary, fields) VALUES ('t','catalogue-check','=evil()','=1+1@x.com','',0,'','{}')").run();
+csv = await (await leads.onRequestGet(ctx(get("", auth), env))).text();
+ok(csv.includes("'+sales@x.com") && csv.includes("'=1+1@x.com") && csv.includes("'=evil()"),
+   "legacy unsafe rows and a leading + are guarded on export");
 for (const o of ["http://localhost.attacker.com", "http://localhost:3000.evil"]) {
   r = await check.onRequestPost(ctx(post("/api/check", { store: "x.com" }, { origin: o, "cf-connecting-ip": "10.3.3.3" })));
   ok(r.status === 403, `origin ${o} refused`);

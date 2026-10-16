@@ -110,7 +110,7 @@ async function fetchJson(url, fetcher) {
 export function robotsVerdict(txt, path, agent = "csg-research") {
   const groups = [];
   let cur = null, lastWasAgent = false;
-  for (const raw of txt.split(/\r?\n/)) {
+  for (const raw of txt.split(/\r\n|\r|\n/)) {
     const line = raw.replace(/#.*/, "").trim();
     const m = line.match(/^(user-agent|disallow|allow)\s*:\s*(.*)$/i);
     if (!m) continue;
@@ -124,7 +124,9 @@ export function robotsVerdict(txt, path, agent = "csg-research") {
       if (cur && val) cur.rules.push({ allow: key === "allow", pattern: val });
     }
   }
-  const mine = groups.filter((g) => g.agents.some((a) => a !== "*" && agent.includes(a)));
+  // product token comparison: "CSG-research/1.0" and "csg-research" both name us; "" or a fragment never does
+  const token = (a) => a.split("/")[0].trim();
+  const mine = groups.filter((g) => g.agents.some((a) => token(a) === agent));
   const chosen = mine.length ? mine : groups.filter((g) => g.agents.includes("*"));
   const rules = chosen.flatMap((g) => g.rules);
   let best = null;
@@ -139,7 +141,9 @@ export function robotsVerdict(txt, path, agent = "csg-research") {
   return best ? best.allow : true;
 }
 
-async function robotsAllows(base, path, fetcher, resolve) {
+// Returns the robots.txt text, "" when there is none (crawling allowed), or null when it cannot be read because the
+// server is failing (crawling not allowed).
+async function loadRobots(base, fetcher, resolve) {
   let url = `${base}/robots.txt`;
   for (let hop = 0; hop < 4; hop++) {
     const ctl = new AbortController();
@@ -148,30 +152,35 @@ async function robotsAllows(base, path, fetcher, resolve) {
       const r = await fetcher(url, { headers: { "User-Agent": UA }, redirect: "manual", signal: ctl.signal });
       if (r.status >= 300 && r.status < 400) {
         const loc = r.headers.get("location");
-        if (!loc || hop === 3) return true;                       // unreadable robots file: treated as none (RFC 9309)
+        if (!loc || hop === 3) return "";                         // unreadable robots file: treated as none (RFC 9309)
         const u = new URL(loc, url);
         const host = u.protocol === "https:" ? normaliseStore(u.hostname) : null;
-        if (!host) return false;                                  // redirect to http or an odd host: do not proceed
+        if (!host) return null;                                   // redirect to http or an odd host: do not proceed
         await assertPublicHost(host, resolve);
         url = `https://${host}${u.pathname}${u.search}`;
         continue;
       }
-      if (r.status >= 500 || r.status === 0) return false;      // server trouble: assume disallowed (RFC 9309)
-      if (r.status !== 200) return true;                        // 4xx: no robots file
-      return robotsVerdict((await r.text()).slice(0, 500_000), path);
-    } catch (e) {
-      if (e instanceof CheckError) return false;
-      return false;
+      if (r.status >= 500 || r.status === 0) return null;       // server trouble: assume disallowed (RFC 9309)
+      if (r.status !== 200) return "";                          // 4xx: no robots file
+      return (await r.text()).slice(0, 500_000);
+    } catch {
+      return null;
     } finally {
       clearTimeout(t);
     }
   }
-  return true;
+  return "";
 }
+
+const robotsOk = (txt, pathAndQuery) => txt !== null && (txt === "" || robotsVerdict(txt, pathAndQuery));
+const ROBOTS_REFUSAL = "This store asks automated tools not to read its catalogue, so we have not checked it.";
 
 // Resolve the store's canonical https host (follows one redirect, e.g. to www.), checking each hop.
 async function canonicalBase(host, fetcher, resolve) {
   await assertPublicHost(host, resolve);
+  // robots.txt is read before the very first catalogue request, and judged on the exact URL requested
+  const robots = await loadRobots(`https://${host}`, fetcher, resolve);
+  if (!robotsOk(robots, "/products.json?limit=1")) throw new CheckError("robots", ROBOTS_REFUSAL);
   const r = await fetchJson(`https://${host}/products.json?limit=1`, fetcher);
   if (r.status >= 300 && r.status < 400 && r.location) {
     const u = new URL(r.location, `https://${host}`);
@@ -179,9 +188,9 @@ async function canonicalBase(host, fetcher, resolve) {
     const h2 = normaliseStore(u.hostname);
     if (!h2) throw new CheckError("blocked", "That address cannot be checked.");
     await assertPublicHost(h2, resolve);
-    return `https://${h2}`;
+    return { base: `https://${h2}`, robots: h2 === host ? robots : await loadRobots(`https://${h2}`, fetcher, resolve) };
   }
-  return `https://${host}`;
+  return { base: `https://${host}`, robots };
 }
 
 // --------------------------------------------------------------- checks
@@ -268,15 +277,18 @@ export function analyse(products) {
 export async function checkStore(input, { fetcher = fetch, resolve = noResolver, maxPages = MAX_PAGES } = {}) {
   const host = normaliseStore(input);
   if (!host) throw new CheckError("invalid", "Enter a store web address, for example yourstore.co.uk.");
-  const base = await canonicalBase(host, fetcher, resolve);
-  if (!(await robotsAllows(base, "/products.json", fetcher, resolve))) {
-    throw new CheckError("robots", "This store asks automated tools not to read its catalogue, so we have not checked it.");
-  }
+  const { base, robots: robotsTxt } = await canonicalBase(host, fetcher, resolve);
   const products = [];
   const seen = new Set();
   let capped = false;
   for (let page = 1; page <= maxPages; page++) {
-    const r = await fetchJson(`${base}/products.json?limit=250&page=${page}`, fetcher);
+    const path = `/products.json?limit=250&page=${page}`;
+    if (!robotsOk(robotsTxt, path)) {
+      if (page === 1) throw new CheckError("robots", ROBOTS_REFUSAL);
+      capped = true;   // a later page is disallowed: report honestly as a partial check
+      break;
+    }
+    const r = await fetchJson(`${base}${path}`, fetcher);
     if (r.status !== 200) {
       if (page === 1) {
         if (r.status === 403 || r.status === 429) {

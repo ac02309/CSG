@@ -12,9 +12,13 @@ const FORMS = {
   brief: ["name", "email", "business", "company", "role", "team_size", "process", "tools", "hours_per_week", "outcome", "referrer",
           "request", "topic", "subject", "message"],
 };
-// must start with a letter or digit: keeps exports safe from spreadsheet formulas without altering the address
-const EMAIL = /^[a-z0-9][^@\s<>"()=,;]{0,63}@[a-z0-9][a-z0-9.-]{0,189}\.[a-z]{2,24}$/i;
-const STORE = /^[a-z0-9][a-z0-9.-]{0,252}\.[a-z]{2,24}$/;
+// Accepts any normal address, including Unicode domains and a leading "+" (e.g. +sales@). Refuses = - @ as a first
+// character and | anywhere, which only spreadsheet attacks use. Exports still guard a leading "+" with an apostrophe,
+// which `outreach inbound` strips again.
+export const EMAIL = /^(?![=\-@])[^\s@<>"()\[\],;:|]{1,64}@[^\s@<>"()\[\],;:|]{1,190}\.[\p{L}a-z]{2,24}$/iu;
+const exportSafe = (v) => EMAIL.test(v) && !v.startsWith("+");
+export { exportSafe };
+export const STORE = /^[a-z0-9][a-z0-9.-]{0,252}\.[a-z]{2,24}$/;
 // control characters removed; line breaks kept (the contact brief is multi-line)
 const clip = (v, n) => String(v ?? "").replace(/\r\n?/g, "\n").replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, " ").trim().slice(0, n);
 

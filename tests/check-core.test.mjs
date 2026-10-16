@@ -31,6 +31,11 @@ ok(robotsVerdict("User-agent: *\nDisallow: /cart\nDisallow: /*.json$", "/product
 ok(robotsVerdict("User-agent: *\nDisallow: /\n\nUser-agent: CSG-research\nAllow: /", "/products.json"), "our own group overrides *");
 ok(!robotsVerdict("User-agent: Googlebot\nAllow: /\n\nUser-agent: *\nDisallow: /products", "/products.json"), "other bots' groups ignored");
 ok(robotsVerdict("", "/products.json"), "empty file allows");
+ok(!robotsVerdict("User-agent: *\nDisallow: /\nAllow: /products.json$", "/products.json?limit=250&page=1"), "judged on the exact URL with its query");
+ok(!robotsVerdict("User-agent: *\nDisallow: /*?*page=", "/products.json?limit=250&page=2"), "query-string disallow respected");
+ok(!robotsVerdict("User-agent: CSG-research/1.0\nDisallow: /", "/products.json"), "group naming us with a version applies");
+ok(robotsVerdict("User-agent: r\nDisallow: /\n\nUser-agent: *\nAllow: /", "/products.json"), "a fragment of our name is not us");
+ok(!robotsVerdict("User-agent: *\rDisallow: /", "/products.json"), "CR-only line endings");
 
 console.log("analysis");
 const prods = Array.from({ length: 300 }, (_, i) => ({ id: i, title: i === 0 ? "Gift Card" : `Rug ${i}`, product_type: i < 30 ? "" : (i === 31 ? "rugs" : "Rugs"),
@@ -73,6 +78,10 @@ ok(await rejects(checkStore("busy.example.com", { resolve: res(["23.227.38.65"])
   ok(await rejects(checkStore("evil2.example.com", { resolve: async (h) => [{ address: h === "internal.example.com" ? "10.0.0.2" : "23.227.38.65" }], fetcher: evil2 }), "robots"),
     "robots redirect to a host resolving privately refused");
   ok(!hits.some((u) => u.includes("internal.example.com")), "private host never fetched");
+  const seen2 = [];
+  const shy = async (url) => { seen2.push(url); return url.includes("robots.txt") ? mk(200, "User-agent: *\nDisallow: /products.json") : mk(200, page(1, 0)); };
+  ok(await rejects(checkStore("shy2.example.com", { resolve: res(["23.227.38.65"]), fetcher: shy }), "robots"), "robots refusal before any catalogue request");
+  ok(!seen2.some((u) => u.includes("products.json")), "not even the first probe is sent when robots.txt says no");
 }
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");

@@ -51,7 +51,9 @@ for (const f of pages) {
       ["your request is sent to us through Netlify, our website host, which stores the submission and notifies us by email.",
        "your request is sent to us through Cloudflare, our website host, which stores the submission until we collect it."],
       ["Netlify (website hosting and request form submissions)",
-       "Cloudflare (website hosting and request form submissions) and Netlify (redirecting the clarkesystemsgroup.com address to www)"],
+       process.env.CHECK_ENDPOINT
+         ? "Cloudflare (website hosting and request form submissions) and Netlify (running the instant catalogue check, which receives the store address you enter and your IP address for rate limiting, and redirecting the clarkesystemsgroup.com address to www)"
+         : "Cloudflare (website hosting and request form submissions) and Netlify (redirecting the clarkesystemsgroup.com address to www)"],
     ];
     for (const [from, to] of swaps) {
       if (!h.includes(from)) problems.push(`privacy.html: expected text not found, update build-pages.mjs: "${from.slice(0, 50)}..."`);

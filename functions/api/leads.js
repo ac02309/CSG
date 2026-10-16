@@ -3,6 +3,7 @@
 // ?form=brief exports contact-page requests instead. ?all=1 includes rows already exported.
 // ?mark=1 marks the returned rows as exported.
 import { safeEqual } from "../_lib/common.js";
+import { STORE, exportSafe } from "./lead.js";
 
 const cell = (v, guard = true) => {
   let s = String(v ?? "");
@@ -36,9 +37,9 @@ export async function onRequestGet({ request, env }) {
     body = rows.map((r) => { const f = JSON.parse(r.fields || "{}"); return [r.at, ...keys.map((k) => f[k])].map((v, i) => cell(v, keys[i - 1] !== "email")).join(","); }).join("\n");
   } else {
     head = "created_at,store,email,name,updates,summary\n";
-    // email and store were validated on the way in, so they skip the guard (a "+sales@" address must stay intact)
-    body = rows.map((r) => [cell(r.at), cell(r.store, false), cell(r.email, false), cell(r.name), r.updates ? "yes" : "",
-      cell(r.summary)].join(",")).join("\n");
+    // email and store skip the guard only if they pass today's validation (rows stored by older code may not)
+    body = rows.map((r) => [cell(r.at), cell(r.store, !STORE.test(r.store || "")), cell(r.email, !exportSafe(r.email || "")),
+      cell(r.name), r.updates ? "yes" : "", cell(r.summary)].join(",")).join("\n");
   }
   return new Response("﻿" + head + body + (body ? "\n" : ""), {
     headers: { "Content-Type": "text/csv; charset=utf-8", "Cache-Control": "no-store",

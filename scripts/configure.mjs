@@ -44,6 +44,9 @@ if (fc.show && !fc.offer) problems.push("foundingClients.offer is empty, so the 
 const an = cfg.analytics || {};
 let provider = ["plausible", "cloudflare", "netlify", "goatcounter"].includes(an.provider) ? an.provider : "none";
 if (provider === "cloudflare" && !an.cloudflareToken) problems.push("analytics.cloudflareToken is needed for Cloudflare Web Analytics.");
+if (provider === "plausible" || provider === "cloudflare") {
+  problems.push(`analytics.provider "${provider}": this site offers visitors no way to switch it off, and the PECR statistics exemption (no banner) needs one. Use "goatcounter", which has the opt-out built in.`);
+}
 const gcCode = String(an.goatcounterCode || "").trim().toLowerCase();
 if (provider === "goatcounter" && !/^[a-z0-9-]{2,40}$/.test(gcCode)) {
   problems.push("analytics.goatcounterCode is needed for GoatCounter (the part before .goatcounter.com). Analytics stays off.");
@@ -147,14 +150,19 @@ const privacyAnalytics = () => provider === "goatcounter"
 // The cookie paragraphs must never contradict the analytics paragraph (PECR Sch. A1 para 5 needs "clear and
 // comprehensive information"), so they are generated from the same setting.
 const fontsLine = "Its fonts are built into the page, so no other company is contacted when it loads.";
+const fontsLineAnalytics = "Its fonts are built into the page; the only other company contacted when it loads is the visit-statistics provider named above.";
 const privacyCookies = () => provider === "none"
   ? `<p>This site sets no cookies, stores nothing on your device and uses no analytics or tracking. ${fontsLine}</p>`
   : provider === "goatcounter"
-    ? `<p>This site sets no cookies. It counts visits with GoatCounter, as described above, which reads non-identifying details such as screen width and stores nothing on your device. If you switch visit statistics off, your browser keeps a small note of that choice (an item named "skipgc" in its local storage) so that it is respected on later visits. ${fontsLine}</p>`
-    : `<p>This site sets no cookies and stores nothing on your device. It counts visits with ${analyticsName}, as described above, which does not identify you or track you across other sites. ${fontsLine}</p>`;
+    ? `<p>This site sets no cookies. It counts visits with GoatCounter, as described above, which reads non-identifying details such as screen width and stores nothing on your device. If you switch visit statistics off, your browser keeps a small note of that choice (an item named "skipgc" in its local storage) so that it is respected on later visits. ${fontsLineAnalytics}</p>`
+    : provider === "netlify"
+      ? `<p>This site sets no cookies and stores nothing on your device. Visits are counted by our host, Netlify, from its own server records, as described above; no tracking code runs in your browser. ${fontsLine}</p>`
+      : `<p>This site sets no cookies and stores nothing on your device. It counts visits with ${analyticsName}, as described above, which does not identify you or track you across other sites. ${fontsLineAnalytics}</p>`;
 const termsCookies = () => provider === "none"
   ? "This site sets no cookies and uses no analytics or tracking, so there is nothing to accept or decline."
-  : "This site sets no cookies. It counts visits without identifying you, as our privacy notice explains, including how to switch that off. There is nothing to accept or decline.";
+  : provider === "goatcounter"
+    ? "This site sets no cookies. It counts visits without identifying you, as our privacy notice explains, including how to switch that off. There is nothing to accept or decline."
+    : "This site sets no cookies. It counts visits without identifying you, as our privacy notice explains. There is nothing to accept or decline.";
 const privacyProcessors = () => provider === "none" || provider === "netlify" ? "" : `, ${analyticsName.replace(/ Analytics$/, "")} (visit statistics)`;
 
 const CSP_BASE = {
