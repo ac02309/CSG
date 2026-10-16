@@ -24,3 +24,5 @@ jobs:
         run: node scripts/check-site.mjs
       - name: HTML validation
         run: npx html-validate "*.html"
+      - name: Instant catalogue check tests
+        run: node tests/check-core.test.mjs

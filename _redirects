@@ -9,6 +9,8 @@
 /scripts/*            /404.html  404!
 /.github/*            /404.html  404!
 /src/*                /404.html  404!
+/netlify/*            /404.html  404!
+/tests/*              /404.html  404!
 /package.json         /404.html  404!
 /package-lock.json    /404.html  404!
 /.gitignore           /404.html  404!

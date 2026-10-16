@@ -5,7 +5,7 @@
   "scripts": {
     "build:film": "node scripts/build-film.mjs",
     "configure": "node scripts/configure.mjs",
-    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\""
+    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\" && node tests/check-core.test.mjs"
   },
   "devDependencies": {
     "@fontsource-variable/inter": "5.1.0",

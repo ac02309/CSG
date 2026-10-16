@@ -4,3 +4,8 @@
 [build]
   command = "node scripts/configure.mjs"
   publish = "."
+
+# Instant catalogue check (netlify/functions/catalogue-check.mjs, served at /api/check)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

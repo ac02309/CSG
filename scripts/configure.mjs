@@ -173,7 +173,7 @@ const regions = {
 };
 
 // ---------- apply ----------
-const fingerprint = Object.fromEntries(["site.css", "site.js", "motion.js", "film.js"].map((f) => [f, createHash("sha256").update(readFileSync(`assets/${f}`)).digest("hex").slice(0, 10)]));
+const fingerprint = Object.fromEntries(["site.css", "site.js", "motion.js", "film.js", "check.js"].map((f) => [f, createHash("sha256").update(readFileSync(`assets/${f}`)).digest("hex").slice(0, 10)]));
 const changed = [];
 for (const page of readdirSync(".").filter((p) => p.endsWith(".html"))) {
   const before = readFileSync(page, "utf8");
@@ -181,7 +181,7 @@ for (const page of readdirSync(".").filter((p) => p.endsWith(".html"))) {
   html = html.replace(/<!-- cfg:(?!header|footer)([a-z-]+) -->[\s\S]*?<!-- \/cfg:\1 -->/g, (m, name) =>
     regions[name] ? `<!-- cfg:${name} -->${regions[name]()}<!-- /cfg:${name} -->` : m);
 
-  html = html.replace(/(\/?assets\/(site\.css|site\.js|motion\.js|film\.js))\?v=[\w-]*/g, (m, ref, file) => `${ref}?v=${fingerprint[file]}`);
+  html = html.replace(/(\/?assets\/(site\.css|site\.js|motion\.js|film\.js|check\.js))\?v=[\w-]*/g, (m, ref, file) => `${ref}?v=${fingerprint[file]}`);
   html = html.replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(")/, `$1${csp()}$2`);
   if (page === "contact.html") html = html.replace(/data-booking="[^"]*"/, `data-booking="${esc(booking)}"`);
 
