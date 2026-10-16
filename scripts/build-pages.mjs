@@ -11,8 +11,9 @@
 // - fails the build on a broken internal link or more than 100 _headers rules (the Pages limit)
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url)); // correct on Windows and in paths with spaces
 const OUT = join(ROOT, "dist");
 const SITE = "https://www.clarkesystemsgroup.com";
 const COPY_DIRS = ["assets", "og", ".well-known"];
@@ -44,9 +45,27 @@ for (const f of pages) {
   // absolute URLs in canonical, og:url and JSON-LD
   h = h.replaceAll(new RegExp(`${SITE.replace(/[.]/g, "\\.")}/([a-z0-9-]+)\\.html`, "g"),
     (m, name) => (pageSet.has(name) ? `${SITE}/${name === "index" ? "" : name}` : m));
+  // the privacy notice must name the host that actually receives form submissions
+  if (f === "privacy.html") {
+    const swaps = [
+      ["your request is sent to us through Netlify, our website host, which stores the submission and notifies us by email.",
+       "your request is sent to us through Cloudflare, our website host, which stores the submission until we collect it."],
+      ["Netlify (website hosting and request form submissions)",
+       "Cloudflare (website hosting and request form submissions) and Netlify (redirecting the clarkesystemsgroup.com address to www)"],
+    ];
+    for (const [from, to] of swaps) {
+      if (!h.includes(from)) problems.push(`privacy.html: expected text not found, update build-pages.mjs: "${from.slice(0, 50)}..."`);
+      h = h.replace(from, to);
+    }
+  }
   if (f === "contact.html") {
     h = h.replace(/(<form[^>]*id="brief"[^>]*?)data-endpoint="[^"]*"/, '$1data-endpoint="/api/lead"');
     if (!h.includes('data-endpoint="/api/lead"')) problems.push("contact.html: could not point the form at /api/lead");
+  }
+  // fallback: keep the check on Netlify if Shopify turns away Cloudflare's servers (docs/HOSTING.md)
+  if (f === "catalogue-check.html" && process.env.CHECK_ENDPOINT) {
+    if (!/^https:\/\/[a-z0-9.-]+\/api\/check$/.test(process.env.CHECK_ENDPOINT)) problems.push("CHECK_ENDPOINT must be https://<host>/api/check");
+    h = h.replace(/(<form[^>]*id="checkForm")/, `$1 data-endpoint="${process.env.CHECK_ENDPOINT}"`);
   }
   if (f === "catalogue-check.html") {
     h = h.replace(/(<form[^>]*name="catalogue-check")/, '$1 data-endpoint="/api/lead"');

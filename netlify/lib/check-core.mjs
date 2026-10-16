@@ -21,15 +21,50 @@ export function normaliseStore(input) {
   return s;
 }
 
-function privateIp(ip) {
-  if (net.isIPv4(ip)) {
-    const [a, b] = ip.split(".").map(Number);
-    return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 198 && (b === 18 || b === 19)) || a >= 224;
+// Expand any IPv6 text form to 8 hextets (handles "::", embedded dotted IPv4). Returns null if invalid.
+function ipv6Words(ip) {
+  let v = ip.toLowerCase().split("%")[0];
+  const dotted = v.match(/(\d+\.\d+\.\d+\.\d+)$/);
+  if (dotted) {
+    if (!isIPv4(dotted[1])) return null;
+    const [a, b, c, d] = dotted[1].split(".").map(Number);
+    v = v.slice(0, -dotted[1].length) + ((a << 8) | b).toString(16) + ":" + ((c << 8) | d).toString(16);
   }
-  const v = ip.toLowerCase();
-  return v === "::1" || v === "::" || v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe80") ||
-    v.startsWith("::ffff:") && privateIp(v.replace("::ffff:", ""));
+  const halves = v.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [], tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const fill = halves.length === 2 ? 8 - head.length - tail.length : 0;
+  if (fill < 0 || (halves.length === 1 && head.length !== 8)) return null;
+  const words = [...head, ...Array(fill).fill("0"), ...tail];
+  if (words.length !== 8 || words.some((w) => !/^[0-9a-f]{1,4}$/.test(w))) return null;
+  return words.map((w) => parseInt(w, 16));
+}
+
+function privateV4(ip) {
+  const [a, b] = ip.split(".").map(Number);
+  return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 192 && b === 0) ||
+    (a === 198 && (b === 18 || b === 19)) || a >= 224;
+}
+
+export function privateIp(ip) {
+  if (isIPv4(ip)) return privateV4(ip);
+  const w = ipv6Words(ip);
+  if (!w) return true;                                            // unparseable: refuse
+  const v4 = (hi, lo) => `${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`;
+  const zero = (n) => w.slice(0, n).every((x) => x === 0);
+  if (zero(8)) return true;                                       // ::
+  if (zero(7) && w[7] === 1) return true;                         // ::1
+  if (zero(5) && w[5] === 0xffff) return privateV4(v4(w[6], w[7])); // ::ffff:a.b.c.d (IPv4-mapped, any notation)
+  if (zero(6)) return true;                                       // ::a.b.c.d (deprecated IPv4-compatible)
+  if (w[0] === 0x64 && w[1] === 0xff9b) return privateV4(v4(w[6], w[7])); // NAT64 64:ff9b::/96
+  if (w[0] === 0x2002) return privateV4(v4(w[1], w[2]));          // 6to4 2002::/16
+  if ((w[0] & 0xfe00) === 0xfc00) return true;                    // fc00::/7 unique local
+  if ((w[0] & 0xffc0) === 0xfe80) return true;                    // fe80::/10 link local
+  if ((w[0] & 0xffc0) === 0xfec0) return true;                    // fec0::/10 site local
+  if ((w[0] & 0xff00) === 0xff00) return true;                    // ff00::/8 multicast
+  if (w[0] === 0x2001 && w[1] === 0xdb8) return true;             // documentation
+  return false;
 }
 
 export async function assertPublicHost(host, resolve = noResolver) {
@@ -70,31 +105,68 @@ async function fetchJson(url, fetcher) {
   }
 }
 
-async function robotsAllows(base, path, fetcher) {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 2500);
-  try {
-    const r = await fetcher(`${base}/robots.txt`, { headers: { "User-Agent": UA }, redirect: "follow", signal: ctl.signal });
-    if (r.status >= 500) return false;
-    if (r.status !== 200) return true;
-    const txt = (await r.text()).slice(0, 200_000);
-    let applies = false, disallowed = false, allowed = false;
-    for (const raw of txt.split(/\r?\n/)) {
-      const line = raw.replace(/#.*/, "").trim();
-      const m = line.match(/^(user-agent|disallow|allow)\s*:\s*(.*)$/i);
-      if (!m) continue;
-      const key = m[1].toLowerCase(), val = m[2].trim();
-      if (key === "user-agent") applies = val === "*" || /csg-research/i.test(val);
-      else if (applies && val && path.startsWith(val.replace(/\*$/, ""))) {
-        if (key === "disallow") disallowed = true; else allowed = true;
-      }
+// robots.txt per RFC 9309: groups of consecutive user-agent lines, * and $ wildcards, longest match wins,
+// Allow wins a tie. Redirects are followed only to public https hosts (each hop checked), at most 3 hops.
+export function robotsVerdict(txt, path, agent = "csg-research") {
+  const groups = [];
+  let cur = null, lastWasAgent = false;
+  for (const raw of txt.split(/\r?\n/)) {
+    const line = raw.replace(/#.*/, "").trim();
+    const m = line.match(/^(user-agent|disallow|allow)\s*:\s*(.*)$/i);
+    if (!m) continue;
+    const key = m[1].toLowerCase(), val = m[2].trim();
+    if (key === "user-agent") {
+      if (!lastWasAgent) { cur = { agents: [], rules: [] }; groups.push(cur); }
+      cur.agents.push(val.toLowerCase());
+      lastWasAgent = true;
+    } else {
+      lastWasAgent = false;
+      if (cur && val) cur.rules.push({ allow: key === "allow", pattern: val });
     }
-    return allowed || !disallowed;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(t);
   }
+  const mine = groups.filter((g) => g.agents.some((a) => a !== "*" && agent.includes(a)));
+  const chosen = mine.length ? mine : groups.filter((g) => g.agents.includes("*"));
+  const rules = chosen.flatMap((g) => g.rules);
+  let best = null;
+  for (const r of rules) {
+    const anchored = r.pattern.endsWith("$");
+    const body = anchored ? r.pattern.slice(0, -1) : r.pattern;
+    const rx = new RegExp("^" + body.split("*").map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + (anchored ? "$" : ""));
+    if (!rx.test(path)) continue;
+    const len = r.pattern.length;
+    if (!best || len > best.len || (len === best.len && r.allow)) best = { len, allow: r.allow };
+  }
+  return best ? best.allow : true;
+}
+
+async function robotsAllows(base, path, fetcher, resolve) {
+  let url = `${base}/robots.txt`;
+  for (let hop = 0; hop < 4; hop++) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 2500);
+    try {
+      const r = await fetcher(url, { headers: { "User-Agent": UA }, redirect: "manual", signal: ctl.signal });
+      if (r.status >= 300 && r.status < 400) {
+        const loc = r.headers.get("location");
+        if (!loc || hop === 3) return true;                       // unreadable robots file: treated as none (RFC 9309)
+        const u = new URL(loc, url);
+        const host = u.protocol === "https:" ? normaliseStore(u.hostname) : null;
+        if (!host) return false;                                  // redirect to http or an odd host: do not proceed
+        await assertPublicHost(host, resolve);
+        url = `https://${host}${u.pathname}${u.search}`;
+        continue;
+      }
+      if (r.status >= 500 || r.status === 0) return false;      // server trouble: assume disallowed (RFC 9309)
+      if (r.status !== 200) return true;                        // 4xx: no robots file
+      return robotsVerdict((await r.text()).slice(0, 500_000), path);
+    } catch (e) {
+      if (e instanceof CheckError) return false;
+      return false;
+    } finally {
+      clearTimeout(t);
+    }
+  }
+  return true;
 }
 
 // Resolve the store's canonical https host (follows one redirect, e.g. to www.), checking each hop.
@@ -197,7 +269,7 @@ export async function checkStore(input, { fetcher = fetch, resolve = noResolver,
   const host = normaliseStore(input);
   if (!host) throw new CheckError("invalid", "Enter a store web address, for example yourstore.co.uk.");
   const base = await canonicalBase(host, fetcher, resolve);
-  if (!(await robotsAllows(base, "/products.json", fetcher))) {
+  if (!(await robotsAllows(base, "/products.json", fetcher, resolve))) {
     throw new CheckError("robots", "This store asks automated tools not to read its catalogue, so we have not checked it.");
   }
   const products = [];

@@ -18,7 +18,8 @@ Everything a big marketing moment needs before it is pointed at the site. It app
 
 **Instant-check safety:**
 - It accepts public web addresses only. Private networks, internal IPs and redirects to them are all blocked.
-- It honours robots.txt.
+- It honours robots.txt by the standard's rules (RFC 9309): groups, wildcards, and the longest rule wins. Redirects of robots.txt are only followed to public https addresses.
+- It blocks every private address range, including IPv6 forms (IPv4-mapped, NAT64, 6to4, link and site local). Remaining risk: a store's DNS could change between the address check and the fetch. Every fetch is https to the store's own name, so certificate checks stop it reaching internal services.
 - It is rate limited to 8 checks per visitor every 10 minutes.
 - It caches each store's result for 15 minutes, so a crowd checking the same store hits it once.
 - It reads the first 500 products and says so.

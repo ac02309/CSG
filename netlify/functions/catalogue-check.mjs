@@ -12,6 +12,10 @@ const ALLOWED_ORIGINS = new Set([
   "https://www.clarkesystemsgroup.com", "https://clarkesystemsgroup.com",
 ]);
 
+// Cross-origin use: only if www moves to Cloudflare Pages and the check stays here (docs/HOSTING.md, fallback).
+const corsFor = (origin) => (ALLOWED_ORIGINS.has(origin) || /^https:\/\/([a-z0-9-]+\.)?clarkesystemsgroup\.pages\.dev$/.test(origin)
+  ? { "Access-Control-Allow-Origin": origin, "Vary": "Origin" } : {});
+
 function json(status, body, extra = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -30,10 +34,22 @@ function limited(ip) {
 }
 
 export default async (req, context) => {
-  if (req.method !== "POST") return json(405, { error: "Use POST." }, { Allow: "POST" });
   const origin = req.headers.get("origin") || "";
-  const preview = /^https:\/\/[a-z0-9-]+--clarkesystemsgroup\.netlify\.app$/.test(origin);
-  if (origin && !ALLOWED_ORIGINS.has(origin) && !preview && !origin.startsWith("http://localhost")) {
+  const cors = corsFor(origin);
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: cors["Access-Control-Allow-Origin"] ? 204 : 403, headers: { ...cors,
+      "Access-Control-Allow-Methods": "POST", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400" } });
+  }
+  const res = await handle(req, context, origin);
+  for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
+  return res;
+};
+
+async function handle(req, context, origin) {
+  if (req.method !== "POST") return json(405, { error: "Use POST." }, { Allow: "POST" });
+  const preview = /^https:\/\/[a-z0-9-]+--clarkesystemsgroup\.netlify\.app$/.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)?clarkesystemsgroup\.pages\.dev$/.test(origin);
+  if (origin && !ALLOWED_ORIGINS.has(origin) && !preview && !/^http:\/\/localhost(:\d+)?$/.test(origin)) {
     return json(403, { error: "Not allowed." });
   }
   const ip = context?.ip || req.headers.get("x-nf-client-connection-ip") || "unknown";
@@ -59,6 +75,6 @@ export default async (req, context) => {
     console.error("check failed", e);
     return json(500, { error: "Something went wrong on our side. Try again in a minute." });
   }
-};
+}
 
 export const config = { path: "/api/check" };

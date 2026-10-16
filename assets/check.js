@@ -64,7 +64,7 @@
     btn.textContent = "Checking…";
     status.textContent = "Reading your public catalogue. This takes a few seconds.";
     out.hidden = true;
-    fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ store: store }) })
+    fetch(form.getAttribute("data-endpoint") || "/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ store: store }) })
       .then(function (res) { return res.json().then(function (j) { return { ok: res.ok, j: j }; }); })
       .then(function (x) {
         if (!x.ok) {

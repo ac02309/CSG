@@ -108,6 +108,23 @@ await lead.onRequestPost(ctx(form({ store: "x.com", email: "z@x.com", name: "=HY
 csv = await (await leads.onRequestGet(ctx(get("", auth), env))).text();
 ok(csv.includes("\"'=HYPERLINK"), "spreadsheet formula injection neutralised");
 
+r = await lead.onRequestPost(ctx(form({ store: "x.com", email: "=1+1@x.com" }, "10.1.1.7"), env));
+ok(r.status === 400, "email starting with a formula character refused");
+r = await lead.onRequestPost(ctx(form({ store: "=evil()", email: "a@x.com" }, "10.1.1.8"), env));
+ok(r.status === 400, "store that is not a domain refused");
+for (let i = 0; i < 8; i++) await check.onRequestPost(ctx(post("/api/check", { store: "nope" }, { "cf-connecting-ip": "10.9.9.9" })));
+r = await lead.onRequestPost(ctx(form({ store: "x.com", email: "b@x.com" }, "10.9.9.9"), env));
+ok(r.status === 200, "a visitor who used all 8 checks can still submit the lead form");
+r = await lead.onRequestPost(ctx(post("/api/lead", { "form-name": "brief", email: "long@co.uk", business: "Acme", process: "x".repeat(6000), message: "y".repeat(6000) },
+  { "cf-connecting-ip": "10.1.2.1" }), env));
+ok(r.status === 200, "a long contact brief (12k characters) is accepted");
+csv = await (await leads.onRequestGet(ctx(get("?form=brief&all=1", auth), env))).text();
+ok(csv.split("\n")[0].includes("business") && csv.includes("Acme") && csv.split("\n")[0].includes("subject"), "business and subject exported");
+for (const o of ["http://localhost.attacker.com", "http://localhost:3000.evil"]) {
+  r = await check.onRequestPost(ctx(post("/api/check", { store: "x.com" }, { origin: o, "cf-connecting-ip": "10.3.3.3" })));
+  ok(r.status === 403, `origin ${o} refused`);
+}
+
 globalThis.fetch = realFetch;
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

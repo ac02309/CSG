@@ -41,9 +41,11 @@
   gcToggle();window.addEventListener("hashchange",gcToggle);
   function gcSend(path,title,isEvent){
     if(!gc||gcSkip()||navigator.webdriver||/^(localhost|127\.|.*\.netlify\.app$|.*\.pages\.dev$)/.test(location.hostname))return;
-    var q={p:path,t:title||"",r:isEvent?"":document.referrer,s:[screen.width,screen.height,window.devicePixelRatio||1].join(","),
+    var q={p:path,t:title||"",r:isEvent?"":document.referrer,s:screen.width,
       q:isEvent?"":location.search,rnd:Math.random().toString(36).slice(2)};
     if(isEvent)q.e="true";
+    /* same parameters as GoatCounter's own count.js (p,r,t,e,s,q,rnd); empty values are dropped as it does */
+    Object.keys(q).forEach(function(k){if(q[k]===""||q[k]==null)delete q[k];});
     var url=gc+"?"+Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k]);}).join("&");
     try{if(navigator.sendBeacon&&navigator.sendBeacon(url))return;}catch(err){}
     try{fetch(url,{method:"POST",mode:"no-cors",keepalive:true});}catch(err){}
@@ -61,7 +63,7 @@
     var t=a.getAttribute("data-track");
     if(t)track(t);
     else if(/^mailto:/.test(a.getAttribute("href")||""))track("Email click");
-    else if(/contact\.html/.test(a.getAttribute("href")||""))track("CTA click",{page:document.body.getAttribute("data-page")||"",label:(a.textContent||"").trim().slice(0,40)});
+    else if(/(^|\/)contact(\.html)?([?#]|$)/.test(a.getAttribute("href")||""))track("CTA click",{page:document.body.getAttribute("data-page")||"",label:(a.textContent||"").trim().slice(0,40)});
   });
   var mq=function(q){return !!(window.matchMedia&&window.matchMedia(q).matches);};
   var reduce=mq("(prefers-reduced-motion: reduce)");

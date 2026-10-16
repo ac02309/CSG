@@ -4,9 +4,9 @@
 // ?mark=1 marks the returned rows as exported.
 import { safeEqual } from "../_lib/common.js";
 
-const cell = (v) => {
+const cell = (v, guard = true) => {
   let s = String(v ?? "");
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // spreadsheet formula-injection guard
+  if (guard && /^[=+\-@\t\r]/.test(s)) s = "'" + s; // spreadsheet formula-injection guard
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
@@ -31,12 +31,14 @@ export async function onRequestGet({ request, env }) {
   }
   let head, body;
   if (form === "brief") {
-    const keys = ["name", "email", "company", "role", "team_size", "process", "tools", "hours_per_week", "outcome", "referrer", "request", "topic", "message"];
+    const keys = ["name", "email", "business", "company", "role", "team_size", "process", "tools", "hours_per_week", "outcome", "referrer", "request", "topic", "subject", "message"];
     head = "created_at," + keys.join(",") + "\n";
-    body = rows.map((r) => { const f = JSON.parse(r.fields || "{}"); return [r.at, ...keys.map((k) => f[k])].map(cell).join(","); }).join("\n");
+    body = rows.map((r) => { const f = JSON.parse(r.fields || "{}"); return [r.at, ...keys.map((k) => f[k])].map((v, i) => cell(v, keys[i - 1] !== "email")).join(","); }).join("\n");
   } else {
     head = "created_at,store,email,name,updates,summary\n";
-    body = rows.map((r) => [r.at, r.store, r.email, r.name, r.updates ? "yes" : "", r.summary].map(cell).join(",")).join("\n");
+    // email and store were validated on the way in, so they skip the guard (a "+sales@" address must stay intact)
+    body = rows.map((r) => [cell(r.at), cell(r.store, false), cell(r.email, false), cell(r.name), r.updates ? "yes" : "",
+      cell(r.summary)].join(",")).join("\n");
   }
   return new Response("﻿" + head + body + (body ? "\n" : ""), {
     headers: { "Content-Type": "text/csv; charset=utf-8", "Cache-Control": "no-store",

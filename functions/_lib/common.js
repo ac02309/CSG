@@ -14,7 +14,7 @@ export function originAllowed(req) {
   const origin = req.headers.get("origin") || "";
   if (!origin) return true; // same-origin form posts from older browsers omit it; other limits still apply
   return ALLOWED_ORIGINS.has(origin) || /^https:\/\/[a-z0-9-]+\.clarkesystemsgroup\.pages\.dev$/.test(origin) ||
-    origin === "https://clarkesystemsgroup.pages.dev" || origin.startsWith("http://localhost");
+    origin === "https://clarkesystemsgroup.pages.dev" || /^http:\/\/localhost(:\d+)?$/.test(origin);
 }
 
 export const clientIp = (req) => req.headers.get("cf-connecting-ip") || "unknown";
@@ -35,10 +35,12 @@ export async function dohResolve(host) {
 
 // Soft per-IP rate limit using the edge cache (per data centre, not global; good enough to stop casual abuse
 // without paying for KV writes, which are capped at 1,000 a day on the free plan).
-export async function limited(ip, max, windowS) {
+// route keeps each endpoint's counter separate (a visitor's checks must never use up their lead submission).
+// Not atomic: a parallel burst can slip a few requests past the limit; the function's own work is bounded anyway.
+export async function limited(route, ip, max, windowS) {
   const cache = caches.default;
   const bucket = Math.floor(Date.now() / 1000 / windowS);
-  const key = new Request(`https://rate.internal/${encodeURIComponent(ip)}/${bucket}`);
+  const key = new Request(`https://rate.internal/${route}/${encodeURIComponent(ip)}/${bucket}`);
   const hit = await cache.match(key);
   const n = hit ? Number(await hit.text()) + 1 : 1;
   await cache.put(key, new Response(String(n), { headers: { "Cache-Control": `max-age=${windowS}` } }));

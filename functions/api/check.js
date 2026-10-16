@@ -10,7 +10,7 @@ const CACHE_S = 15 * 60;
 
 export async function onRequestPost({ request, env, waitUntil }) {
   if (!originAllowed(request)) return json(403, { error: "Not allowed." });
-  if (await limited(clientIp(request), 8, 600)) {
+  if (await limited("check", clientIp(request), 8, 600)) {
     return json(429, { error: "Too many checks from your connection. Try again in a few minutes." });
   }
   let body;

@@ -142,8 +142,19 @@ const analyticsName = { plausible: "Plausible Analytics", cloudflare: "Cloudflar
 // GoatCounter wording follows PECR Schedule A1 para 5 (DUAA 2025, in force 5 Feb 2026) and the ICO's April 2026
 // storage and access technologies guidance: purpose, provider, retention and a free way to object.
 const privacyAnalytics = () => provider === "goatcounter"
-  ? `<li id="analytics">Visit statistics: we use GoatCounter, acting for us, to count visits, the sites and campaign links that referred them, and two actions: running the catalogue check and requesting the full list. To do this the page reads non-identifying details from your browser, such as screen size, solely to produce totals that help us improve this site. No cookies are set, GoatCounter does not store your IP address or a profile of you, and the statistics are not used for advertising or shared with anyone else. Data is stored in the EU (Finland and Germany) and kept as totals for up to 24 months. To object, <a href="#toggle-goatcounter">switch visit statistics off in this browser</a>; it is free, and the same link switches them back on.</li>`
+  ? `<li id="analytics">Visit statistics: we use GoatCounter, acting for us, to count visits, the sites and campaign links that referred them, and what visitors do on this site: clicks on our own links and buttons (such as contact, email and LinkedIn links, recorded with the link's text), running the catalogue check and whether it worked, and sending a request form. To do this the page reads non-identifying details from your browser, such as screen width, solely to produce totals that help us improve this site. No cookies are set, GoatCounter does not store your IP address or a profile of you, and the statistics are not used for advertising or shared with anyone else. Data is stored in the EU (Finland and Germany) and kept for up to 24 months. To object, <a href="#toggle-goatcounter">switch visit statistics off in this browser</a>; it is free, your browser then remembers the choice, and the same link switches statistics back on.</li>`
   : provider === "none" ? "" : `<li>Visit statistics: we use ${analyticsName} to count visits and see which pages are useful. It does not use cookies, does not track you across other sites and does not identify you; we see only totals, such as page views and the country and type of device visitors use.</li>`;
+// The cookie paragraphs must never contradict the analytics paragraph (PECR Sch. A1 para 5 needs "clear and
+// comprehensive information"), so they are generated from the same setting.
+const fontsLine = "Its fonts are built into the page, so no other company is contacted when it loads.";
+const privacyCookies = () => provider === "none"
+  ? `<p>This site sets no cookies, stores nothing on your device and uses no analytics or tracking. ${fontsLine}</p>`
+  : provider === "goatcounter"
+    ? `<p>This site sets no cookies. It counts visits with GoatCounter, as described above, which reads non-identifying details such as screen width and stores nothing on your device. If you switch visit statistics off, your browser keeps a small note of that choice (an item named "skipgc" in its local storage) so that it is respected on later visits. ${fontsLine}</p>`
+    : `<p>This site sets no cookies and stores nothing on your device. It counts visits with ${analyticsName}, as described above, which does not identify you or track you across other sites. ${fontsLine}</p>`;
+const termsCookies = () => provider === "none"
+  ? "This site sets no cookies and uses no analytics or tracking, so there is nothing to accept or decline."
+  : "This site sets no cookies. It counts visits without identifying you, as our privacy notice explains, including how to switch that off. There is nothing to accept or decline.";
 const privacyProcessors = () => provider === "none" || provider === "netlify" ? "" : `, ${analyticsName.replace(/ Analytics$/, "")} (visit statistics)`;
 
 const CSP_BASE = {
@@ -180,6 +191,8 @@ const regions = {
   analytics: analyticsTag,
   "privacy-analytics": privacyAnalytics,
   "privacy-processors": privacyProcessors,
+  "privacy-cookies": privacyCookies,
+  "terms-cookies": termsCookies,
 };
 
 // ---------- apply ----------

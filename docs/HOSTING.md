@@ -60,6 +60,7 @@ Keep the one.com nameservers and leave the email records (MX, SPF, DKIM, DMARC) 
 
 1. **Create the Pages project.**
    - Cloudflare dashboard → Workers & Pages → Create → Pages → connect GitHub repo `ac02309/CSG`.
+   - Project name: `clarkesystemsgroup`. The functions only accept requests from that name's `pages.dev` addresses.
    - Production branch: `main`.
    - Build command: `node scripts/configure.mjs && node scripts/build-pages.mjs`.
    - Output directory: `dist`.
@@ -90,7 +91,12 @@ Keep the one.com nameservers and leave the email records (MX, SPF, DKIM, DMARC) 
 
 **Rollback:** at one.com, change `www` back to the Netlify target, and set Netlify's production branch back to `main`. Nothing is deleted on either side.
 
-**Fallback if Shopify blocks Cloudflare:** keep everything static on Pages and serve only `/api/check` from Netlify. This needs a CORS header on the Netlify function and the check form pointing at `https://clarkesystemsgroup.com/api/check`. Netlify then pays for checks only: about 111 credits for 20,000 checks. Say if you want this built.
+**Fallback if Shopify blocks Cloudflare (built):** keep the pages on Cloudflare and serve only the instant check from Netlify.
+1. In the Pages project, add the environment variable `CHECK_ENDPOINT = https://clarkesystemsgroup.com/api/check` and redeploy.
+2. In step 7, keep Netlify on `main` instead of `apex-redirect`, so the Netlify function stays live, and add this rule at the top of `_redirects` on `main`: `https://clarkesystemsgroup.com/*  https://www.clarkesystemsgroup.com/:splat  301!`. Netlify's request-chain documentation lists functions ahead of redirects, so `/api/check` should keep working. Confirm it with one POST to `https://clarkesystemsgroup.com/api/check` after the change.
+3. The Netlify function already answers cross-origin requests from www and the `pages.dev` addresses, and refuses every other site.
+
+Netlify then pays only for checks, about 111 credits for 20,000.
 
 ## Measuring the stunt (applies to every option)
 
