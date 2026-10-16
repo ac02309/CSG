@@ -48,7 +48,7 @@ ul[class],ol[class]{list-style:none;padding:0}
 .skip:focus{top:0.75rem}
 
 /* ---------- the scene: one layer behind everything ---------- */
-main{position:relative;z-index:0}
+main{position:relative;z-index:0;overflow-x:clip}
 .gfoot{position:relative;z-index:1}
 .slot{position:relative;width:100%;aspect-ratio:1/1;background:transparent center/contain no-repeat;z-index:1}
 .slot.wide{aspect-ratio:16/10}
@@ -534,6 +534,7 @@ main{animation:pageIn .6s var(--ease) both}
 [data-split] .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.12em;margin-bottom:-.12em}
 .js:not(.motion-off) [data-split] .wi{display:inline-block;transform:translate3d(0,110%,0);transition:transform 1.05s var(--ease) calc(var(--i) * 42ms + 40ms)}
 .js [data-split].in .wi{transform:none}
+.js [data-split].motion-skip .wi{transition:none}
 
 /* statement: filled in as it is read */
 .statement{font-size:clamp(1.875rem,4.3vw,3.875rem);line-height:1.1;font-weight:680;letter-spacing:-.038em;max-width:20ch;color:var(--ink)}
