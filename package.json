@@ -5,13 +5,17 @@
   "scripts": {
     "build:film": "node scripts/build-film.mjs",
     "configure": "node scripts/configure.mjs",
-    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\""
+    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\"",
+    "test:budget": "node tests/budget.mjs",
+    "test:browser": "node tests/browser.mjs"
   },
   "devDependencies": {
     "@fontsource-variable/inter": "5.1.0",
+    "axe-core": "4.10.2",
     "d3-geo": "3.1.1",
     "esbuild": "0.25.12",
     "html-validate": "8.24.1",
+    "playwright": "1.56.1",
     "three": "0.169.0",
     "topojson-client": "3.1.0",
     "world-atlas": "2.0.2"
