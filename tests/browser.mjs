@@ -169,6 +169,22 @@ for (const [label, w, h, dsf] of [['320 phone', 320, 640, 2], ['390 phone', 390,
   await page.close();
 }
 
+// 7. Nothing is ever missed: a flick to the bottom of every page leaves no block or headline unrevealed behind it
+for (const [w, h] of [[1440, 900], [390, 844]]) {
+  const page = await browser.newPage({ viewport: { width: w, height: h } });
+  for (const f of PAGES) {
+    await open(page, f);
+    const left = await page.evaluate(async () => {
+      const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight * 1.6) { scrollTo(0, y); await frame(); }
+      scrollTo(0, document.documentElement.scrollHeight); await frame(); await frame();
+      return [...document.querySelectorAll('.rv:not(.in), [data-split]:not(.in)')].filter((e) => { const b = e.getBoundingClientRect(); return b.height > 0 && b.bottom < 0; }).length;
+    });
+    if (left) fail('nothing missed', `${f} at ${w}px: ${left} block(s) left hidden after a fast scroll`);
+  }
+  await page.close();
+}
+
 await browser.close(); server.close();
 if (failures.length) { console.error(`${failures.length} problem(s):\n- ${failures.join('\n- ')}`); process.exit(1); }
-console.log(`Browser checks passed on ${PAGES.length} pages: accessibility, demo button, story, folds, overflow, scroll speed.`);
+console.log(`Browser checks passed on ${PAGES.length} pages: accessibility, demo button, story, folds, overflow, scroll speed, nothing missed.`);

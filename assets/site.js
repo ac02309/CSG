@@ -43,8 +43,14 @@
 
   /* ---------- reveal: tiles settle once as they arrive ---------- */
   if("IntersectionObserver" in window&&!reduce){
-    var rvIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");rvIO.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px",threshold:.08});
-    $$(".rv").forEach(function(el){rvIO.observe(el);});
+    var rvLeft=$$(".rv"),rvQ=0;
+    var rvShow=function(el){el.classList.add("in");rvIO.unobserve(el);rvLeft.splice(rvLeft.indexOf(el),1);if(!rvLeft.length)removeEventListener("scroll",rvSweep);};
+    var rvIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)rvShow(e.target);});},{rootMargin:"0px 0px -8% 0px",threshold:.08});
+    /* a fast scroll can carry a tile from below the screen to above it between two frames, so the
+       observer never sees it: anything already scrolled past is shown at once, never left blank */
+    var rvSweep=function(){if(rvQ)return;rvQ=requestAnimationFrame(function(){rvQ=0;rvLeft.slice().forEach(function(el){if(el.getBoundingClientRect().bottom<0){el.style.transition="none";rvShow(el);}});});};
+    rvLeft.forEach(function(el){rvIO.observe(el);});
+    addEventListener("scroll",rvSweep,{passive:true});
   }else{$$(".rv").forEach(function(el){el.classList.add("in");});}
 
   /* ---------- global navigation: the Solutions menu ---------- */
@@ -282,19 +288,6 @@
       if(ho){hIn.value=hv;[].forEach.call(hList.querySelectorAll("[data-v]"),function(o){o.setAttribute("aria-selected",o===ho?"true":"false");});var dv=hBtn.querySelector(".dd-val");if(dv)dv.textContent=ho.textContent;hBtn.classList.remove("empty");render();}}
   }
   render();
-})();
-/* Track record: the figures count up once, the first time they come into view */
-(function(){
-  var els=[].slice.call(document.querySelectorAll("[data-count]"));
-  if(!els.length||!("IntersectionObserver" in window))return;
-  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-  els.forEach(function(el){el.setAttribute("aria-label",el.textContent);});
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){
-    if(!e.isIntersecting)return;io.unobserve(e.target);
-    var el=e.target,to=+el.getAttribute("data-count"),suf=el.hasAttribute("data-suffix")?el.getAttribute("data-suffix"):"+",t0=performance.now(),D=1400;
-    (function step(now){var k=Math.min(1,(now-t0)/D),v=Math.round(to*(1-Math.pow(1-k,4)));el.textContent=v.toLocaleString("en-GB")+(k===1?suf:"");if(k<1)requestAnimationFrame(step);})(t0);
-  });},{threshold:.6});
-  els.forEach(function(el){io.observe(el);});
 })();
 /* Services: estimate what one manual process costs, and how quickly a starting build pays back */
 (function(){

@@ -51,8 +51,13 @@
   if(splits.length){
     if(reduce||!("IntersectionObserver" in window))splits.forEach(function(el){el.classList.add("in");});
     else{
-      var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");sio.unobserve(e.target);}});},{rootMargin:"0px 0px -6% 0px"});
+      var sLeft=splits.slice(),sQ=0;
+      var sShow=function(el){el.classList.add("in");sio.unobserve(el);sLeft.splice(sLeft.indexOf(el),1);if(!sLeft.length)removeEventListener("scroll",sSweep);};
+      var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)sShow(e.target);});},{rootMargin:"0px 0px -6% 0px"});
+      /* a fast scroll can skip a headline entirely: one already scrolled past is shown at once */
+      var sSweep=function(){if(sQ)return;sQ=requestAnimationFrame(function(){sQ=0;sLeft.slice().forEach(function(el){if(el.getBoundingClientRect().bottom<0){el.classList.add("motion-skip");sShow(el);}});});};
       splits.forEach(function(el){sio.observe(el);});
+      addEventListener("scroll",sSweep,{passive:true});
     }
   }
 
