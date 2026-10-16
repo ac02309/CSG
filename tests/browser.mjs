@@ -185,6 +185,21 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   await page.close();
 }
 
+// 8. With 3D on: the scenes may spill past their frames but never past the screen edge
+{
+  const gl = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+  const page = await gl.newPage({ viewport: { width: 390, height: 844 } });
+  for (const f of PAGES.filter((p) => fs.readFileSync(path.join(ROOT, p), 'utf8').includes('film.js'))) {
+    await page.goto(BASE + f); await page.waitForTimeout(1500);
+    const wide = await page.evaluate(async () => {
+      for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
+      return document.documentElement.scrollWidth - innerWidth;
+    });
+    if (wide > 0) fail('3D overflow', `${f}: page is ${wide}px wider than a 390px screen with 3D on`);
+  }
+  await gl.close();
+}
+
 await browser.close(); server.close();
 if (failures.length) { console.error(`${failures.length} problem(s):\n- ${failures.join('\n- ')}`); process.exit(1); }
-console.log(`Browser checks passed on ${PAGES.length} pages: accessibility, demo button, story, folds, overflow, scroll speed, nothing missed.`);
+console.log(`Browser checks passed on ${PAGES.length} pages: accessibility, demo button, story, folds, overflow, scroll speed, nothing missed, 3D overflow.`);
