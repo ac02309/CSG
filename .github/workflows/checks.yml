@@ -24,3 +24,9 @@ jobs:
         run: node scripts/check-site.mjs
       - name: HTML validation
         run: npx html-validate "*.html"
+      - name: Page weight within budget
+        run: npm run test:budget
+      - name: Install Chromium for the browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Browser checks (accessibility, demo button, story, folds, overflow, scroll speed)
+        run: npm run test:browser

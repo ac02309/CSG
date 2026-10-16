@@ -6,17 +6,17 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Choosing an AI classifier · Clarke Systems Group</title>
-<meta name="description" content="How to measure an AI model&#x27;s accuracy and cost per item on your own data before you commit, for teams replacing manual categorisation and routing.">
+<meta name="description" content="How to measure an AI model&#x27;s accuracy and cost per item on your own data before you commit, for teams replacing manual sorting and routing.">
 <link rel="canonical" href="https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Clarke Systems Group">
 <meta property="og:url" content="https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html">
 <meta property="og:title" content="Choosing an AI classifier · Clarke Systems Group">
-<meta property="og:description" content="How to measure an AI model&#x27;s accuracy and cost per item on your own data before you commit, for teams replacing manual categorisation and routing.">
+<meta property="og:description" content="How to measure an AI model&#x27;s accuracy and cost per item on your own data before you commit, for teams replacing manual sorting and routing.">
 <meta property="og:image" content="https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Choosing an AI model for classification: accuracy and cost">
+<meta property="og:image:alt" content="Choosing an AI model for sorting: accuracy and cost">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.jpg">
 <meta name="theme-color" content="#f3f5f8">
@@ -24,9 +24,9 @@
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css?v=d2d293a15f">
+<link rel="stylesheet" href="assets/site.css?v=23b38c8f57">
 <noscript><style>.slot{background-image:var(--poster)}.rv{opacity:1!important;transform:none!important}</style></noscript>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Choosing an AI model for classification: accuracy and cost","description":"How to measure an AI model's accuracy and cost per item on your own data before you commit, for teams replacing manual categorisation and routing.","url":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html","mainEntityOfPage":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html","image":"https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.jpg","datePublished":"2026-10-15","dateModified":"2026-10-15","articleSection":"AI processing","timeRequired":"PT7M","author":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"publisher":{"@type":"Organization","name":"Clarke Systems Group","logo":{"@type":"ImageObject","url":"https://www.clarkesystemsgroup.com/apple-touch-icon.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://www.clarkesystemsgroup.com/guides.html"},{"@type":"ListItem","position":3,"name":"Choosing an AI classifier","item":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Choosing an AI model for sorting: accuracy and cost","description":"How to measure an AI model's accuracy and cost per item on your own data before you commit, for teams replacing manual sorting and routing.","url":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html","mainEntityOfPage":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html","image":"https://www.clarkesystemsgroup.com/og/guide-ai-classification-model-selection.jpg","datePublished":"2026-10-15","dateModified":"2026-10-15","articleSection":"AI processing","timeRequired":"PT7M","author":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"publisher":{"@type":"Organization","name":"Clarke Systems Group","logo":{"@type":"ImageObject","url":"https://www.clarkesystemsgroup.com/apple-touch-icon.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://www.clarkesystemsgroup.com/guides.html"},{"@type":"ListItem","position":3,"name":"Choosing an AI classifier","item":"https://www.clarkesystemsgroup.com/guide-ai-classification-model-selection.html"}]}]}</script>
 <!-- cfg:analytics --><!-- /cfg:analytics -->
 </head>
 <body data-page="guide" data-nav="guides">
@@ -70,7 +70,7 @@
 <section class="hero center ">
   <div class="wrap">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="guides.html">Guides</a><span aria-hidden="true">›</span><span aria-current="page">AI processing</span></nav><span class="eyebrow">AI processing</span>
-      <h1 data-split class="h1">Choosing an AI model for classification: accuracy and cost</h1>
+      <h1 data-split class="h1">Choosing an AI model for sorting: accuracy and cost</h1>
       <p class="lede">Replacing manual sorting with AI starts with evidence, not a leaderboard. Here is how to test candidate models on your own data, measure accuracy and cost per item, and choose with confidence.</p>
       <p class="guide-meta"><span>7 minute read</span><span>By Clarke Systems Group</span></p>
   </div>
