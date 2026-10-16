@@ -36,7 +36,7 @@ Tests: `node tests/check-core.test.mjs`, also run in CI.
    - Check Netlify → Usage first: the publishing stall since 15 Oct is most likely credits.
 2. **Forms.** On Netlify, switch on form detection (Site configuration → Forms). On Cloudflare Pages, leads go to D1 and download as CSV (HOSTING.md, step 9).
 3. **Measurement.** GoatCounter is built in and switched off. Switching it on is two fields in `site.config.json`. It needs no cookie banner under the 2026 PECR exemption, and the privacy-notice wording is generated for you.
-4. **Business address** on the privacy notice and terms (placeholder still live).
+4. **Business address** on the privacy notice and terms. **A production deploy now fails while the placeholder remains** (Netlify and the Cloudflare build both check), because the E-Commerce Regulations require a geographic address on the site. Set `business.address` in `site.config.json` before merging.
 5. **Prices.** Engine `PRICING.md` has 19 sourced price points. Suggested: £595 / £1,250 / £2,250 clean-up and £200 / £350 a month monitoring. These are your decision; set them in `config.toml` `[offer]`.
 
 ## Response playbook (when a stunt lands)

@@ -35,7 +35,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json(400, { error: "Could not read the form." });
   }
-  if (f.website) return json(200, { ok: true }); // honeypot: pretend success, store nothing
+  if (f.csg_trap || f.website) return json(200, { ok: true }); // honeypot: pretend success, store nothing
   const form = FORMS[f["form-name"]] ? f["form-name"] : "catalogue-check";
   const email = clip(f.email, 254);
   const store = clip(f.store, 300).toLowerCase().replace(/^https?:\/\//, "").split(/[/?#]/)[0];

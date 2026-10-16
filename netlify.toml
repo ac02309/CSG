@@ -2,7 +2,9 @@
 # enough to update the live site. Running the same command locally and committing the result keeps
 # the repository's HTML in step too, but the deploy does not depend on it.
 [build]
-  command = "node scripts/configure.mjs"
+  # check-site fails a PRODUCTION deploy while any "[... before launch]" placeholder remains (the business
+  # address must be on the live site); previews and branch deploys only warn
+  command = "node scripts/configure.mjs && node scripts/check-site.mjs"
   publish = "."
 
 # Instant catalogue check (netlify/functions/catalogue-check.mjs, served at /api/check)

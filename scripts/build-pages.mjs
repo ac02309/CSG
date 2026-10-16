@@ -95,6 +95,14 @@ const rules = headers.split("\n").filter((l) => /^\//.test(l)).length;
 if (rules > 100) problems.push(`_headers has ${rules} rules; Cloudflare Pages allows 100`);
 writeFileSync(join(OUT, "_headers"), headers);
 
+// the live site must never show a "[... before launch]" placeholder (business address): fail the production build
+if (process.env.CF_PAGES_BRANCH === "main" || process.env.CONTEXT === "production") {
+  for (const f of pages) {
+    const m = readFileSync(join(OUT, f), "utf8").match(/\[[^\]<]*before launch[^\]<]*\]/i);
+    if (m) problems.push(`${f}: placeholder still present: ${m[0]}`);
+  }
+}
+
 if (problems.length) {
   console.error(problems.map((p) => "  ! " + p).join("\n"));
   process.exit(1);

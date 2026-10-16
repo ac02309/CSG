@@ -80,7 +80,7 @@ r = await lead.onRequestPost(ctx(form({ "form-name": "catalogue-check", store: "
 ok(r.status === 200, "lead stored");
 r = await lead.onRequestPost(ctx(form({ "form-name": "catalogue-check", store: "a.com", email: "bad" }, "10.1.1.2"), env));
 ok(r.status === 400, "bad email refused");
-r = await lead.onRequestPost(ctx(form({ "form-name": "catalogue-check", store: "a.com", email: "x@a.com", website: "spam" }, "10.1.1.3"), env));
+r = await lead.onRequestPost(ctx(form({ "form-name": "catalogue-check", store: "a.com", email: "x@a.com", csg_trap: "spam" }, "10.1.1.3"), env));
 ok(r.status === 200, "honeypot pretends success");
 r = await lead.onRequestPost(ctx(post("/api/lead", { "form-name": "brief", name: "Sam", email: "sam@co.uk", process: "Weekly report", message: "Hi\nthere", evil: "x" },
   { "cf-connecting-ip": "10.1.1.4" }), env));

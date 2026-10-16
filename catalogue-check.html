@@ -94,14 +94,14 @@
       </form>
       <p class="chk-status" id="checkStatus" role="status" aria-live="polite"></p>
       <div class="chk-result" id="checkResult" tabindex="-1" hidden></div>
-      <form class="chk-lead" id="leadForm" name="catalogue-check" method="POST" data-netlify="true" netlify-honeypot="website" hidden>
+      <form class="chk-lead" id="leadForm" name="catalogue-check" method="POST" data-netlify="true" netlify-honeypot="csg_trap" hidden>
         <input type="hidden" name="form-name" value="catalogue-check">
         <input type="hidden" name="store" id="leadStore" value="">
         <input type="hidden" name="summary" id="leadSummary" value="">
         <fieldset class="fs">
           <legend>Get the full product-level list</legend>
           <p class="chk-intro">Every flagged product across the whole catalogue, with a suggested fix for each, plus barcode, image and description checks. Within two business days.</p>
-          <div class="field trap" aria-hidden="true"><label for="leadWebsite">Leave this empty</label><input id="leadWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          <div class="field trap" aria-hidden="true"><label for="leadWebsite">Leave this empty</label><input id="leadWebsite" name="csg_trap" type="text" tabindex="-1" autocomplete="off"></div>
           <div class="two">
             <div class="field"><label for="leadName">Your name</label><input class="input" id="leadName" name="name" type="text" autocomplete="name"></div>
             <div class="field"><label for="leadEmail">Work email</label><input class="input" id="leadEmail" name="email" type="email" autocomplete="email" inputmode="email" required></div>
@@ -161,7 +161,7 @@
 <!-- /cfg:footer -->
 <script src="assets/site.js?v=7738a9b75f" defer></script>
 <script src="assets/motion.js?v=55208aea1c" defer></script>
-<script src="assets/check.js?v=941809b71d" defer></script>
+<script src="assets/check.js?v=6fcb501ff8" defer></script>
 <script src="assets/film.js?v=3d3613ca87" defer></script>
 </body>
 </html>
