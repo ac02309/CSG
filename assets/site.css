@@ -32,7 +32,8 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{font-size:clamp(100%,1.1111vw,200%);-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:calc(var(--nav) + var(--lnav) + 1rem);background:var(--mist)}
+/* 16px at 1440 wide, growing more gently above it, so browser zoom still enlarges text on large screens */
+html{font-size:clamp(100%,25% + 0.8333vw,200%);-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:calc(var(--nav) + var(--lnav) + 1rem);background:var(--mist)}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 body{margin:0;background:var(--mist);color:var(--ink);font-family:var(--f);font-size:1.0625rem;line-height:1.5;letter-spacing:-.011em;font-optical-sizing:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:clip;font-feature-settings:"cv11","ss01"}
 img,svg,canvas,video{display:block;max-width:100%}
