@@ -95,7 +95,7 @@
     function tick(now){
       raf=0;
       /* real elapsed time, so a slow frame never slows the story down */
-      t+=Math.min(.5,(now-last)/1000);last=now;
+      t+=Math.max(0,Math.min(.5,(now-last)/1000));last=now;
       if(t>=END){finish();return;}
       render();run();
     }
@@ -124,7 +124,7 @@
       var b=s.querySelector("[data-go]");
       if(b)b.addEventListener("click",function(){
         /* a chosen step plays its change, then the story carries on from there */
-        t=reduce?i*S+MOVE:i*S+(i===0?MOVE:0);done=reduce;paused=reduce;
+        t=reduce?i*S+MOVE:i*S+(i===0?MOVE:1e-4);done=reduce;paused=reduce;
         stop();render();run();
       });
     });
@@ -240,7 +240,7 @@
       if(!sec.id)sec.id="s"+(i+1);
       var h=sec.querySelector("h1,h2"),a=document.createElement("a");
       a.className="ps-t";a.href="#"+sec.id;a.tabIndex=-1;
-      a.innerHTML="<i></i><span></span>";a.querySelector("span").textContent=(h.textContent||"").replace(/\s+/g," ").trim().replace(/\.$/,"");
+      a.innerHTML="<i></i><span></span>";a.querySelector("span").textContent=(h.innerText||h.textContent||"").replace(/\s+/g," ").trim().replace(/\.$/,"");
       rail.appendChild(a);
       return a;
     });
@@ -248,8 +248,8 @@
     var m={t:[],h:[],cur:-1};
     m.measure=function(){m.t=secs.map(layoutTop);m.h=secs.map(function(s){return s.offsetHeight;});};
     m.update=function(){
-      var line=Y+VH*.5,cur=0;
-      for(var i=0;i<secs.length;i++)if(m.t[i]<=line)cur=i;
+      var line=Y+VH*.35,cur=0;
+      if(Y>8)for(var i=0;i<secs.length;i++)if(m.t[i]<=line)cur=i;
       var f=clamp((line-m.t[cur])/Math.max(1,m.h[cur]),0,1);
       if(cur!==m.cur){m.cur=cur;ticks.forEach(function(t,i){t.classList.toggle("on",i===cur);t.classList.toggle("set",i<cur);});}
       rail.style.setProperty("--p",((cur+(cur<secs.length-1?f:0))/Math.max(1,secs.length-1)).toFixed(4));

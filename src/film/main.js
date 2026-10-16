@@ -589,7 +589,8 @@ function fit(v) {
   // the formation fits the element itself; the canvas bleeds past it so nothing is clipped
   const wpp = (2 * Math.tan(FOV * Math.PI / 360) * CAMZ) / H;
   const ew = v.el.clientWidth * wpp, eh = v.el.clientHeight * wpp;
-  v.scales = v.forms.map((f) => Math.min(ew / EXT[f].w, eh / EXT[f].h) * 0.94);
+  // wide, flat formations may use the canvas bleed beyond the element's sides, so they fill the frame instead of sitting as a thin strip
+  v.scales = v.forms.map((f) => { const e = EXT[f], wide = e.w / e.h > 2.2; return Math.min(ew * (wide ? 1.22 : 1) / e.w, eh / e.h) * 0.94; });
 }
 
 // which step the reader is on (written by motion.js as el.csgStage: whole numbers at rest, blends between)
