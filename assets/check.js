@@ -67,7 +67,11 @@
     fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ store: store }) })
       .then(function (res) { return res.json().then(function (j) { return { ok: res.ok, j: j }; }); })
       .then(function (x) {
-        if (!x.ok) { status.textContent = x.j.error || "That check did not work. Try again."; return; }
+        if (!x.ok) {
+          status.textContent = x.j.error || "That check did not work. Try again.";
+          if (window.csgTrack) window.csgTrack("Catalogue check failed", { outcome: x.j.code || "error" });
+          return;
+        }
         status.textContent = "";
         last = x.j;
         render(x.j);
@@ -85,7 +89,9 @@
     }
     if (lead.website && lead.website.value) return; // honeypot
     var data = new URLSearchParams(new FormData(lead)).toString();
-    fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: data })
+    var post = function (url) { return fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: data }); };
+    // Netlify Forms by default; the Cloudflare Pages build sets data-endpoint="/api/lead" on the form
+    post(lead.getAttribute("data-endpoint") || "/")
       .then(function (res) {
         if (!res.ok) throw new Error();
         lead.querySelector("fieldset").disabled = true;

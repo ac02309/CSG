@@ -42,8 +42,13 @@ const foundingOn = !!(fc.show && fc.offer);
 if (fc.show && !fc.offer) problems.push("foundingClients.offer is empty, so the programme stays hidden.");
 
 const an = cfg.analytics || {};
-const provider = ["plausible", "cloudflare", "netlify"].includes(an.provider) ? an.provider : "none";
+let provider = ["plausible", "cloudflare", "netlify", "goatcounter"].includes(an.provider) ? an.provider : "none";
 if (provider === "cloudflare" && !an.cloudflareToken) problems.push("analytics.cloudflareToken is needed for Cloudflare Web Analytics.");
+const gcCode = String(an.goatcounterCode || "").trim().toLowerCase();
+if (provider === "goatcounter" && !/^[a-z0-9-]{2,40}$/.test(gcCode)) {
+  problems.push("analytics.goatcounterCode is needed for GoatCounter (the part before .goatcounter.com). Analytics stays off.");
+  provider = "none";
+}
 
 // ---------- region renderers ----------
 const initials = (n) => n.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -130,10 +135,15 @@ const social = () => {
 const analyticsTag = () => {
   if (provider === "plausible") return `<script defer data-domain="${esc(an.domain)}" src="https://plausible.io/js/script.js"></script>`;
   if (provider === "cloudflare") return `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${esc(an.cloudflareToken)}"}'></script>`;
+  if (provider === "goatcounter") return `<meta name="csg-gc" content="https://${gcCode}.goatcounter.com/count">`; // sent by assets/site.js
   return "";
 };
-const analyticsName = { plausible: "Plausible Analytics", cloudflare: "Cloudflare Web Analytics", netlify: "Netlify Analytics" }[provider];
-const privacyAnalytics = () => provider === "none" ? "" : `<li>Visit statistics: we use ${analyticsName} to count visits and see which pages are useful. It does not use cookies, does not track you across other sites and does not identify you; we see only totals, such as page views and the country and type of device visitors use.</li>`;
+const analyticsName = { plausible: "Plausible Analytics", cloudflare: "Cloudflare Web Analytics", netlify: "Netlify Analytics", goatcounter: "GoatCounter" }[provider];
+// GoatCounter wording follows PECR Schedule A1 para 5 (DUAA 2025, in force 5 Feb 2026) and the ICO's April 2026
+// storage and access technologies guidance: purpose, provider, retention and a free way to object.
+const privacyAnalytics = () => provider === "goatcounter"
+  ? `<li id="analytics">Visit statistics: we use GoatCounter, acting for us, to count visits, the sites and campaign links that referred them, and two actions: running the catalogue check and requesting the full list. To do this the page reads non-identifying details from your browser, such as screen size, solely to produce totals that help us improve this site. No cookies are set, GoatCounter does not store your IP address or a profile of you, and the statistics are not used for advertising or shared with anyone else. Data is stored in the EU (Finland and Germany) and kept as totals for up to 24 months. To object, <a href="#toggle-goatcounter">switch visit statistics off in this browser</a>; it is free, and the same link switches them back on.</li>`
+  : provider === "none" ? "" : `<li>Visit statistics: we use ${analyticsName} to count visits and see which pages are useful. It does not use cookies, does not track you across other sites and does not identify you; we see only totals, such as page views and the country and type of device visitors use.</li>`;
 const privacyProcessors = () => provider === "none" || provider === "netlify" ? "" : `, ${analyticsName.replace(/ Analytics$/, "")} (visit statistics)`;
 
 const CSP_BASE = {

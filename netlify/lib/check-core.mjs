@@ -1,11 +1,14 @@
 // Catalogue check core: reads a store's public catalogue and returns exact findings.
-// Shared by the Netlify Function and its tests. No dependencies.
-import { lookup } from "node:dns/promises";
-import net from "node:net";
+// Runtime-neutral (no Node built-ins), so the same file runs in the Netlify Function (Node), a Cloudflare Pages
+// Function (Workers) and the tests. The caller supplies the DNS resolver.
+const isIPv4 = (s) => /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(s) && s.split(".").every((n) => Number(n) <= 255);
+const isIPv6 = (s) => s.includes(":") && /^[0-9a-f:.]+$/i.test(s);
+const net = { isIP: (s) => (isIPv4(s) ? 4 : isIPv6(s) ? 6 : 0), isIPv4, isIPv6 };
+const noResolver = async () => { throw new Error("no DNS resolver supplied"); };
 
 export const UA = "Mozilla/5.0 (compatible; CSG-research/1.0; +https://clarkesystemsgroup.com/catalogue-check)";
 const PAGE_TIMEOUT_MS = 3500;
-const MAX_PAGES = 2; // first 500 Shopify products: keeps every check inside the function time limit
+const MAX_PAGES = 2; // default: first 500 Shopify products, inside the function time limit
 
 // --------------------------------------------------------------- input and network safety
 export function normaliseStore(input) {
@@ -29,7 +32,7 @@ function privateIp(ip) {
     v.startsWith("::ffff:") && privateIp(v.replace("::ffff:", ""));
 }
 
-export async function assertPublicHost(host, resolve = lookup) {
+export async function assertPublicHost(host, resolve = noResolver) {
   let addrs;
   try {
     addrs = await resolve(host, { all: true });
@@ -190,7 +193,7 @@ export function analyse(products) {
 }
 
 // --------------------------------------------------------------- orchestration
-export async function checkStore(input, { fetcher = fetch, resolve = lookup } = {}) {
+export async function checkStore(input, { fetcher = fetch, resolve = noResolver, maxPages = MAX_PAGES } = {}) {
   const host = normaliseStore(input);
   if (!host) throw new CheckError("invalid", "Enter a store web address, for example yourstore.co.uk.");
   const base = await canonicalBase(host, fetcher, resolve);
@@ -200,10 +203,13 @@ export async function checkStore(input, { fetcher = fetch, resolve = lookup } = 
   const products = [];
   const seen = new Set();
   let capped = false;
-  for (let page = 1; page <= MAX_PAGES; page++) {
+  for (let page = 1; page <= maxPages; page++) {
     const r = await fetchJson(`${base}/products.json?limit=250&page=${page}`, fetcher);
     if (r.status !== 200) {
       if (page === 1) {
+        if (r.status === 403 || r.status === 429) {
+          throw new CheckError("limited", "That store is turning away automated requests right now. Try again in a few minutes.");
+        }
         throw new CheckError("no_catalogue", r.status === 404
           ? "We could not find a public Shopify catalogue at that address. WooCommerce and other platforms need the full check."
           : "That store did not respond in time. Try again in a minute.");
@@ -218,7 +224,7 @@ export async function checkStore(input, { fetcher = fetch, resolve = lookup } = 
     fresh.forEach((p) => seen.add(p.id));
     products.push(...fresh);
     if (batch.length < 250) break;
-    if (page === MAX_PAGES) capped = true;
+    if (page === maxPages) capped = true;
   }
   if (!products.length) throw new CheckError("empty", "That store's public catalogue is empty.");
   const result = analyse(products);

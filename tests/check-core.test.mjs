@@ -46,6 +46,8 @@ ok(await rejects(checkStore("redir.example.com", { resolve: async (h) => h === "
   "redirect to an internal address blocked");
 ok(await rejects(checkStore("woo.example.com", { resolve: res(["93.184.216.34"]), fetcher: fakeFetch([["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(404, "")], ["page=1", mk(404, "")]]) }), "no_catalogue"),
   "non-Shopify store gets a clear message");
+ok(await rejects(checkStore("busy.example.com", { resolve: res(["23.227.38.65"]), fetcher: fakeFetch([["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(404, "")], ["page=1", mk(429, "")]]) }), "limited"),
+  "a store rate-limiting us gets an honest message, not a timeout");
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

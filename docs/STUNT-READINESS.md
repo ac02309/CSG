@@ -11,6 +11,10 @@ Everything a big marketing moment needs before it is pointed at the site. It app
 | Inbound fulfilment | Turns each request into the full report and a drafted reply. | engine: `python -m outreach inbound export.csv` |
 | Press data | "State of UK catalogue data": anonymised aggregates with method, sample size and dates. Marked not publishable under 30 stores. | engine: `python -m outreach insights` |
 | Cold engine | Audit-led cold email, hardened and preflight-gated. | `csg-outreach` |
+| Benchmarks | Per-check distributions, overall and by sector (withheld under 10 stores). Inbound replies add "higher than N% of the UK stores we have checked" once 30+ stores are in. | engine: `insights` → `insights/benchmarks.json` |
+| Case studies | Measured before/after from the fix kit exports, with a claims ledger. Anonymised and stamped NOT FOR PUBLICATION unless written consent is on file. The client always gets a named handover. | engine: `python -m outreach casestudy --store ...` |
+| Measurement | GoatCounter visits, sources and check/lead events. Off until configured. | `site.config.json` → `analytics` |
+| Cloudflare Pages edition | Static site, instant check, forms in D1, lead CSV export. | `functions/`, `scripts/build-pages.mjs`, `docs/HOSTING.md` |
 
 **Instant-check safety:**
 - It accepts public web addresses only. Private networks, internal IPs and redirects to them are all blocked.
@@ -24,18 +28,15 @@ Tests: `node tests/check-core.test.mjs`, also run in CI.
 
 ## Blockers: fix before any stunt
 
-1. **Netlify is not publishing, and the free plan has hard limits.**
-   - The free plan gives 300 credits a month. Each production deploy costs 15 credits and bandwidth costs 20 credits per GB.
-   - When the credits run out, the site is paused until the next month.
-   - `main` received about 33 production deploys on 14 and 15 October, which is roughly 500 credits.
-   - That is the likely reason nothing has gone live since 15 Oct 18:01. Check Netlify → Usage.
-2. **Capacity for a crowd.** Even with credits restored, at about 0.7 MB per homepage visit (uncached), 300 credits covers roughly 20,000 visits a month and nothing else. A stunt that works will pause the site at its peak. The options:
-   - **Netlify Pro** (paid).
-   - **Cloudflare Pages** (free, 500 builds a month, no bandwidth limit stated). `www` can point there with a CNAME at one.com, with no nameserver change. The apex domain would need Cloudflare nameservers, so keep the apex at one.com as a redirect to `www`. The instant check would need porting to a Pages Function; its core is plain JavaScript.
-   - **Batch deploys.** Merge to `main` once a day at most. Previews and branch deploys don't cost credits.
-3. **Netlify Forms detection** must be switched on (Site configuration → Forms), or lead submissions are lost.
-4. **Measurement.** No analytics are configured, so a stunt's results couldn't be measured. A cookie-free option avoids a consent banner. The site already has an analytics slot in `site.config.json`.
-5. **Business address** on the privacy notice and terms (placeholder still live).
+1. **Hosting capacity.** See [HOSTING.md](HOSTING.md) for the numbers, the options and a runbook.
+   - **Netlify Free:** 300 credits, about 15,000 visits a month. At the limit every site pauses, forms included.
+   - **Option C, recommended at £0:** www on Cloudflare Pages, with Netlify only redirecting the bare domain. It is built and tested on this branch.
+   - **Option B:** Netlify Pro, about $30–40 in a stunt month.
+   - Check Netlify → Usage first: the publishing stall since 15 Oct is most likely credits.
+2. **Forms.** On Netlify, switch on form detection (Site configuration → Forms). On Cloudflare Pages, leads go to D1 and download as CSV (HOSTING.md, step 9).
+3. **Measurement.** GoatCounter is built in and switched off. Switching it on is two fields in `site.config.json`. It needs no cookie banner under the 2026 PECR exemption, and the privacy-notice wording is generated for you.
+4. **Business address** on the privacy notice and terms (placeholder still live).
+5. **Prices.** Engine `PRICING.md` has 19 sourced price points. Suggested: £595 / £1,250 / £2,250 clean-up and £200 / £350 a month monitoring. These are your decision; set them in `config.toml` `[offer]`.
 
 ## Response playbook (when a stunt lands)
 

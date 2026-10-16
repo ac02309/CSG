@@ -1,5 +1,6 @@
 // POST /api/check {"store": "yourstore.co.uk"} -> findings from the store's public catalogue.
 // Abuse limits: per-visitor rate limit, per-store cache, same-origin only, small request bodies.
+import { lookup } from "node:dns/promises";
 import { checkStore, CheckError, normaliseStore } from "../lib/check-core.mjs";
 
 const RATE = { windowMs: 10 * 60 * 1000, max: 8 };
@@ -49,7 +50,7 @@ export default async (req, context) => {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return json(200, { ...hit.body, cached: true });
   try {
-    const result = await checkStore(body.store);
+    const result = await checkStore(body.store, { resolve: lookup });
     cache.set(key, { at: Date.now(), body: result });
     if (cache.size > 2000) cache.clear();
     return json(200, result);
