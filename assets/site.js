@@ -44,13 +44,15 @@
   /* ---------- reveal: tiles settle once as they arrive ---------- */
   if("IntersectionObserver" in window&&!reduce){
     var rvLeft=$$(".rv"),rvQ=0;
-    var rvShow=function(el){el.classList.add("in");rvIO.unobserve(el);rvLeft.splice(rvLeft.indexOf(el),1);if(!rvLeft.length)removeEventListener("scroll",rvSweep);};
+    var rvShow=function(el){var i=rvLeft.indexOf(el);if(i<0)return;el.classList.add("in");rvIO.unobserve(el);rvLeft.splice(i,1);if(!rvLeft.length)removeEventListener("scroll",rvSweep);};
     var rvIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)rvShow(e.target);});},{rootMargin:"0px 0px -8% 0px",threshold:.08});
     /* a fast scroll can carry a tile from below the screen to above it between two frames, so the
        observer never sees it: anything already scrolled past is shown at once, never left blank */
     var rvSweep=function(){if(rvQ)return;rvQ=requestAnimationFrame(function(){rvQ=0;rvLeft.slice().forEach(function(el){if(el.getBoundingClientRect().bottom<0){el.style.transition="none";rvShow(el);}});});};
     rvLeft.forEach(function(el){rvIO.observe(el);});
     addEventListener("scroll",rvSweep,{passive:true});
+    /* keyboard focus can reach a tile before it has arrived: show it at once, never focus something invisible */
+    document.addEventListener("focusin",function(e){var t=e.target,el=t.closest&&t.closest(".rv:not(.in)");if(el){el.style.transition="none";rvShow(el);}});
   }else{$$(".rv").forEach(function(el){el.classList.add("in");});}
 
   /* ---------- global navigation: the Solutions menu ---------- */
