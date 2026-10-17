@@ -466,7 +466,7 @@ function hud(t, lightK) {
   if (t >= S0 && t < 34.6) { const i = Math.min(5, Math.floor((t - S0) / SD)), t0 = S0 + i * SD, ty = V ? 300 * U : H * .45;
     eyebrow(`0${i + 1} · ${SOLT[i].e}`, L, ty - (V ? 120 : 125) * U, t0 + .05, t, BLUE);
     head(SOLT[i].l, L, ty, (V ? 96 : 90) * U, t0 + .1, t, { maxW: mw, out: t0 + SD - .28 });
-    const ry = V ? 120 * U + 60 * U : H * .8; for (let j = 0; j < 6; j++) { rr(L + j * 54 * U, ry, 42 * U, 6 * U, 3 * U); x.fillStyle = j < i ? 'rgba(111,134,255,.45)' : j === i ? BLUE : 'rgba(11,18,32,.1)'; x.fill(); } }
+    const ry = V ? 128 * U : H * .8; for (let j = 0; j < 6; j++) { rr(L + j * 54 * U, ry, 42 * U, 6 * U, 3 * U); x.fillStyle = j < i ? 'rgba(111,134,255,.45)' : j === i ? BLUE : 'rgba(11,18,32,.1)'; x.fill(); } }
   if (t > 34.2 && t < 35.4) { const k = eo(pr(t, 34.5, 34.9)) * (1 - pr(t, 35.1, 35.4)); x.globalAlpha = k; txt('Delivered · correct', L, V ? 330 * U : H * .5, 60 * U, GREEN, 760); x.globalAlpha = 1; }
   // the big picture
   if (t > 35.0 && t < 37.1) { const s = 'This isn’t theory.', n = Math.floor(pr(t, 35.2, 36.2) * s.length), y = V ? 330 * U : H * .5;
