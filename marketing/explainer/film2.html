@@ -1,0 +1,129 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>CSG typographic film</title>
+<style>
+@font-face{font-family:"Inter";src:url("inter.woff2") format("woff2");font-weight:100 900}
+:root{--bg:#f3f5f8;--fg:#0b1220;--sub:#5b6474;--em:#2d4fe0;--eye:#2d4fe0}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--fg)}
+#glow{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 60% at 68% 48%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%)}
+#vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 75% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%);opacity:0}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9}
+.stage{position:absolute;left:47%;top:11%;width:51%;height:74%;transform-origin:60% 50%}
+.slot{position:absolute;inset:0}
+.slot canvas.view{position:absolute;left:-28%;top:-12%;width:156%;height:124%}
+.brandbar{position:absolute;left:5.5%;top:6.4%;display:flex;align-items:center;gap:.8rem;font-weight:650;font-size:1.5rem;letter-spacing:-.02em;z-index:5}
+.brandbar svg{width:2.3rem;height:2.3rem}
+.url{position:absolute;right:5%;top:6.8%;font-size:1.2rem;font-weight:500;color:var(--sub);z-index:5}
+.beat{position:absolute;left:5.5%;top:50%;width:46%;transform:translateY(-50%);opacity:0;z-index:4}
+.eyebrow{font-size:1.45rem;font-weight:650;color:var(--eye);margin:0 0 1.6rem;letter-spacing:.01em}
+.beat h1{margin:0;font-size:6.6rem;line-height:.98;letter-spacing:-.055em;font-weight:780;text-wrap:balance}
+.beat h1 em{font-style:normal;color:var(--em)}
+.beat .sub{margin:1.8rem 0 0;font-size:2rem;line-height:1.35;color:var(--sub);max-width:24ch;letter-spacing:-.015em}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.08em;margin-bottom:-.08em}
+.w>span{display:inline-block}
+.beat.stat h1{font-size:17rem;letter-spacing:-.07em;line-height:.85;font-variant-numeric:tabular-nums}
+.beat.stat .sub{font-size:2.4rem;max-width:20ch;color:var(--fg)}
+.beat.brand h1{font-size:7.4rem}
+.beat.short h1{font-size:9.4rem}
+.end{position:absolute;left:5.5%;top:50%;transform:translateY(-50%);opacity:0;z-index:4}
+.end h1{margin:0;font-size:7.6rem;line-height:.98;letter-spacing:-.055em;font-weight:780}
+.end h1 span{display:block}
+.end h1 span:last-child{background:linear-gradient(95deg,#0e9384,#2d4fe0);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.08em}
+.end .cta{margin-top:2.6rem;display:inline-flex;align-items:center;gap:1.1rem;background:#0b1220;color:#fff;border-radius:999px;padding:1.2rem 2.2rem;font-size:1.7rem;font-weight:600}
+.end .cta small{font-weight:500;color:#c9d1de;font-size:1.5rem}
+/* vertical */
+body.v .stage{left:-6%;top:34%;width:112%;height:40%;transform-origin:50% 50%}
+body.v .slot canvas.view{left:-18%;top:-15%;width:136%;height:130%}
+body.v .brandbar{left:7%;top:4%;font-size:2.1rem}
+body.v .brandbar svg{width:3rem;height:3rem}
+body.v .url{display:none}
+body.v .beat{left:7%;top:9%;transform:none;width:86%}
+body.v .beat h1{font-size:7.4rem}
+body.v .beat.short h1{font-size:10rem}
+body.v .beat.brand h1{font-size:8rem}
+body.v .beat .sub{font-size:2.6rem;max-width:28ch}
+body.v .beat.stat{top:9%}
+body.v .beat.stat h1{font-size:19rem}
+body.v .beat.stat .sub{font-size:3rem;max-width:22ch}
+body.v .eyebrow{font-size:2rem}
+body.v .end{left:7%;top:9%;transform:none}
+body.v .end h1{font-size:8.4rem}
+body.v .end .cta{position:fixed;left:7%;bottom:9%;font-size:2.2rem;padding:1.4rem 2.4rem}
+body.v .end .cta small{font-size:1.9rem}
+</style></head>
+<body data-stat-a="stacks:1,2,3,4">
+<div id="glow"></div>
+<div class="stage" id="sA" data-drive><div class="slot" data-forms="scatter,b,link,scan,report,gantt,a,kanban" aria-hidden="true"></div></div>
+<div class="stage" id="sB" data-drive style="opacity:0"><div class="slot" data-forms="gate,orbit,b" aria-hidden="true"></div></div>
+<div id="vig"></div>
+<div class="brandbar" id="brandbar"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12b5a0"/><stop offset="1" stop-color="#4f6cff"/></linearGradient></defs><g transform="translate(1 1)"><circle cx="14" cy="14" r="9" fill="none" stroke="url(#g)" stroke-width="3.4" stroke-dasharray="42.5 14" transform="rotate(25 14 14)" stroke-linecap="round"/><circle cx="22.4" cy="10.9" r="2.8" fill="url(#g)"/></g></svg><span>Clarke Systems Group</span></div>
+<div class="url" id="url">clarkesystemsgroup.com</div>
+<div id="beats"></div>
+<div class="end" id="end"><h1><span>Less admin.</span><span>Fewer errors.</span><span>Same team.</span></h1><div class="cta">Book a free 20-minute demo <small>clarkesystemsgroup.com</small></div></div>
+<div id="flash"></div>
+<script>
+if (location.search.includes('v')) document.body.classList.add('v');
+const sm = x => x * x * (3 - 2 * x), cl = (x, a, b) => Math.min(b, Math.max(a, x)), mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+const INK = [11, 18, 32], MIST = [243, 245, 248];
+let BT = null;
+const words = html => html.split(' ').map(w => `<span class="w"><span>${w}</span></span>`).join(' ');
+window.__ready = fetch('beats.json').then(r => r.json()).then(d => {
+  BT = d; const host = document.getElementById('beats');
+  d.beats.forEach((b, i) => {
+    if (b.kind === 'end') return;
+    const el = document.createElement('div');
+    const plain = b.line.replace(/<[^>]+>/g, '');
+    el.className = 'beat ' + b.kind + (b.kind === 'line' && plain.length <= 16 ? ' short' : ''); el.id = 'b' + i;
+    el.innerHTML = (b.eyebrow ? `<p class="eyebrow">${b.eyebrow}</p>` : '') + `<h1>${b.kind === 'stat' ? b.line : words(b.line)}</h1>` + (b.sub ? `<p class="sub">${b.sub}</p>` : '');
+    host.appendChild(el);
+  });
+  return true;
+});
+window.__setT = t => {
+  const B = BT.beats, cur = B.filter(b => t >= b.start - .001).pop() || B[0], idx = B.indexOf(cur), prev = B[idx - 1];
+  // light or dark: a hard, fast cut on the beat (0.18 s), with a white flash into the brand reveal
+  const k = prev && prev.act !== cur.act ? sm(cl((t - cur.start) / .18, 0, 1)) : 1;
+  const darkNow = cur.act === 'dark' ? 1 : 0, darkPrev = prev ? (prev.act === 'dark' ? 1 : 0) : darkNow;
+  const dk = darkPrev + (darkNow - darkPrev) * k;
+  const bg = mix(MIST, INK, dk), fg = mix(INK, [244, 246, 249], dk), sub = mix([91, 100, 116], [170, 180, 196], dk);
+  const r = document.documentElement.style;
+  r.setProperty('--bg', `rgb(${bg})`); r.setProperty('--fg', `rgb(${fg})`); r.setProperty('--sub', `rgb(${sub})`);
+  r.setProperty('--em', dk > .5 ? '#f5a524' : '#2d4fe0'); r.setProperty('--eye', dk > .5 ? '#3fd0b8' : '#2d4fe0');
+  document.getElementById('glow').style.opacity = 1 - dk; document.getElementById('vig').style.opacity = dk;
+  const brand = B.find(b => b.kind === 'brand');
+  document.getElementById('flash').style.opacity = t >= brand.start ? .85 * Math.exp(-(t - brand.start) * 7) : 0;
+  // 3D: slot A then slot B, each form eased in over 0.9 s; dimmed on dark so the words lead
+  const sA = document.getElementById('sA'), sB = document.getElementById('sB');
+  let a = 0, pa = 0, b = 0, pb = 0;
+  for (const x of B) { if (t < x.start) break; const e = sm(cl((t - x.start) / .9, 0, 1));
+    if (x.slot === 'A') { a = pa + (x.stage - pa) * e; pa = x.stage; } else { b = pb + (x.stage - pb) * e; pb = x.stage; } }
+  sA.csgStage = a; sB.csgStage = b;
+  const bStart = B.find(x => x.slot === 'B').start, xb = sm(cl((t - bStart + .1) / .4, 0, 1));
+  const dim = 1 - .45 * dk, proofDim = 1 - .9 * (cur.slot === 'B' ? dk : 0);   // the proof plays on type alone
+  sA.style.opacity = (1 - xb) * dim; sB.style.opacity = xb * dim * proofDim;
+  const pk = cl((t - cur.start) / Math.max(.5, cur.end - cur.start), 0, 1), push = 1 + .06 * sm(pk);
+  sA.style.transform = sB.style.transform = `scale(${push.toFixed(4)})`;
+  // the words: each beat rises in word by word on its downbeat and leaves fast just before the next
+  B.forEach((x, i) => {
+    if (x.kind === 'end') return;
+    const el = document.getElementById('b' + i);
+    if (t < x.start - .05 || t > x.end + .05) { el.style.opacity = 0; return; }
+    const out = sm(cl((x.end - t) / .22, 0, 1));
+    el.style.opacity = out; el.style.translate = `0 ${(1 - out) * -2.2}rem`;
+    el.querySelectorAll('.w>span').forEach((w, j) => { const e = sm(cl((t - x.start - j * .07) / .38, 0, 1)); w.style.transform = `translateY(${(1 - e) * 108}%)`; });
+    const eb = el.querySelector('.eyebrow'); if (eb) { const e = sm(cl((t - x.start) / .3, 0, 1)); eb.style.opacity = e; }
+    const sb = el.querySelector('.sub'); if (sb) { const e = sm(cl((t - x.start - (x.kind === 'stat' ? .45 : .6)) / .45, 0, 1)); sb.style.opacity = e; sb.style.translate = `0 ${(1 - e) * 1}rem`; }
+    if (x.kind === 'stat') {                                  // the figure slams in and counts up on the hit
+      const h = el.querySelector('h1'), to = parseInt(x.line, 10), suf = x.line.replace(/^\d+/, '');
+      const c = cl((t - x.start) / .75, 0, 1), s = 1 + .18 * Math.exp(-(t - x.start) * 9);
+      h.textContent = Math.round(to * (1 - Math.pow(1 - c, 3))) + (c >= 1 ? suf : ''); h.style.transform = `scale(${s.toFixed(3)})`; h.style.transformOrigin = '0 70%';
+    }
+  });
+  const end = B.find(x => x.kind === 'end'), ee = document.getElementById('end');
+  const ev = sm(cl((t - end.start - .35) / .7, 0, 1)); ee.style.opacity = ev;
+  ee.querySelectorAll('h1 span').forEach((s, j) => { const e = sm(cl((t - end.start - .35 - j * .18) / .5, 0, 1)); s.style.opacity = e; s.style.translate = `0 ${(1 - e) * 1.4}rem`; });
+  const cta = ee.querySelector('.cta'), ce = sm(cl((t - end.start - 1.3) / .5, 0, 1)); cta.style.opacity = ce; cta.style.translate = `0 ${(1 - ce) * 1}rem`;
+  const top = 1 - sm(cl((t - end.start) / .4, 0, 1));
+  document.getElementById('brandbar').style.opacity = top; document.getElementById('url').style.opacity = top * (1 - dk);
+};
+</script>
+<script src="film.js"></script>
+</body></html>

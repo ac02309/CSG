@@ -1,10 +1,27 @@
-# The explainer film (about 1:45)
+# The brand film (about 1 minute, no voice)
 
-A 13-scene explainer built on the site's own 3D engine: hook, problem, who we are, the six solutions, proof (180+, 290+, 3), how it works, prices, and the close. The voice sets the timing: every scene change, caption and number reveal follows the length of each spoken line.
+The main film is typographic: bold words cut to a 112 BPM original score, with no voiceover, because generated voices were rejected as not human enough. The story runs:
 
-Generated open-source voices were rejected as not human enough. The voice is either a real team member's recording or Google Cloud's Chirp 3 HD (see `../audio/tts_google.py`).
+- **The problem, on dark ink:** "Monday morning." … "One typo can reach a customer."
+- **The cut to light:** a flash on the downbeat as the logo assembles.
+- **Six solutions,** one bar each, each with its 3D scene.
+- **The proof:** "This isn't theory." in near-silence, then 180+, 290+ and 3, each slamming in on a musical hit.
+- **The offer:** free demo, fixed price from £1,250, "Nothing starts until you say yes."
+- **The close:** "Less admin. Fewer errors. Same team." and the call to action.
 
-## Rebuild with a voice
+## Rebuild it (run from this folder)
+
+1. `python3 beats.py`: the beat sheet. Every line, its bar and length, its 3D scene and its light or dark act live here. It writes `beats.json` (for the film) and `beats-score.json` (for the score). Edit the words or timing here.
+2. `python3 score3.py beats-score.json score-typo.wav`: the score (it uses `score.py` and `score2.py`). Then level it: `ffmpeg -i score-typo.wav -af "aresample=48000,loudnorm=I=-15:TP=-1.5:LRA=11" music-typo.wav`.
+3. Copy `../../assets/film.js` and `../../assets/fonts/inter.woff2` here, then run `python3 -m http.server 8792 --bind 127.0.0.1`.
+4. `node render2.js h quick` writes preview frames. `node render2.js h full` renders 16:9 and `v full` renders 9:16, about 20 minutes each.
+5. Mux: `ffmpeg -i typo-h.mp4 -i music-typo.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest final-typo-h.mp4`.
+
+`film2.html` is the film page: the light and dark cuts, the flash, kinetic words, count-up figures and camera push.
+
+## The voiced explainer (on hold)
+
+`index.html`, `render.js`, `timeline.py`, `score2.py` and `voice_fx.py` build a longer explainer timed to a voiceover. It is on hold until a real person records the read in the Go-to-Market Kit's "Video and voice" tab. To rebuild with a voice:
 
 Run from this folder. `../audio/explainer-script.json` holds the 26 lines, grouped by scene.
 
