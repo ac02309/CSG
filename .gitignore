@@ -13,3 +13,7 @@ marketing/audio/samples/
 marketing/audio/read-*/
 marketing/explainer/beats.json
 marketing/explainer/beats-score.json
+
+# catalogue check output (never commit reports about real stores)
+/reports/
+tools/catalogue-check/reports/

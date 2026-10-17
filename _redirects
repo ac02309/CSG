@@ -11,6 +11,7 @@
 /src/*                /404.html  404!
 /tests/*              /404.html  404!
 /marketing/*  /404.html  404!
+/tools/*      /404.html  404!
 /package.json         /404.html  404!
 /package-lock.json    /404.html  404!
 /.gitignore           /404.html  404!
