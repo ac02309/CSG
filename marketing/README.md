@@ -48,3 +48,17 @@ Every file in this folder, its size and where to use it. Colours, type and copy 
 - LinkedIn posts are exact 1200x1200 pixels. Post them in number order.
 - Square and vertical cuts open on "Less admin. Fewer errors. Same team." and end on "Free 20-minute demo. clarkesystemsgroup.com".
 - Use amber only to show errors.
+
+## Audio (marketing/audio/)
+
+Original music, composed in code for these films (`compose.py`), so it is wholly ours: no samples, no stock library, no licence. Each track is levelled to -16 LUFS, the loudness social platforms expect.
+
+| File | Length | Used in |
+| --- | --- | --- |
+| music-16x9.m4a | 16 s | csg-film-16x9.mp4 (final chord as the logo forms, 14 s) |
+| music-teaser.m4a | 15 s | csg-teaser-15s-16x9.mp4 (final chord at 11.5 s) |
+| music-social.m4a | 22.3 s | the square and vertical cuts (final chord on the end card, 17.3 s) |
+
+Rebuild a track at any length: `python3 compose.py <seconds> <final-chord-seconds> out.wav` (needs numpy).
+
+All four videos now carry this music. Social platforms start videos muted, so the films still read without sound.
