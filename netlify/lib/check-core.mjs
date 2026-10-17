@@ -177,22 +177,69 @@ async function loadRobots(base, fetcher, resolve) {
 const robotsOk = (txt, pathAndQuery) => txt !== null && (txt === "" || robotsVerdict(txt, pathAndQuery));
 const ROBOTS_REFUSAL = "This store asks automated tools not to read its catalogue, so we have not checked it.";
 
-// Resolve the store's canonical https host (follows one redirect, e.g. to www.), checking each hop.
+// Resolve the store's canonical https host (follows one redirect, e.g. to www.), checking each hop, and which
+// platform publishes its catalogue: Shopify (/products.json) or WooCommerce (the public Store API).
+const WOO_PATH = "/wp-json/wc/store/v1/products";
 async function canonicalBase(host, fetcher, resolve) {
   await assertPublicHost(host, resolve);
   // robots.txt is read before the very first catalogue request, and judged on the exact URL requested
-  const robots = await loadRobots(`https://${host}`, fetcher, resolve);
-  if (!robotsOk(robots, "/products.json?limit=1")) throw new CheckError("robots", ROBOTS_REFUSAL);
-  const r = await fetchJson(`https://${host}/products.json?limit=1`, fetcher);
+  let robots = await loadRobots(`https://${host}`, fetcher, resolve);
+  let base = `https://${host}`;
+  let r = robotsOk(robots, "/products.json?limit=1") ? await fetchJson(`${base}/products.json?limit=1`, fetcher) : { status: -1 };
   if (r.status >= 300 && r.status < 400 && r.location) {
-    const u = new URL(r.location, `https://${host}`);
+    const u = new URL(r.location, base);
     if (u.protocol !== "https:") throw new CheckError("blocked", "That store does not use a secure address.");
     const h2 = normaliseStore(u.hostname);
     if (!h2) throw new CheckError("blocked", "That address cannot be checked.");
     await assertPublicHost(h2, resolve);
-    return { base: `https://${h2}`, robots: h2 === host ? robots : await loadRobots(`https://${h2}`, fetcher, resolve) };
+    if (h2 !== host) robots = await loadRobots(`https://${h2}`, fetcher, resolve);
+    base = `https://${h2}`;
+    // a redirect to the same Shopify store's www address: the catalogue is there
+    if (/\/products\.json/.test(u.pathname)) return { base, robots, platform: "shopify" };
+    r = robotsOk(robots, "/products.json?limit=1") ? await fetchJson(`${base}/products.json?limit=1`, fetcher) : { status: -1 };
   }
-  return { base: `https://${host}`, robots };
+  if (r.status === 200 && Array.isArray(r.data?.products)) return { base, robots, platform: "shopify" };
+  if (r.status === 403 || r.status === 429) {
+    throw new CheckError("limited", "That store is turning away automated requests right now. Try again in a few minutes.");
+  }
+  const wooProbe = `${WOO_PATH}?per_page=1`;
+  if (robotsOk(robots, wooProbe)) {
+    const w = await fetchJson(`${base}${wooProbe}`, fetcher);
+    if (w.status === 200 && Array.isArray(w.data)) return { base, robots, platform: "woocommerce" };
+  }
+  if (r.status === -1 && !robotsOk(robots, wooProbe)) throw new CheckError("robots", ROBOTS_REFUSAL);
+  return { base, robots, platform: "shopify" };  // let the page read report what went wrong, as before
+}
+
+// WooCommerce Store API product -> the Shopify products.json fields the rules read. The Store API publishes no
+// weights and no variation SKUs, so weight is null (not checked) and variable products carry no variants.
+function fromWoo(p) {
+  const cats = (p.categories || []).map((c) => String(c?.name || "")).filter((n) => n && !/^uncategori[sz]ed$/i.test(n));
+  const variable = p.type === "variable" || (p.variations || []).length > 0;
+  const virtual = p.type === "virtual" || p.is_virtual === true;
+  return {
+    id: p.id, title: String(p.name || "").replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&#8217;/g, "'"),
+    handle: String(p.slug || ""), url: String(p.permalink || ""),
+    product_type: cats[0] || "", vendor: String(p.brands?.[0]?.name || ""),
+    images: p.images || [], body_html: String(p.description || p.short_description || ""),
+    variants: variable || ["grouped", "external"].includes(p.type) ? []
+      : [{ title: "Default Title", sku: String(p.sku || ""), grams: null, requires_shipping: !virtual }],
+  };
+}
+
+const PAGE_SIZE = { shopify: 250, woocommerce: 100 };
+async function readPage(canon, page, fetcher) {
+  const size = PAGE_SIZE[canon.platform] || 250;
+  const path = canon.platform === "woocommerce" ? `${WOO_PATH}?per_page=${size}&page=${page}` : `/products.json?limit=${size}&page=${page}`;
+  if (!robotsOk(canon.robots, path)) return { status: "robots" };
+  const r = await fetchJson(`${canon.base}${path}`, fetcher);
+  // WooCommerce answers a page past the end with 400 rest_post_invalid_page_number: that is simply the end
+  if (canon.platform === "woocommerce" && page > 1 && r.status === 400) return { status: 200, batch: [], size };
+  if (r.status !== 200) return { status: r.status };
+  const raw = canon.platform === "woocommerce" ? r.data : r.data?.products;
+  if (!Array.isArray(raw)) return { status: "shape" };
+  const batch = raw.filter((p) => p && typeof p === "object").map((p) => (canon.platform === "woocommerce" ? fromWoo(p) : p));
+  return { status: 200, batch, size };
 }
 
 // --------------------------------------------------------------- checks
@@ -201,64 +248,54 @@ import { analyse, compact, CHECKS } from "../../assets/catalogue-rules.mjs";
 export { analyse, compact, CHECKS };
 
 // --------------------------------------------------------------- orchestration
+const NO_CATALOGUE = "We could not find a public Shopify or WooCommerce catalogue at that address. Other platforms need the full check.";
+function pageError(status, page) {
+  if (status === "robots") return new CheckError("robots", ROBOTS_REFUSAL);
+  if (status === 403 || status === 429) return new CheckError("limited", "That store is turning away automated requests right now. Try again in a few minutes.");
+  if (status === "shape") return new CheckError("no_catalogue", "That address did not return a product catalogue.");
+  return new CheckError("no_catalogue", page === 1 && (status === 404 || status === 401) ? NO_CATALOGUE : "That store did not respond in time. Try again in a minute.");
+}
+
 export async function checkStore(input, { fetcher = fetch, resolve = noResolver, maxPages = MAX_PAGES } = {}) {
   const host = normaliseStore(input);
   if (!host) throw new CheckError("invalid", "Enter a store web address, for example yourstore.co.uk.");
-  const { base, robots: robotsTxt } = await canonicalBase(host, fetcher, resolve);
+  const canon = await canonicalBase(host, fetcher, resolve);
+  // the same number of products either way: 250 Shopify products per page, or 100 WooCommerce products per page
+  const pages = canon.platform === "woocommerce" ? Math.ceil((maxPages * 250) / 100) : maxPages;
   const products = [];
   const seen = new Set();
   let capped = false;
-  for (let page = 1; page <= maxPages; page++) {
-    const path = `/products.json?limit=250&page=${page}`;
-    if (!robotsOk(robotsTxt, path)) {
-      if (page === 1) throw new CheckError("robots", ROBOTS_REFUSAL);
-      capped = true;   // a later page is disallowed: report honestly as a partial check
-      break;
-    }
-    const r = await fetchJson(`${base}${path}`, fetcher);
+  for (let page = 1; page <= pages; page++) {
+    const r = await readPage(canon, page, fetcher);
     if (r.status !== 200) {
-      if (page === 1) {
-        if (r.status === 403 || r.status === 429) {
-          throw new CheckError("limited", "That store is turning away automated requests right now. Try again in a few minutes.");
-        }
-        throw new CheckError("no_catalogue", r.status === 404
-          ? "We could not find a public Shopify catalogue at that address. WooCommerce and other platforms need the full check."
-          : "That store did not respond in time. Try again in a minute.");
-      }
-      capped = true; // a later page failed: report honestly as a partial check
+      if (page === 1) throw pageError(r.status, 1);
+      capped = true;   // a later page failed or is disallowed: report honestly as a partial check
       break;
     }
-    const batch = Array.isArray(r.data?.products) ? r.data.products.filter((p) => p && typeof p === "object") : null;
-    if (!batch) throw new CheckError("no_catalogue", "That address did not return a Shopify catalogue.");
-    const fresh = batch.filter((p) => !seen.has(p.id));
-    if (batch.length && !fresh.length) break;
+    const fresh = r.batch.filter((p) => !seen.has(p.id));
+    if (r.batch.length && !fresh.length) break;
     fresh.forEach((p) => seen.add(p.id));
     products.push(...fresh);
-    if (batch.length < 250) break;
-    if (page === maxPages) capped = true;
+    if (r.batch.length < r.size) break;
+    if (page === pages) capped = true;
   }
   if (!products.length) throw new CheckError("empty", "That store's public catalogue is empty.");
-  const result = analyse(products);
-  return { store: base.replace("https://", ""), capped, checked_at: new Date().toISOString(), ...result };
+  const result = analyse(products, canon.platform);
+  return { store: canon.base.replace("https://", ""), platform: canon.platform, capped, checked_at: new Date().toISOString(), ...result };
 }
 
-// One page (250 products) of a store's catalogue, compacted for the browser, which builds the full list from every
-// page. `canonical` ({base, robots}) can be passed from an earlier page so robots.txt is not re-read for each one.
-export const FULL_MAX_PAGES = 40; // 10,000 products
+// One page of a store's catalogue, compacted for the browser, which builds the full list from every page.
+// `canonical` ({base, robots, platform}) can be passed from an earlier page so robots.txt is not re-read each time.
+export const FULL_MAX_PAGES = 100; // 10,000 WooCommerce products (100 a page); Shopify stops at 40 pages (250 a page)
 export async function checkPage(input, { page = 1, fetcher = fetch, resolve = noResolver, canonical = null } = {}) {
   const host = normaliseStore(input);
   if (!host) throw new CheckError("invalid", "Enter a store web address, for example yourstore.co.uk.");
   if (!Number.isInteger(page) || page < 1 || page > FULL_MAX_PAGES) throw new CheckError("invalid", "That page is out of range.");
   const canon = canonical || await canonicalBase(host, fetcher, resolve);
-  const path = `/products.json?limit=250&page=${page}`;
-  if (!robotsOk(canon.robots, path)) throw new CheckError("robots", ROBOTS_REFUSAL);
-  const r = await fetchJson(`${canon.base}${path}`, fetcher);
-  if (r.status !== 200) {
-    if (r.status === 403 || r.status === 429) throw new CheckError("limited", "That store is turning away automated requests right now. Try again in a few minutes.");
-    throw new CheckError("no_catalogue", "That store did not respond in time. Try again in a minute.");
-  }
-  const batch = Array.isArray(r.data?.products) ? r.data.products.filter((p) => p && typeof p === "object") : null;
-  if (!batch) throw new CheckError("no_catalogue", "That address did not return a Shopify catalogue.");
-  return { store: canon.base.replace("https://", ""), page, products: batch.map(compact),
-    more: batch.length === 250 && page < FULL_MAX_PAGES, canonical: canon };
+  const last = Math.ceil(10000 / (PAGE_SIZE[canon.platform] || 250));
+  if (page > last) throw new CheckError("invalid", "That page is out of range.");
+  const r = await readPage(canon, page, fetcher);
+  if (r.status !== 200) throw pageError(r.status, page);
+  return { store: canon.base.replace("https://", ""), platform: canon.platform || "shopify", page, products: r.batch.map(compact),
+    more: r.batch.length === r.size && page < last, canonical: canon };
 }

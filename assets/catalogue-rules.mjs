@@ -29,7 +29,13 @@ const ORDER = ["duplicate_sku", "no_weight", "no_image", "no_sku", "no_descripti
 const normType = (s) => s.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
   .filter((w) => w && w !== "and").map((w) => (w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w)).join(" ");
 
-export function analyse(products) {
+// WooCommerce calls product types categories and has no smart collections
+const WOO = [[/smart collections, filters/g, "filters, menus"], [/Filters, collections/g, "Filters, menus"],
+  [/product types/g, "categories"], [/product type/g, "category"], [/Product types/g, "Categories"], [/Product type/g, "Category"],
+  [/variants/g, "products"], [/variant/g, "product"]];
+export const words = (s, platform) => (platform === "woocommerce" ? WOO.reduce((t, [a, b]) => t.replace(a, b), s) : s);
+
+export function analyse(products, platform = "shopify") {
   const hits = Object.fromEntries(ORDER.map((k) => [k, []]));
   let variants = 0;
   const skuOwners = new Map();
@@ -47,7 +53,8 @@ export function analyse(products) {
         if (!skuOwners.has(k)) skuOwners.set(k, []);
         skuOwners.get(k).push(title);
       } else if (!sku && !special) hits.no_sku.push(title);
-      if (v.requires_shipping !== false && !v.grams && !special) hits.no_weight.push(title);
+      // grams null: the platform does not publish weights (WooCommerce Store API), so the check is not run
+      if (v.requires_shipping !== false && v.grams !== null && !v.grams && !special) hits.no_weight.push(title);
     }
   }
   for (const [sku, owners] of skuOwners) {
@@ -78,7 +85,7 @@ export function analyse(products) {
     const share = total ? count / total : null;
     findings.push({
       key, count, total, share,
-      label: CHECKS[key].label, why: CHECKS[key].why,
+      label: words(CHECKS[key].label, platform), why: words(CHECKS[key].why, platform),
       setup_choice: share !== null && share >= 0.9 && ["no_weight", "uncategorised", "no_sku", "no_description"].includes(key),
       examples: [...new Set(list)].slice(0, 3),
     });
@@ -92,10 +99,11 @@ export function compact(p) {
   return {
     id: p.id, title: String(p.title || "").slice(0, 300), handle: String(p.handle || "").slice(0, 300),
     product_type: String(p.product_type || "").slice(0, 200), vendor: String(p.vendor || "").slice(0, 200),
+    url: String(p.url || "").startsWith("https://") ? String(p.url).slice(0, 500) : "",
     images: (p.images || []).length ? [1] : [], body_html: hasText(p.body_html) ? "1" : "",
     variants: (p.variants || []).slice(0, 250).map((v) => ({
       title: String(v.title || "").slice(0, 200), sku: String(v.sku || "").slice(0, 200),
-      grams: Number(v.grams) || 0, requires_shipping: v.requires_shipping !== false,
+      grams: v.grams === null ? null : Number(v.grams) || 0, requires_shipping: v.requires_shipping !== false,
     })),
   };
 }
@@ -119,15 +127,15 @@ const FIX = {
 
 // One row per product or variant to fix, in the order of analyse()'s findings. Issues present on almost every
 // product (setup_choice) come last, since they usually reflect a deliberate setup.
-export function listRows(products) {
-  const { findings } = analyse(products);
+export function listRows(products, platform = "shopify") {
+  const { findings } = analyse(products, platform);
   const keys = [...findings.filter((f) => !f.setup_choice), ...findings.filter((f) => f.setup_choice)].map((f) => f.key);
   const setup = new Set(findings.filter((f) => f.setup_choice).map((f) => f.key));
   const rows = { };
   keys.forEach((k) => { rows[k] = []; });
   const add = (k, p, v, fix) => rows[k] && rows[k].push({
-    issue: ISSUE[k], key: k, setup: setup.has(k),
-    product: p.title, handle: p.handle, variant: v && v.title !== "Default Title" ? v.title : "", sku: v ? v.sku : "", fix,
+    issue: words(ISSUE[k], platform), key: k, setup: setup.has(k),
+    product: p.title, handle: p.handle, url: p.url || "", variant: v && v.title !== "Default Title" ? v.title : "", sku: v ? v.sku : "", fix,
   });
   const skuCount = new Map();
   for (const p of products) {
@@ -169,10 +177,10 @@ export function listRows(products) {
       const sku = String(v.sku || "").trim();
       if (sku && skuCount.get(sku.toLowerCase()) > 1) add("duplicate_sku", p, v, FIX.duplicate_sku(skuCount.get(sku.toLowerCase())));
       if (!sku) add("no_sku", p, v, FIX.no_sku());
-      if (v.requires_shipping !== false && !v.grams) add("no_weight", p, v, FIX.no_weight());
+      if (v.requires_shipping !== false && v.grams !== null && !v.grams) add("no_weight", p, v, FIX.no_weight());
     }
   }
-  return keys.flatMap((k) => rows[k]);
+  return keys.flatMap((k) => rows[k]).map((r) => ({ ...r, fix: words(r.fix, platform) }));
 }
 
 // Spreadsheet-safe CSV: a cell starting with = + - @ or a tab is prefixed with an apostrophe, so opening the
@@ -185,6 +193,6 @@ export function toCsv(rows, store) {
   };
   const head = ["Issue", "Product", "Variant", "SKU", "Suggested fix", "Product page"];
   const lines = rows.map((r) => [r.issue + (r.setup ? " (on almost every product: may be deliberate)" : ""), r.product, r.variant, r.sku, r.fix,
-    r.handle ? `https://${store}/products/${r.handle}` : ""].map(cell).join(","));
+    r.url || (r.handle ? `https://${store}/products/${r.handle}` : "")].map(cell).join(","));
   return "\uFEFF" + [head.join(","), ...lines].join("\r\n") + "\r\n";
 }

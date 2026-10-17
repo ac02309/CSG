@@ -87,7 +87,7 @@
   function buildFull(store, token) {
     var endpoint = form.getAttribute("data-endpoint") || "/api/check";
     var rulesUrl = new URL(full.getAttribute("data-rules"), document.baseURI).href;   // import() would resolve it from assets/
-    var products = [], seen = {}, stopped = null;
+    var products = [], seen = {}, stopped = null, platform = "shopify";
     full.hidden = false;
     full.textContent = "";
     var progress = el("p", "chk-status", "Reading every product in " + store + "…");
@@ -95,6 +95,7 @@
     full.appendChild(progress);
     function next(page) {
       return fetchPage(endpoint, store, page, token).then(function (j) {
+        platform = j.platform || platform;
         j.products.forEach(function (p) { if (!seen[p.id]) { seen[p.id] = 1; products.push(p); } });
         progress.textContent = "Reading every product in " + store + ": " + fmt(products.length) + " so far…";
         if (j.more) return next(page + 1);
@@ -106,21 +107,21 @@
     var rules = import(rulesUrl);                     // loads while the pages are read
     rules.catch(function () {});
     return next(1).then(function () { return rules; }).then(function (m) {
-      showFull(m, store, products, stopped);
+      showFull(m, store, products, stopped, platform);
     }).catch(function (err) {
       progress.textContent = (err && err.error) || "The full list could not be built. Run the check again in a minute.";
     });
   }
 
-  function showFull(rules, store, products, stopped) {
+  function showFull(rules, store, products, stopped, platform) {
     full.textContent = "";
-    var r = rules.analyse(products);
+    var r = rules.analyse(products, platform);
     r.store = store;
     var capped = products.length >= 10000;
     findings(full, r, "Full list: " + fmt(products.length) + " products checked");
     if (stopped) full.appendChild(el("p", "chk-note", "We read " + fmt(products.length) + " products before the store stopped answering, so the list covers those. Run it again later for the rest."));
     else if (capped) full.appendChild(el("p", "chk-note", "This list covers the first 10,000 products. Ask us for the rest."));
-    var rows = rules.listRows(products);
+    var rows = rules.listRows(products, platform);
     if (!rows.length) { full.focus(); return; }
     var blob = new Blob([rules.toCsv(rows, store)], { type: "text/csv;charset=utf-8" });
     var a = el("a", "btn btn-primary chk-download", "Download the full list (" + fmt(rows.length) + " rows, CSV)");
@@ -141,9 +142,9 @@
     shown.forEach(function (row) {
       var tr = el("tr");
       var td = el("td");
-      if (row.handle) {
+      if (row.url || row.handle) {
         var link = el("a", null, row.product);
-        link.href = "https://" + store + "/products/" + encodeURIComponent(row.handle);
+        link.href = row.url || "https://" + store + "/products/" + encodeURIComponent(row.handle);
         link.rel = "noopener noreferrer"; link.target = "_blank";
         td.appendChild(link);
       } else td.textContent = row.product;
@@ -155,7 +156,9 @@
     });
     t.appendChild(tb); wrap.appendChild(t); full.appendChild(wrap);
     if (rows.length > shown.length) full.appendChild(el("p", "chk-note", "Showing the first " + shown.length + " of " + fmt(rows.length) + " rows. The download has them all, with a link to each product."));
-    full.appendChild(el("p", "chk-note", "Barcodes (GTINs) are not in a store's public catalogue, so checking them needs admin access. We include them when we fix the list for you."));
+    full.appendChild(el("p", "chk-note", platform === "woocommerce"
+      ? "WooCommerce does not publish shipping weights, variation SKUs or barcodes (GTINs), so this list cannot check them. We include them, from your own product export, when we fix the list for you."
+      : "Barcodes (GTINs) are not in a store's public catalogue, so checking them needs admin access. We include them when we fix the list for you."));
     full.setAttribute("tabindex", "-1");
     full.focus();
   }

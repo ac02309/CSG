@@ -94,5 +94,48 @@ ok(await rejects(checkStore("busy.example.com", { resolve: res(["23.227.38.65"])
     "an endless robots.txt redirect chain is refused, not treated as permission");
 }
 
+console.log("WooCommerce");
+{
+  const { checkPage } = await import("../netlify/lib/check-core.mjs");
+  const mkr = (status, body, headers = {}) => ({ status, headers: { get: (k) => headers[k.toLowerCase()] ?? null },
+    text: async () => (typeof body === "string" ? body : JSON.stringify(body)) });
+  const wooProd = (i) => ({ id: 1000 + i, name: i === 1 ? "Rug &amp; Mat" : `Lamp ${i}`, slug: `lamp-${i}`, permalink: `https://woo.example.co.uk/product/lamp-${i}/`,
+    type: i % 10 === 0 ? "variable" : "simple", sku: i < 30 ? "" : `L${i}`, description: i < 5 ? "" : "<p>A lamp.</p>",
+    images: i < 8 ? [] : [{ src: "x" }], categories: i < 40 ? [{ name: "Uncategorized" }] : [{ name: i === 41 ? "Lamp" : "Lamps" }],
+    variations: i % 10 === 0 ? [{ id: 1 }] : [] });
+  const calls = [];
+  const woo = (total) => async (url) => {
+    calls.push(url);
+    if (url.endsWith("/robots.txt")) return mkr(200, "User-agent: *\nDisallow: /wp-admin/");
+    if (url.includes("/products.json")) return mkr(404, "<html>not found</html>");
+    const u = new URL(url), per = Number(u.searchParams.get("per_page")), pg = Number(u.searchParams.get("page") || 1);
+    const from = (pg - 1) * per;
+    if (from >= total) return mkr(400, { code: "rest_post_invalid_page_number" });
+    return mkr(200, Array.from({ length: Math.min(per, total - from) }, (_, k) => wooProd(from + k)));
+  };
+  const r = await checkStore("woo.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: woo(230), maxPages: 1 });
+  ok(r.platform === "woocommerce" && r.products === 230 && r.capped === false, "WooCommerce detected and read in pages of 100");
+  const f = Object.fromEntries(r.findings.map((x) => [x.key, x]));
+  ok(!f.no_weight, "no weight check: the Store API publishes no weights");
+  ok(f.uncategorised?.count === 40 && f.uncategorised.label === "products have no category", "Uncategorized counts as no category, in WooCommerce words");
+  ok(f.taxonomy_clash && /categor/.test(f.taxonomy_clash.label), "near-duplicate categories found");
+  ok(f.no_sku && f.no_sku.label.includes("products") && !f.no_sku.label.includes("variant"), "variable products carry no SKU checks; wording says products");
+  const big = await checkStore("woo.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: woo(900), maxPages: 1 });
+  ok(big.products === 300 && big.capped === true, "free plan: 3 WooCommerce pages (300), reported as capped");
+  const p3 = await checkPage("woo.example.co.uk", { page: 3, resolve: res(["93.184.216.34"]), fetcher: woo(230) });
+  ok(p3.platform === "woocommerce" && p3.products.length === 30 && p3.more === false, "full list: last WooCommerce page");
+  ok(p3.products[0].url.startsWith("https://woo.example.co.uk/product/"), "WooCommerce product links kept");
+  const p4 = await checkPage("woo.example.co.uk", { page: 4, resolve: res(["93.184.216.34"]), fetcher: woo(300) });
+  ok(p4.products.length === 0 && p4.more === false, "a page past the end (WooCommerce answers 400) ends the list cleanly");
+  ok(await rejects(checkPage("woo.example.co.uk", { page: 101, resolve: res(["93.184.216.34"]), fetcher: woo(300) }), "invalid"), "page cap");
+  const blocked = async (url) => url.endsWith("/robots.txt") ? mkr(200, "User-agent: *\nDisallow: /wp-json/") : mkr(404, "x");
+  ok(await rejects(checkStore("woo2.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: blocked }), "no_catalogue"),
+     "Store API disallowed by robots.txt: never requested, reported as no catalogue");
+  const none = async (url) => url.endsWith("/robots.txt") ? mkr(404, "") : mkr(404, "x");
+  try { await checkStore("plain.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: none }); ok(false, "no catalogue"); }
+  catch (e) { ok(e.code === "no_catalogue" && e.message.includes("Shopify or WooCommerce"), "neither platform: clear message"); }
+  ok(r.findings.find((x) => x.key === "no_image").examples.includes("Rug & Mat"), "HTML entities in WooCommerce names decoded");
+}
+
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);
