@@ -859,3 +859,18 @@ main p,main li,.story-body{overflow-wrap:break-word}
 .guide-t:hover::after,.guide-t:focus-visible::after{transform:scaleX(1)}
 .guide-t:hover .guide-t-go,.guide-t:focus-visible .guide-t-go{background:var(--ink);color:#fff;box-shadow:none;transform:translateX(.25rem)}
 @media (max-width:900px){.guide-grid{grid-template-columns:minmax(0,1fr)}.guide-t,.guide-t:first-child,.guide-t:last-child{padding-inline:0}.guide-t+.guide-t{border-left:0;border-top:1px solid var(--rule)}}
+
+/* ---------- the film's look: headlines with weight, the brand gradient, and dark acts for proof and the close ---------- */
+.h1{font-size:clamp(2.75rem,6.6vw,6.25rem);line-height:.98;font-weight:800;letter-spacing:-.048em}
+.h2{font-size:clamp(2.25rem,5vw,4.5rem);line-height:1.02;font-weight:800;letter-spacing:-.044em}
+.h3{font-weight:760;letter-spacing:-.032em}
+.lede{color:#4b5568}
+/* a dark act redefines the tokens, so every component inside it turns with it */
+.act,.cta .split,.cta-plain{--ink:#ffffff;--ink-2:#d6dcea;--muted:#a3aec4;--rule:rgba(255,255,255,.13);--rule-2:rgba(255,255,255,.08);--paper:rgba(255,255,255,.055);--cobalt:#8ea2ff;--cobalt-ink:#aab9ff;--amber-ink:#ffb547;--shadow:inset 0 0 0 1px rgba(255,255,255,.09);color:#fff}
+.act{background:radial-gradient(70rem 40rem at 18% 0%,rgba(76,98,186,.34),rgba(10,16,32,0) 62%),#0a1020}
+.act .lede,.cta .lede,.cta-plain .lede{color:#a3aec4}
+.act .eyebrow,.act .case-tag{color:#3fd0b8}
+.act .case-n,.act .case-n.fault,.act .metrics strong{color:#fff;background:none}
+.act .case-n.grad{background:linear-gradient(100deg,#3fd0b8,#8ea2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cta .split,.cta-plain{background:radial-gradient(56rem 34rem at 12% 0%,rgba(76,98,186,.38),rgba(10,16,32,0) 64%),#0a1020;box-shadow:none}
+.cta .btn-primary,.cta-plain .btn-primary{background:#fff;color:#0a1020}

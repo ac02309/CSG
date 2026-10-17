@@ -426,10 +426,11 @@ const FRAG = /* glsl */`
     float rim = pow(1. - abs(dot(n, vView)), 2.5);
     float e = min(min(vUv.x, 1. - vUv.x), min(vUv.y, 1. - vUv.y));
     float edge = 1. - smoothstep(.0, .085, e);
-    vec3 fill = mix(vec3(.8 + .2 * lam), vec3(.86, .9, .96), .35);
-    fill = mix(fill, mix(vec3(1.), grad, .22) * (.88 + .12 * lam), vState.x);
+    // the brand gradient carries every form, as in the film; lit faces stay bright so depth still reads
+    vec3 fill = mix(vec3(.94), grad, .5) * (.8 + .2 * lam);
+    fill = mix(fill, mix(vec3(1.), grad, .7) * (.86 + .14 * lam), vState.x);
     fill = mix(fill, mix(vec3(1.), uAmber, .5) * (.9 + .1 * lam), vState.y);
-    vec3 ec = mix(uSlate * .72, grad, vState.x);
+    vec3 ec = mix(grad * .78, grad, vState.x);
     ec = mix(ec, uAmber * .92, vState.y);
     vec3 col = mix(fill, ec, edge * .92);
     col = mix(col, grad, rim * .12);
