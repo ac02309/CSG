@@ -1,0 +1,141 @@
+// node tests/check-core.test.mjs  (no dependencies)
+import { analyse, checkStore, normaliseStore, assertPublicHost, CheckError, privateIp, robotsVerdict } from "../netlify/lib/check-core.mjs";
+let fails = 0;
+const ok = (c, m) => { console.log((c ? "  PASS " : "  FAIL ") + m); if (!c) fails++; };
+const rejects = async (p, code) => { try { await p; return false; } catch (e) { return e instanceof CheckError && (!code || e.code === code); } };
+
+console.log("input validation");
+ok(normaliseStore("https://Shop.Example.co.uk/collections/x?y=1") === "shop.example.co.uk", "URL normalised to host");
+for (const bad of ["localhost", "127.0.0.1", "http://169.254.169.254/latest", "user:pw@shop.com", "shop.com:8080", "a", "", "x".repeat(300) + ".com"])
+  ok(normaliseStore(bad) === null, `rejects ${JSON.stringify(bad.slice(0, 40))}`);
+
+console.log("network safety");
+const res = (ips) => async () => ips.map((address) => ({ address }));
+ok(await rejects(assertPublicHost("evil.com", res(["10.0.0.5"])), "blocked"), "private IP blocked (SSRF)");
+ok(await rejects(assertPublicHost("evil.com", res(["93.184.216.34", "127.0.0.1"])), "blocked"), "mixed public/loopback blocked");
+ok(await rejects(assertPublicHost("evil.com", res(["::ffff:192.168.1.1"])), "blocked"), "IPv4-mapped private IPv6 blocked");
+ok(!(await rejects(assertPublicHost("shop.com", res(["23.227.38.65"])))), "public Shopify IP allowed");
+
+for (const ip of ["::ffff:7f00:1", "::ffff:a9fe:a9fe", "::ffff:127.0.0.1", "64:ff9b::a9fe:a9fe", "2002:7f00:1::", "fe90::1",
+  "fec0::1", "::127.0.0.1", "ff02::1", "::", "::1", "fd12::1", "0:0:0:0:0:0:0:1", "not-an-ip", "192.0.0.8"])
+  ok(privateIp(ip), `private: ${ip}`);
+for (const ip of ["2606:4700::6810:84e5", "23.227.38.65", "::ffff:23.227.38.65", "2a00:1450:4009:81f::200e"])
+  ok(!privateIp(ip), `public: ${ip}`);
+
+console.log("robots.txt (RFC 9309)");
+ok(!robotsVerdict("User-agent: *\nUser-agent: AhrefsBot\nDisallow: /", "/products.json"), "multi-agent group applies to *");
+ok(!robotsVerdict("User-agent: *\nDisallow: /*.json", "/products.json"), "wildcard disallow");
+ok(!robotsVerdict("User-agent: *\nAllow: /\nDisallow: /products.json", "/products.json"), "longest match wins over Allow: /");
+ok(robotsVerdict("User-agent: *\nDisallow: /products\nAllow: /products.json", "/products.json"), "longer allow wins");
+ok(robotsVerdict("User-agent: *\nDisallow: /cart\nDisallow: /*.json$", "/products.json?limit=250"), "$ anchor respected");
+ok(robotsVerdict("User-agent: *\nDisallow: /\n\nUser-agent: CSG-research\nAllow: /", "/products.json"), "our own group overrides *");
+ok(!robotsVerdict("User-agent: Googlebot\nAllow: /\n\nUser-agent: *\nDisallow: /products", "/products.json"), "other bots' groups ignored");
+ok(robotsVerdict("", "/products.json"), "empty file allows");
+ok(!robotsVerdict("User-agent: *\nDisallow: /\nAllow: /products.json$", "/products.json?limit=250&page=1"), "judged on the exact URL with its query");
+ok(!robotsVerdict("User-agent: *\nDisallow: /*?*page=", "/products.json?limit=250&page=2"), "query-string disallow respected");
+ok(!robotsVerdict("User-agent: CSG-research/1.0\nDisallow: /", "/products.json"), "group naming us with a version applies");
+ok(robotsVerdict("User-agent: r\nDisallow: /\n\nUser-agent: *\nAllow: /", "/products.json"), "a fragment of our name is not us");
+ok(!robotsVerdict("User-agent: *\rDisallow: /", "/products.json"), "CR-only line endings");
+ok(!robotsVerdict("\uFEFFUser-agent: *\nDisallow: /", "/products.json"), "byte order mark does not hide the first group");
+
+console.log("analysis");
+const prods = Array.from({ length: 300 }, (_, i) => ({ id: i, title: i === 0 ? "Gift Card" : `Rug ${i}`, product_type: i < 30 ? "" : (i === 31 ? "rugs" : "Rugs"),
+  vendor: i === 40 ? "Oak and Loom" : "Oak & Loom", images: i < 5 ? [] : [{}],
+  variants: [{ sku: i === 0 ? "" : (i === 50 || i === 51 ? "DUP" : `S${i}`), grams: i < 40 ? 0 : 900, requires_shipping: true }] }));
+const a = analyse(prods);
+const f = Object.fromEntries(a.findings.map((x) => [x.key, x]));
+ok(f.uncategorised.count === 30, "30 products with no product type");
+ok(f.no_weight.count === 39, "39 shipped variants with no weight (gift card excluded)");
+ok(f.no_image.count === 5 && f.duplicate_sku.count === 1, "no image 5, one shared SKU");
+ok(!f.no_sku, "gift card with no SKU is not counted");
+ok(f.taxonomy_clash && f.vendor_clash, "clashing product type and brand spellings found");
+
+console.log("orchestration with a fake store");
+const mk = (status, body, headers = {}) => ({ status, headers: { get: (k) => headers[k.toLowerCase()] ?? null }, text: async () => (typeof body === "string" ? body : JSON.stringify(body)) });
+const page = (n, from) => ({ products: Array.from({ length: n }, (_, i) => ({ id: from + i, title: `P${from + i}`, product_type: "T", vendor: "V", images: [{}], variants: [{ sku: `S${from + i}`, grams: 0, requires_shipping: true }] })) });
+const fakeFetch = (routes) => async (url) => { for (const [k, v] of routes) if (url.includes(k)) return typeof v === "function" ? v(url) : v; return mk(404, ""); };
+let r = await checkStore("shop.example.com", { resolve: res(["23.227.38.65"]), fetcher: fakeFetch([
+  ["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(200, "User-agent: *\nDisallow: /cart")],
+  ["page=1", mk(200, page(250, 0))], ["page=2", mk(200, page(40, 250))]]) });
+ok(r.products === 290 && !r.capped && r.findings.find((x) => x.key === "no_weight").setup_choice, "290 products read; a field empty on every product is flagged as a setup choice");
+r = await checkStore("big.example.com", { resolve: res(["23.227.38.65"]), fetcher: fakeFetch([
+  ["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(404, "")], ["page=1", mk(200, page(250, 0))], ["page=2", mk(200, page(250, 250))]]) });
+ok(r.products === 500 && r.capped, "large catalogue capped at 500 and labelled as partial");
+ok(await rejects(checkStore("shy.example.com", { resolve: res(["23.227.38.65"]), fetcher: fakeFetch([
+  ["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(200, "User-agent: *\nDisallow: /products.json")]]) }), "robots"), "robots.txt refusal respected");
+ok(await rejects(checkStore("redir.example.com", { resolve: async (h) => h === "redir.example.com" ? [{ address: "23.227.38.65" }] : [{ address: "10.0.0.1" }],
+  fetcher: fakeFetch([["redir.example.com/products.json?limit=1", mk(301, "", { location: "https://internal.example.com/products.json" })]]) }), "blocked"),
+  "redirect to an internal address blocked");
+ok(await rejects(checkStore("woo.example.com", { resolve: res(["93.184.216.34"]), fetcher: fakeFetch([["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(404, "")], ["page=1", mk(404, "")]]) }), "no_catalogue"),
+  "non-Shopify store gets a clear message");
+ok(await rejects(checkStore("busy.example.com", { resolve: res(["23.227.38.65"]), fetcher: fakeFetch([["limit=1", mk(200, page(1, 0))], ["robots.txt", mk(404, "")], ["page=1", mk(429, "")]]) }), "limited"),
+  "a store rate-limiting us gets an honest message, not a timeout");
+{
+  const hits = [];
+  const evil = async (url, opts) => { hits.push(url); if (url.includes("robots.txt")) return mk(302, "", { location: "http://169.254.169.254/latest/meta-data/" }); return mk(200, page(1, 0)); };
+  ok(await rejects(checkStore("evil.example.com", { resolve: res(["23.227.38.65"]), fetcher: evil }), "robots"), "robots redirect to internal http address refused");
+  ok(!hits.some((u) => u.includes("169.254")), "internal address never fetched");
+  const evil2 = async (url) => { hits.push(url); if (url.includes("evil2.example.com/robots.txt")) return mk(301, "", { location: "https://internal.example.com/robots.txt" }); return mk(200, page(1, 0)); };
+  ok(await rejects(checkStore("evil2.example.com", { resolve: async (h) => [{ address: h === "internal.example.com" ? "10.0.0.2" : "23.227.38.65" }], fetcher: evil2 }), "robots"),
+    "robots redirect to a host resolving privately refused");
+  ok(!hits.some((u) => u.includes("internal.example.com")), "private host never fetched");
+  const seen2 = [];
+  const shy = async (url) => { seen2.push(url); return url.includes("robots.txt") ? mk(200, "User-agent: *\nDisallow: /products.json") : mk(200, page(1, 0)); };
+  ok(await rejects(checkStore("shy2.example.com", { resolve: res(["23.227.38.65"]), fetcher: shy }), "robots"), "robots refusal before any catalogue request");
+  ok(!seen2.some((u) => u.includes("products.json")), "not even the first probe is sent when robots.txt says no");
+  const chain = (n, last) => async (url) => {
+    const m = url.match(/robots(\d*)\.txt/);
+    if (m) { const i = Number(m[1] || 0); return i < n ? mk(301, "", { location: `https://hop.example.com/robots${i + 1}.txt` }) : mk(200, last); }
+    return mk(200, page(1, 0));
+  };
+  ok(await rejects(checkStore("hop.example.com", { resolve: res(["23.227.38.65"]), fetcher: chain(4, "User-agent: *\nDisallow: /") }), "robots"),
+    "4 robots.txt redirects followed to a Disallow");
+  ok(await rejects(checkStore("hop.example.com", { resolve: res(["23.227.38.65"]), fetcher: chain(9, "User-agent: *\nAllow: /") }), "robots"),
+    "an endless robots.txt redirect chain is refused, not treated as permission");
+}
+
+console.log("WooCommerce");
+{
+  const { checkPage } = await import("../netlify/lib/check-core.mjs");
+  const mkr = (status, body, headers = {}) => ({ status, headers: { get: (k) => headers[k.toLowerCase()] ?? null },
+    text: async () => (typeof body === "string" ? body : JSON.stringify(body)) });
+  const wooProd = (i) => ({ id: 1000 + i, name: i === 1 ? "Rug &amp; Mat" : `Lamp ${i}`, slug: `lamp-${i}`, permalink: `https://woo.example.co.uk/product/lamp-${i}/`,
+    type: i % 10 === 0 ? "variable" : "simple", sku: i < 30 ? "" : `L${i}`, description: i < 5 ? "" : "<p>A lamp.</p>",
+    images: i < 8 ? [] : [{ src: "x" }], categories: i < 40 ? [{ name: "Uncategorized" }] : [{ name: i === 41 ? "Lamp" : "Lamps" }],
+    variations: i % 10 === 0 ? [{ id: 1 }] : [] });
+  const calls = [];
+  const woo = (total) => async (url) => {
+    calls.push(url);
+    if (url.endsWith("/robots.txt")) return mkr(200, "User-agent: *\nDisallow: /wp-admin/");
+    if (url.includes("/products.json")) return mkr(404, "<html>not found</html>");
+    const u = new URL(url), per = Number(u.searchParams.get("per_page")), pg = Number(u.searchParams.get("page") || 1);
+    const from = (pg - 1) * per;
+    if (from >= total) return mkr(400, { code: "rest_post_invalid_page_number" });
+    return mkr(200, Array.from({ length: Math.min(per, total - from) }, (_, k) => wooProd(from + k)));
+  };
+  const r = await checkStore("woo.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: woo(230), maxPages: 1 });
+  ok(r.platform === "woocommerce" && r.products === 230 && r.capped === false, "WooCommerce detected and read in pages of 100");
+  const f = Object.fromEntries(r.findings.map((x) => [x.key, x]));
+  ok(!f.no_weight, "no weight check: the Store API publishes no weights");
+  ok(f.uncategorised?.count === 40 && f.uncategorised.label === "products have no category", "Uncategorized counts as no category, in WooCommerce words");
+  ok(f.taxonomy_clash && /categor/.test(f.taxonomy_clash.label), "near-duplicate categories found");
+  ok(f.no_sku && f.no_sku.label.includes("products") && !f.no_sku.label.includes("variant"), "variable products carry no SKU checks; wording says products");
+  const big = await checkStore("woo.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: woo(900), maxPages: 1 });
+  ok(big.products === 300 && big.capped === true, "free plan: 3 WooCommerce pages (300), reported as capped");
+  const p3 = await checkPage("woo.example.co.uk", { page: 3, resolve: res(["93.184.216.34"]), fetcher: woo(230) });
+  ok(p3.platform === "woocommerce" && p3.products.length === 30 && p3.more === false, "full list: last WooCommerce page");
+  ok(p3.products[0].url.startsWith("https://woo.example.co.uk/product/"), "WooCommerce product links kept");
+  const p4 = await checkPage("woo.example.co.uk", { page: 4, resolve: res(["93.184.216.34"]), fetcher: woo(300) });
+  ok(p4.products.length === 0 && p4.more === false, "a page past the end (WooCommerce answers 400) ends the list cleanly");
+  ok(await rejects(checkPage("woo.example.co.uk", { page: 101, resolve: res(["93.184.216.34"]), fetcher: woo(300) }), "invalid"), "page cap");
+  const blocked = async (url) => url.endsWith("/robots.txt") ? mkr(200, "User-agent: *\nDisallow: /wp-json/") : mkr(404, "x");
+  ok(await rejects(checkStore("woo2.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: blocked }), "no_catalogue"),
+     "Store API disallowed by robots.txt: never requested, reported as no catalogue");
+  const none = async (url) => url.endsWith("/robots.txt") ? mkr(404, "") : mkr(404, "x");
+  try { await checkStore("plain.example.co.uk", { resolve: res(["93.184.216.34"]), fetcher: none }); ok(false, "no catalogue"); }
+  catch (e) { ok(e.code === "no_catalogue" && e.message.includes("Shopify or WooCommerce"), "neither platform: clear message"); }
+  ok(r.findings.find((x) => x.key === "no_image").examples.includes("Rug & Mat"), "HTML entities in WooCommerce names decoded");
+}
+
+console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
+process.exit(fails ? 1 : 0);

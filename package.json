@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/configure.mjs && node scripts/build-dist.mjs",
     "build:film": "node scripts/build-film.mjs",
     "configure": "node scripts/configure.mjs",
-    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\"",
+    "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\" && node tests/check-core.test.mjs && node --experimental-sqlite --no-warnings tests/pages-functions.test.mjs && node scripts/build-pages.mjs",
+    "build:pages": "node scripts/build-pages.mjs",
     "test:budget": "node tests/budget.mjs",
     "test:browser": "node tests/browser.mjs"
   },

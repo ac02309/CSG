@@ -13,6 +13,7 @@ for (const page of pages) {
     const [pathAndQuery, hash] = ref.split("#");
     const path = pathAndQuery.split("?")[0].replace(/^\//, "") || page;
     if (!existsSync(path)) { errors.push(`${page}: broken link ${ref}`); continue; }
+    if (hash && hash.startsWith("toggle-")) continue;   // script actions (e.g. #toggle-goatcounter), not anchors
     if (hash && path.endsWith(".html") && !ids[path]?.has(hash)) errors.push(`${page}: missing anchor ${ref}`);
   }
   for (const [, json] of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
@@ -23,12 +24,24 @@ for (const page of pages) {
   }
   if ((html.match(/<h1[\s>]/g) || []).length > 1) errors.push(`${page}: more than one <h1>`);
   if (page !== "404.html" && !/rel="canonical"/.test(html)) errors.push(`${page}: missing canonical link`);
-  for (const [, todo] of html.matchAll(/\[([^\]<]*before launch[^\]<]*)\]/gi)) warnings.push(`${page}: placeholder still present: [${todo}]`);
+  // a placeholder may sit in a branch or preview, but never on the live site (E-Commerce Regulations 2002 reg 6:
+  // the geographic address must be shown), so a production deploy fails while one remains
+  const live = process.env.CONTEXT === "production";
+  for (const [, todo] of html.matchAll(/\[([^\]<]*before launch[^\]<]*)\]/gi)) (live ? errors : warnings).push(`${page}: placeholder still present: [${todo}]`);
+  if (page !== "404.html") {
+    const canon = (html.match(/rel="canonical" href="([^"]+)"/) || [])[1] || "";
+    const want = page === "index.html" ? "/" : `/${page}`;
+    if (canon && !canon.endsWith(want)) errors.push(`${page}: canonical ${canon} does not match the file name`);
+  }
 }
 
 const sitemap = existsSync("sitemap.xml") ? readFileSync("sitemap.xml", "utf8") : "";
 for (const page of pages) {
   if (page !== "404.html" && !sitemap.includes(`/${page === "index.html" ? "" : page}</loc>`)) errors.push(`sitemap.xml: ${page} is not listed`);
+}
+
+for (const [, loc] of sitemap.matchAll(/<loc>https?:\/\/[^/]+\/([^<]*)<\/loc>/g)) {
+  if (loc && !existsSync(loc)) errors.push(`sitemap.xml: ${loc} does not exist`);
 }
 
 for (const w of warnings) console.log(process.env.GITHUB_ACTIONS ? `::warning::${w}` : `warning: ${w}`);

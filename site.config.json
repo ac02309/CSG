@@ -34,7 +34,9 @@
 
   "analytics": {
     "provider": "none",
+    "_providers": "none | goatcounter (recommended: free, no cookies, records the check and lead events) | plausible | cloudflare | netlify",
     "domain": "www.clarkesystemsgroup.com",
+    "goatcounterCode": "",
     "cloudflareToken": ""
   },
 

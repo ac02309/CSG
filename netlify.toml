@@ -2,10 +2,18 @@
 # enough to update the live site. Running the same command locally and committing the result keeps
 # the repository's HTML in step too, but the deploy does not depend on it.
 [build]
-  command = "node scripts/configure.mjs"
+  # check-site fails a PRODUCTION deploy while any "[... before launch]" placeholder remains (the business
+  # address must be on the live site); previews and branch deploys only warn
+  command = "node scripts/configure.mjs && node scripts/check-site.mjs"
   publish = "."
 
   # Each live deploy uses part of the free monthly allowance, so skip it when a change touches
-  # nothing visitors receive: tests, docs, CI, the 3D source (its built file is in assets/), and
-  # the scripts that only run locally. Exit 0 means "skip"; any site file changed means build.
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)tests' ':(exclude)marketing' ':(exclude)tools' ':(exclude)docs' ':(exclude).github' ':(exclude)src/film' ':(exclude)scripts/check-site.mjs' ':(exclude)scripts/build-film.mjs' ':(exclude)scripts/build-land.mjs' ':(exclude)scripts/build-dist.mjs' ':(exclude)README.md' ':(exclude)LAUNCH.md' ':(exclude)package.json' ':(exclude)package-lock.json'"
+  # nothing visitors receive: tests, docs, CI, marketing files, the 3D source (its built file is in
+  # assets/), the Cloudflare-only functions and build, and the scripts that only run locally.
+  # Exit 0 means "skip"; any site file changed means build.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)tests' ':(exclude)marketing' ':(exclude)docs' ':(exclude).github' ':(exclude)src/film' ':(exclude)functions' ':(exclude)scripts/build-pages.mjs' ':(exclude)scripts/check-site.mjs' ':(exclude)scripts/build-film.mjs' ':(exclude)scripts/build-land.mjs' ':(exclude)README.md' ':(exclude)LAUNCH.md' ':(exclude)package.json' ':(exclude)package-lock.json'"
+
+# Instant catalogue check (netlify/functions/catalogue-check.mjs, served at /api/check)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

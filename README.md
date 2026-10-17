@@ -47,7 +47,7 @@ All of these run automatically on every push and pull request (`.github/workflow
 - **3D overflow:** with 3D on, no page is wider than a 390px screen.
 - **Keyboard:** Tab never lands on something the reader cannot see.
 
-**Deploys cost allowance.** On Netlify's free plan each live deploy uses 15 of 300 monthly credits, so about 20 a month; deploy previews are free. Group fixes into one pull request and merge it once, rather than merging each fix. `netlify.toml` skips the live deploy when a change touches only tests, docs, CI or local scripts.
+**Deploys cost allowance.** On Netlify's free plan each live deploy uses 15 of 300 monthly credits, so about 20 a month; deploy previews are free. Group fixes into one pull request and merge it once, rather than merging each fix. `netlify.toml` skips the live deploy when a change touches only tests, docs, CI, marketing files, the Cloudflare-only functions and build, or local scripts.
 
 Stylesheet and script references carry a content fingerprint (`?v=…`) so returning visitors never get a stale copy. `configure.mjs` updates them automatically, locally and on every Netlify deploy.
 

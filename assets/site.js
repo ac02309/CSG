@@ -24,15 +24,46 @@
     window.addEventListener("load",function(){hold();setTimeout(hold,120);setTimeout(hold,600);});
   })();
   root.classList.add("js");
-  /* Conversion events. Sent only when an analytics provider that supports events (Plausible) is configured. */
+  /* Visit and conversion statistics. Nothing is sent unless an analytics provider is configured in site.config.json.
+     GoatCounter: no cookies, nothing stored on the device except the visitor's own opt-out choice
+     (visit any page with #toggle-goatcounter to switch counting off or on in this browser). */
   window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments);};
-  function track(name,props){try{if(document.querySelector('script[src*="plausible.io"]'))window.plausible(name,props?{props:props}:undefined);}catch(err){}}
+  var gcMeta=document.querySelector('meta[name="csg-gc"]'),gc=gcMeta&&gcMeta.getAttribute("content");
+  if(gc&&!/^https:\/\/[a-z0-9-]+\.goatcounter\.com\/count$/.test(gc))gc=null;
+  function gcSkip(){try{return localStorage.getItem("skipgc")==="t";}catch(err){return false;}}
+  function gcToggle(){
+    if(!gc||location.hash!=="#toggle-goatcounter")return;
+    try{var off=!gcSkip();if(off)localStorage.setItem("skipgc","t");else localStorage.removeItem("skipgc");
+      alert(off?"Visit statistics are now switched off in this browser.":"Visit statistics are switched back on in this browser.");}
+    catch(err){alert("This browser blocks site storage, so we cannot remember your choice. Email enquiries@clarkesystemsgroup.com and we will exclude you another way.");}
+    try{history.replaceState(null,"",location.pathname+location.search);}catch(err){}
+  }
+  gcToggle();window.addEventListener("hashchange",gcToggle);
+  function gcSend(path,title,isEvent){
+    if(!gc||gcSkip()||navigator.webdriver||/^(localhost|127\.|.*\.netlify\.app$|.*\.pages\.dev$)/.test(location.hostname))return;
+    var q={p:path,t:title||"",r:isEvent?"":document.referrer,s:screen.width,
+      q:isEvent?"":location.search,rnd:Math.random().toString(36).slice(2)};
+    if(isEvent)q.e="true";
+    /* same parameters as GoatCounter's own count.js (p,r,t,e,s,q,rnd); empty values are dropped as it does */
+    Object.keys(q).forEach(function(k){if(q[k]===""||q[k]==null)delete q[k];});
+    var url=gc+"?"+Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k]);}).join("&");
+    try{if(navigator.sendBeacon&&navigator.sendBeacon(url))return;}catch(err){}
+    try{fetch(url,{method:"POST",mode:"no-cors",keepalive:true});}catch(err){}
+  }
+  gcSend(location.pathname.replace(/\.html$/,"").replace(/\/index$/,"/")||"/",document.title,false);
+  function track(name,props){
+    try{if(document.querySelector('script[src*="plausible.io"]'))window.plausible(name,props?{props:props}:undefined);}catch(err){}
+    var slug=String(name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+    var extra=props&&props.outcome?"/"+String(props.outcome).toLowerCase().replace(/[^a-z0-9]+/g,"-"):"";
+    gcSend(slug+extra,name,true);
+  }
+  window.csgTrack=track;
   document.addEventListener("click",function(e){
     var a=e.target.closest&&e.target.closest("a");if(!a)return;
     var t=a.getAttribute("data-track");
     if(t)track(t);
     else if(/^mailto:/.test(a.getAttribute("href")||""))track("Email click");
-    else if(/contact\.html/.test(a.getAttribute("href")||""))track("CTA click",{page:document.body.getAttribute("data-page")||"",label:(a.textContent||"").trim().slice(0,40)});
+    else if(/(^|\/)contact(\.html)?([?#]|$)/.test(a.getAttribute("href")||""))track("CTA click",{page:document.body.getAttribute("data-page")||"",label:(a.textContent||"").trim().slice(0,40)});
   });
   var mq=function(q){return !!(window.matchMedia&&window.matchMedia(q).matches);};
   var reduce=mq("(prefers-reduced-motion: reduce)");
