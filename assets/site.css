@@ -209,6 +209,8 @@ a.tile:hover{transform:translateY(-0.25rem);box-shadow:0 1px 2px rgba(11,18,32,.
 .case-card .more{margin-top:auto}
 .cases.two-up{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:960px){.cases,.cases.two-up{grid-template-columns:minmax(0,1fr)}.case-card{min-height:0}}
+.film-frame{margin:0;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);background:var(--ink);aspect-ratio:16/9;max-width:100%}
+.film-frame video{width:100%;height:100%;object-fit:cover}
 
 /* rules */
 .rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
@@ -219,9 +221,10 @@ a.tile:hover{transform:translateY(-0.25rem);box-shadow:0 1px 2px rgba(11,18,32,.
 @media (max-width:640px){.rules{grid-template-columns:minmax(0,1fr)}}
 
 /* process steps */
-.steps{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(1.75rem,4vw,2.75rem);position:relative;max-width:47.5rem}
-.steps::before,.steps::after{content:"";position:absolute;left:1.4375rem;top:1.5rem;bottom:1.5rem;width:2px;background:var(--rule);transform-origin:50% 0}
-.steps::after{background:linear-gradient(180deg,#0e9384,#2d4fe0);transform:scaleY(var(--p,1))}
+.steps{--sg:clamp(1.75rem,4vw,2.75rem);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--sg);position:relative;max-width:47.5rem}
+/* the line is drawn in segments, one per gap between numbers, so it never crosses a number, even while a step fades in */
+.step:not(:last-child)::before,.step:not(:last-child)::after{content:"";position:absolute;left:1.4375rem;top:3.75rem;bottom:calc(.75rem - var(--sg));width:2px;background:var(--rule);transform-origin:50% 0}
+.step:not(:last-child)::after{background:linear-gradient(180deg,#0e9384,#2d4fe0);transform:scaleY(var(--f,1))}
 .step{grid-template-columns:3rem minmax(0,1fr);column-gap:1.5rem}.step>*:not(.step-n){grid-column:2}.step-n{grid-row:span 3}
 .step h3{font-size:clamp(1.3125rem,1.9vw,1.625rem)}
 .step{position:relative;display:grid;row-gap:0.625rem;align-content:start}
@@ -856,3 +859,18 @@ main p,main li,.story-body{overflow-wrap:break-word}
 .guide-t:hover::after,.guide-t:focus-visible::after{transform:scaleX(1)}
 .guide-t:hover .guide-t-go,.guide-t:focus-visible .guide-t-go{background:var(--ink);color:#fff;box-shadow:none;transform:translateX(.25rem)}
 @media (max-width:900px){.guide-grid{grid-template-columns:minmax(0,1fr)}.guide-t,.guide-t:first-child,.guide-t:last-child{padding-inline:0}.guide-t+.guide-t{border-left:0;border-top:1px solid var(--rule)}}
+
+/* ---------- the film's look: headlines with weight, the brand gradient, and dark acts for proof and the close ---------- */
+.h1{font-size:clamp(2.75rem,6.6vw,6.25rem);line-height:.98;font-weight:800;letter-spacing:-.048em}
+.h2{font-size:clamp(2.25rem,5vw,4.5rem);line-height:1.02;font-weight:800;letter-spacing:-.044em}
+.h3{font-weight:760;letter-spacing:-.032em}
+.lede{color:#4b5568}
+/* a dark act redefines the tokens, so every component inside it turns with it */
+.act,.cta .split,.cta-plain{--ink:#ffffff;--ink-2:#d6dcea;--muted:#a3aec4;--rule:rgba(255,255,255,.13);--rule-2:rgba(255,255,255,.08);--paper:rgba(255,255,255,.055);--cobalt:#8ea2ff;--cobalt-ink:#aab9ff;--amber-ink:#ffb547;--shadow:inset 0 0 0 1px rgba(255,255,255,.09);color:#fff}
+.act{background:radial-gradient(70rem 40rem at 18% 0%,rgba(76,98,186,.34),rgba(10,16,32,0) 62%),#0a1020}
+.act .lede,.cta .lede,.cta-plain .lede{color:#a3aec4}
+.act .eyebrow,.act .case-tag{color:#3fd0b8}
+.act .case-n,.act .case-n.fault,.act .metrics strong{color:#fff;background:none}
+.act .case-n.grad{background:linear-gradient(100deg,#3fd0b8,#8ea2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cta .split,.cta-plain{background:radial-gradient(56rem 34rem at 12% 0%,rgba(76,98,186,.38),rgba(10,16,32,0) 64%),#0a1020;box-shadow:none}
+.cta .btn-primary,.cta-plain .btn-primary{background:#fff;color:#0a1020}

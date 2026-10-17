@@ -190,7 +190,7 @@
     m.update=function(){
       var p=clamp((Y+VH*.62-m.t)/m.h,0,1);
       el.style.setProperty("--p",p.toFixed(4));
-      steps.forEach(function(s,i){s.classList.toggle("on",p>=m.o[i]);});
+      steps.forEach(function(s,i){s.classList.toggle("on",p>=m.o[i]);if(i<steps.length-1)s.style.setProperty("--f",clamp((p-m.o[i])/Math.max(.001,m.o[i+1]-m.o[i]),0,1).toFixed(4));});
     };
     parts.push(m);
   });

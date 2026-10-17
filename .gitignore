@@ -16,3 +16,4 @@ marketing/explainer/beats-score.json
 
 # catalogue check output (never commit reports about real stores)
 /reports/
+marketing/explainer/cues.json
