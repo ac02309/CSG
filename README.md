@@ -43,6 +43,11 @@ All of these run automatically on every push and pull request (`.github/workflow
 - **Section folds:** flat in the reading area, no sideways scroll, and the page scale marks the section being read.
 - **Overflow:** nothing wider than the screen on 320 and 390 wide phones, or at 50%, 200% and 300% zoom.
 - **Fast scrolling:** counters never pass their value and are complete by mid-screen, and the reading progress bar stays exact.
+- **Nothing missed:** a fast flick to the bottom of any page leaves no block or headline unrevealed.
+- **3D overflow:** with 3D on, no page is wider than a 390px screen.
+- **Keyboard:** Tab never lands on something the reader cannot see.
+
+**Deploys cost allowance.** On Netlify's free plan each live deploy uses 15 of 300 monthly credits, so about 20 a month; deploy previews are free. Group fixes into one pull request and merge it once, rather than merging each fix. `netlify.toml` skips the live deploy when a change touches only tests, docs, CI or local scripts.
 
 Stylesheet and script references carry a content fingerprint (`?v=…`) so returning visitors never get a stale copy. `configure.mjs` updates them automatically, locally and on every Netlify deploy.
 
