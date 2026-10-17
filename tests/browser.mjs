@@ -185,6 +185,26 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   await page.close();
 }
 
+// 9. Keyboard: Tab never lands on something the reader cannot see (a tile that has not yet faded in)
+{
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  for (const f of PAGES) {
+    await page.goto(BASE + f); await page.waitForTimeout(600);
+    const seen = new Set();
+    for (let i = 0; i < 90; i++) {
+      await page.keyboard.press('Tab');
+      const r = await page.evaluate(() => {
+        const a = document.activeElement; if (!a || a === document.body) return null;
+        let p = a, hidden = false; while (p) { if (+getComputedStyle(p).opacity < 0.1) hidden = true; p = p.parentElement; }
+        return { key: a.outerHTML.slice(0, 70), hidden };
+      });
+      if (!r || seen.has(r.key)) break; seen.add(r.key);
+      if (r.hidden) { fail('keyboard', `${f}: Tab focused an invisible element ${r.key}`); break; }
+    }
+  }
+  await page.close();
+}
+
 // 8. With 3D on: the scenes may spill past their frames but never past the screen edge
 {
   const gl = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
@@ -202,4 +222,4 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
 
 await browser.close(); server.close();
 if (failures.length) { console.error(`${failures.length} problem(s):\n- ${failures.join('\n- ')}`); process.exit(1); }
-console.log(`Browser checks passed on ${PAGES.length} pages: accessibility, demo button, story, folds, overflow, scroll speed, nothing missed, 3D overflow.`);
+console.log(`Browser checks passed on ${PAGES.length} pages: accessibility, demo button, story, folds, overflow, scroll speed, nothing missed, 3D overflow, keyboard.`);
