@@ -51,8 +51,13 @@
   if(splits.length){
     if(reduce||!("IntersectionObserver" in window))splits.forEach(function(el){el.classList.add("in");});
     else{
-      var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");sio.unobserve(e.target);}});},{rootMargin:"0px 0px -6% 0px"});
+      var sLeft=splits.slice(),sQ=0;
+      var sShow=function(el){var i=sLeft.indexOf(el);if(i<0)return;el.classList.add("in");sio.unobserve(el);sLeft.splice(i,1);if(!sLeft.length)removeEventListener("scroll",sSweep);};
+      var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)sShow(e.target);});},{rootMargin:"0px 0px -6% 0px"});
+      /* a fast scroll can skip a headline entirely: one already scrolled past is shown at once */
+      var sSweep=function(){if(sQ)return;sQ=requestAnimationFrame(function(){sQ=0;sLeft.slice().forEach(function(el){if(el.getBoundingClientRect().bottom<0){el.classList.add("motion-skip");sShow(el);}});});};
       splits.forEach(function(el){sio.observe(el);});
+      addEventListener("scroll",sSweep,{passive:true});
     }
   }
 
@@ -95,9 +100,11 @@
     function tick(now){
       raf=0;
       /* real elapsed time, so a slow frame never slows the story down */
-      t+=Math.min(.5,(now-last)/1000);last=now;
+      t+=Math.max(0,Math.min(.5,(now-last)/1000));last=now;
       if(t>=END){finish();return;}
-      render();run();
+      render();
+      /* chain frames on the frame clock itself, so drawing time is never dropped from the story's time */
+      if(inView&&!paused&&!done&&!document.hidden)raf=requestAnimationFrame(tick);
     }
     function run(){if(!raf&&inView&&!paused&&!done&&!document.hidden){last=performance.now();raf=requestAnimationFrame(tick);}}
     function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
@@ -124,7 +131,7 @@
       var b=s.querySelector("[data-go]");
       if(b)b.addEventListener("click",function(){
         /* a chosen step plays its change, then the story carries on from there */
-        t=reduce?i*S+MOVE:i*S+(i===0?MOVE:0);done=reduce;paused=reduce;
+        t=reduce?i*S+MOVE:i*S+(i===0?MOVE:1e-4);done=reduce;paused=reduce;
         stop();render();run();
       });
     });
@@ -240,7 +247,7 @@
       if(!sec.id)sec.id="s"+(i+1);
       var h=sec.querySelector("h1,h2"),a=document.createElement("a");
       a.className="ps-t";a.href="#"+sec.id;a.tabIndex=-1;
-      a.innerHTML="<i></i><span></span>";a.querySelector("span").textContent=(h.textContent||"").replace(/\s+/g," ").trim().replace(/\.$/,"");
+      a.innerHTML="<i></i><span></span>";a.querySelector("span").textContent=(h.innerText||h.textContent||"").replace(/\s+/g," ").trim().replace(/\.$/,"");
       rail.appendChild(a);
       return a;
     });
@@ -248,8 +255,8 @@
     var m={t:[],h:[],cur:-1};
     m.measure=function(){m.t=secs.map(layoutTop);m.h=secs.map(function(s){return s.offsetHeight;});};
     m.update=function(){
-      var line=Y+VH*.5,cur=0;
-      for(var i=0;i<secs.length;i++)if(m.t[i]<=line)cur=i;
+      var line=Y+VH*.35,cur=0;
+      if(Y>8)for(var i=0;i<secs.length;i++)if(m.t[i]<=line)cur=i;
       var f=clamp((line-m.t[cur])/Math.max(1,m.h[cur]),0,1);
       if(cur!==m.cur){m.cur=cur;ticks.forEach(function(t,i){t.classList.toggle("on",i===cur);t.classList.toggle("set",i<cur);});}
       rail.style.setProperty("--p",((cur+(cur<secs.length-1?f:0))/Math.max(1,secs.length-1)).toFixed(4));

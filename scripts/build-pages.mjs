@@ -95,8 +95,14 @@ const rules = headers.split("\n").filter((l) => /^\//.test(l)).length;
 if (rules > 100) problems.push(`_headers has ${rules} rules; Cloudflare Pages allows 100`);
 writeFileSync(join(OUT, "_headers"), headers);
 
-// the live site must never show a "[... before launch]" placeholder (business address): fail the production build
+// the live site must show a geographic address (E-Commerce Regulations 2002 reg 6) and never a
+// "[... before launch]" placeholder: fail the production build. The legal pages now read "given on request"
+// when no address is set, so the setting itself is checked, not just the page text.
 if (process.env.CF_PAGES_BRANCH === "main" || process.env.CONTEXT === "production") {
+  let a = {};
+  try { a = JSON.parse(readFileSync(join(ROOT, "site.config.json"), "utf8")).business?.address || {}; } catch {}
+  if (![a.line1, a.town, a.postcode].every((s) => (s || "").trim()))
+    problems.push("site.config.json: business.address (line1, town, postcode) must be set before the live site is built");
   for (const f of pages) {
     const m = readFileSync(join(OUT, f), "utf8").match(/\[[^\]<]*before launch[^\]<]*\]/i);
     if (m) problems.push(`${f}: placeholder still present: ${m[0]}`);

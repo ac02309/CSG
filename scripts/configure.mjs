@@ -190,7 +190,8 @@ function chrome(name, page, html) {
 }
 
 const regions = {
-  address: () => (address ? esc(address) : "[Business address: add before launch]"),
+  // with an address: ", of <address>"; without one, the sentence says where the address is given instead
+  address: () => (address ? ", of " + esc(address) : ". Our postal address is given on request and with every proposal"),
   founder: founderSection,
   testimonials: testimonialSection,
   founding: foundingSection,

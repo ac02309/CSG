@@ -35,6 +35,8 @@ const FOV = 24, CAMZ = 40;
 const root = document.documentElement, body = document.body;
 const params = new URLSearchParams(location.search);
 const still = params.has("still") ? parseFloat(params.get("still")) || 0 : null;
+// ?capture: frame-by-frame rendering for offline films; the page advances only when window.__csgStep(dt) is called
+const capture = params.has("capture");
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
 
@@ -447,7 +449,7 @@ function makeView(el) {
   el.appendChild(canvas);
   let renderer;
   try {
-    renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: true, powerPreference: "high-performance", preserveDrawingBuffer: still !== null });
+    renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: true, powerPreference: "high-performance", preserveDrawingBuffer: still !== null || capture });
     if (!renderer.capabilities.isWebGL2) throw new Error("webgl2");
   } catch (e) { canvas.remove(); el.classList.add("view-off"); return null; }
   renderer.outputColorSpace = LinearSRGBColorSpace;
@@ -587,7 +589,8 @@ function fit(v) {
   // the formation fits the element itself; the canvas bleeds past it so nothing is clipped
   const wpp = (2 * Math.tan(FOV * Math.PI / 360) * CAMZ) / H;
   const ew = v.el.clientWidth * wpp, eh = v.el.clientHeight * wpp;
-  v.scales = v.forms.map((f) => Math.min(ew / EXT[f].w, eh / EXT[f].h) * 0.94);
+  // wide, flat formations may use the canvas bleed beyond the element's sides, so they fill the frame instead of sitting as a thin strip
+  v.scales = v.forms.map((f) => { const e = EXT[f], wide = e.w / e.h > 2.2; return Math.min(ew * (wide ? 1.22 : 1) / e.w, eh / e.h) * 0.94; });
 }
 
 // which step the reader is on (written by motion.js as el.csgStage: whole numbers at rest, blends between)
@@ -668,7 +671,13 @@ function frame(now) {
   if (any && !document.hidden && (!(reduce || still !== null) || !settled)) requestAnimationFrame(frame);
   else running = false;
 }
-function wake() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
+function wake() { if (capture) return; if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
+if (capture) window.__csgStep = (dt) => {
+  time += dt;
+  tilt.x += (tilt.tx - tilt.x) * Math.min(1, dt * 3); tilt.y += (tilt.ty - tilt.y) * Math.min(1, dt * 3);
+  for (const v of views) if (v.visible) draw(v, dt);
+  return views.filter((v) => v.visible).length;
+};
 
 // views are built as they come near the screen, and drawn only while on it
 const io = new IntersectionObserver((entries) => {

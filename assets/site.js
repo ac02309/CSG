@@ -74,8 +74,16 @@
 
   /* ---------- reveal: tiles settle once as they arrive ---------- */
   if("IntersectionObserver" in window&&!reduce){
-    var rvIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");rvIO.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px",threshold:.08});
-    $$(".rv").forEach(function(el){rvIO.observe(el);});
+    var rvLeft=$$(".rv"),rvQ=0;
+    var rvShow=function(el){var i=rvLeft.indexOf(el);if(i<0)return;el.classList.add("in");rvIO.unobserve(el);rvLeft.splice(i,1);if(!rvLeft.length)removeEventListener("scroll",rvSweep);};
+    var rvIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)rvShow(e.target);});},{rootMargin:"0px 0px -8% 0px",threshold:.08});
+    /* a fast scroll can carry a tile from below the screen to above it between two frames, so the
+       observer never sees it: anything already scrolled past is shown at once, never left blank */
+    var rvSweep=function(){if(rvQ)return;rvQ=requestAnimationFrame(function(){rvQ=0;rvLeft.slice().forEach(function(el){if(el.getBoundingClientRect().bottom<0){el.style.transition="none";rvShow(el);}});});};
+    rvLeft.forEach(function(el){rvIO.observe(el);});
+    addEventListener("scroll",rvSweep,{passive:true});
+    /* keyboard focus can reach a tile before it has arrived: show it at once, never focus something invisible */
+    document.addEventListener("focusin",function(e){var t=e.target,el=t.closest&&t.closest(".rv:not(.in)");if(el){el.style.transition="none";rvShow(el);}});
   }else{$$(".rv").forEach(function(el){el.classList.add("in");});}
 
   /* ---------- global navigation: the Solutions menu ---------- */
@@ -90,6 +98,8 @@
       });
     }
     mega.addEventListener("keydown",function(e){if(e.key==="Escape"){setMega(false);megaBtn.focus();}});
+    /* keyboard: Tab from Solutions goes into the open panel, and leaving the panel closes it */
+    megaBtn.addEventListener("keydown",function(e){if(e.key==="Tab"&&!e.shiftKey&&!mega.hidden){var f=mega.querySelector("a");if(f){e.preventDefault();f.focus();}}});
     document.addEventListener("click",function(e){if(!mega.hidden&&!mega.contains(e.target)&&e.target!==megaBtn)setMega(false);});
     mega.addEventListener("focusout",function(e){if(!mega.contains(e.relatedTarget)&&e.relatedTarget!==megaBtn)setMega(false);});
   }
@@ -156,15 +166,17 @@
   function words(v){return v.split(/\s+/).filter(function(w){return w.length>1;}).length;}
   function val(k){return F[k]?(F[k].value||"").trim():"";}
   var service=null,area=null;
-  var PREFILL_MAP={"Integrations":1,"Reporting":1,"Quality checks":1,"Scheduling":1,"AI processing":1,"Internal tools":1,"Founding client programme":1,"Catalogue check":1};
+  var PREFILL_MAP={"Build":1,"Integrations":1,"Reporting":1,"Quality checks":1,"Scheduling":1,"AI processing":1,"Internal tools":1,"Founding client programme":1,"Catalogue check":1};
   var prefillBox=$("#prefill"),prefillVal=$("#prefillVal"),prefillX=$("#prefillX");
   var cTitle=$("#contactTitle"),cLead=$("#contactLead"),modeSw=$("#modeSwitch");
   var MODES={
-    demo:{t:"Request a demo.",l:"Every demo is built around your operations, so we start with a brief. We review every request within one business day. If we can deliver measurable value, we propose times for a 20-minute session.",b:"Request a demo",sw:"Request a written assessment instead",to:"Assessment",title:"Request a demo · Clarke Systems Group"},
-    written:{t:"Request a written assessment.",l:"Send a short brief of the process. We review every request within one business day. If we can deliver measurable value, you receive a written outline and estimate within two business days. No call required.",b:"Request an assessment",sw:"Request a demo instead",to:"Demo",title:"Request a written assessment · Clarke Systems Group"}
+    demo:{t:"Request a demo.",l:"Tell us about one process. We reply within one business day with times for a free 20-minute demo on it.",b:"Request a demo",sw:"Request a written assessment instead",to:"Assessment",title:"Request a demo · Clarke Systems Group"},
+    written:{t:"Request a written assessment.",l:"Tell us about one process. You get a written outline and estimate within two business days. No call needed.",b:"Request an assessment",sw:"Request a demo instead",to:"Demo",title:"Request a written assessment · Clarke Systems Group"},
+    support:{t:"Ask about support.",l:"Tell us which system needs looking after and what it does. We reply within one business day.",b:"Send",sw:"Request a demo instead",to:"Demo",title:"Support · Clarke Systems Group"},
+    catalogue:{t:"Request a catalogue check.",l:"Send your store address and a few details. You get a product-level list of problems within two business days.",b:"Send for my free check",sw:"Request a demo instead",to:"Demo",title:"Catalogue check · Clarke Systems Group"}
   };
   function showPrefill(){
-    var demo=service==="Demo",M=MODES[demo?"demo":"written"];
+    var demo=service==="Demo",M=MODES[service==="Support"?"support":area==="Catalogue check"?"catalogue":demo?"demo":"written"];
     var label=demo?area:(service==="Assessment"?area:([service,area].filter(Boolean).join(" · ")));
     if(prefillBox){prefillBox.hidden=!label;if(prefillVal)prefillVal.textContent=label||"";}
     if(cTitle)cTitle.textContent=M.t;
@@ -173,10 +185,12 @@
     if(modeSw){modeSw.textContent=M.sw;modeSw.setAttribute("data-topic",M.to);modeSw.setAttribute("href","contact.html?topic="+M.to);}
     if(page==="contact")document.title=M.title;
   }
-  function applyPrefill(topic){
+  function applyPrefill(topic,ar){
     service=null;area=null;
     if(topic){
-      if(["Assessment","Build","Support"].indexOf(topic)>-1){service=topic;}
+      /* a build enquiry is a demo about a build; support has its own wording; an assessment keeps the solution it came from */
+      if(topic==="Build"){area="Build";}
+      else if(["Assessment","Support"].indexOf(topic)>-1){service=topic;if(ar&&PREFILL_MAP[ar])area=ar;}
       else if(PREFILL_MAP[topic]){area=topic;}
     }
     if(!service)service="Demo";
@@ -195,10 +209,10 @@
   if(prefillX)prefillX.addEventListener("click",function(){area=null;if(service!=="Demo")service=null;setTopic(service);showPrefill();if(F.process)F.process.focus();});
   function compose(){
     var demo=service==="Demo",co=val("company");
-    var subject=(demo?"Demo request":"Written assessment request")+(co?": "+co:"");
+    var sup=service==="Support",subject=(sup?"Support enquiry":demo?"Demo request":"Written assessment request")+(co?": "+co:"");
     var L=["Hello,",""];
-    L.push(demo?"I'd like to request a demo.":"I'd like to request a written assessment.");
-    if(service&&!demo&&service!=="Assessment")L.push("Interested in: "+service+".");
+    L.push(sup?"I'd like to ask about support.":demo?"I'd like to request a demo.":"I'd like to request a written assessment.");
+    if(service&&!demo&&service!=="Assessment"&&!sup)L.push("Interested in: "+service+".");
     if(area)L.push("Area: "+area+".");
     L.push("","ABOUT US","Name: "+val("name"),"Email: "+val("email"),"Role: "+(val("role")||"Not given"),"Company: "+co,"Team size: "+val("size"),"What we do: "+val("business"));
     L.push("","THE PROCESS",val("process"),"","Hours spent: "+(val("hours")||"").toLowerCase()+" a week");
@@ -298,21 +312,15 @@
     copyText("To: "+EMAIL+"\nSubject: "+m.subject+"\n\n"+m.body,note,"Request copied. Paste it into an email to "+EMAIL+".");
   });
 
-  if(page==="contact"){var tp=null;try{tp=new URLSearchParams(location.search).get("topic");}catch(err){}applyPrefill(tp);}
+  if(page==="contact"){
+    var q=null;try{q=new URLSearchParams(location.search);}catch(err){}
+    applyPrefill(q&&q.get("topic"),q&&q.get("area"));
+    /* hours carried over from the savings calculator */
+    var hv=q&&q.get("hours"),hList=$("#dd-hours-list"),hIn=$("#f-hours"),hBtn=$("#f-hours-btn");
+    if(hv&&hList&&hIn&&hBtn){var ho=[].slice.call(hList.querySelectorAll("[data-v]")).filter(function(o){return o.getAttribute("data-v")===hv;})[0];
+      if(ho){hIn.value=hv;[].forEach.call(hList.querySelectorAll("[data-v]"),function(o){o.setAttribute("aria-selected",o===ho?"true":"false");});var dv=hBtn.querySelector(".dd-val");if(dv)dv.textContent=ho.textContent;hBtn.classList.remove("empty");render();}}
+  }
   render();
-})();
-/* Track record: the figures count up once, the first time they come into view */
-(function(){
-  var els=[].slice.call(document.querySelectorAll("[data-count]"));
-  if(!els.length||!("IntersectionObserver" in window))return;
-  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-  els.forEach(function(el){el.setAttribute("aria-label",el.textContent);});
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){
-    if(!e.isIntersecting)return;io.unobserve(e.target);
-    var el=e.target,to=+el.getAttribute("data-count"),suf=el.hasAttribute("data-suffix")?el.getAttribute("data-suffix"):"+",t0=performance.now(),D=1400;
-    (function step(now){var k=Math.min(1,(now-t0)/D),v=Math.round(to*(1-Math.pow(1-k,4)));el.textContent=v.toLocaleString("en-GB")+(k===1?suf:"");if(k<1)requestAnimationFrame(step);})(t0);
-  });},{threshold:.6});
-  els.forEach(function(el){io.observe(el);});
 })();
 /* Services: estimate what one manual process costs, and how quickly a starting build pays back */
 (function(){
@@ -335,6 +343,7 @@
     ho.textContent=hours+(hours===1?" hour":" hours");so.textContent=Math.round(share*100)+"%";
     oc.textContent=gbp(hours*rate*WEEKS);
     var saved=hours*share*WEEKS;ot.textContent=span(saved);
+    var send=document.getElementById("roiSend");if(send)send.href="contact.html?topic=Demo&hours="+encodeURIComponent(hours<2?"Under 2 hours":hours<5?"2 to 5 hours":hours<=10?"5 to 10 hours":hours<=20?"10 to 20 hours":"More than 20 hours");
     if(otl)otl.textContent="returned to your team each year"+(saved>=DAY?" ("+Math.round(saved).toLocaleString("en-GB")+" hours)":"");
     var weekly=hours*share*rate;
     if(weekly>0){var w=Math.ceil(BUILD/weekly);op.textContent=w>WEEKS?"Over a year":w+(w===1?" week":" weeks");opl.textContent=w>WEEKS?"to recover a build starting at £1,250, so this process may not be the place to start":"to recover a build starting at £1,250";}

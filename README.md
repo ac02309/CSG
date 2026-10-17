@@ -30,9 +30,19 @@ The marketing site for [clarkesystemsgroup.com](https://www.clarkesystemsgroup.c
 node scripts/configure.mjs         # apply site.config.json and refresh asset fingerprints
 node scripts/check-site.mjs        # links, anchors, structured data, page essentials, placeholders
 npx html-validate@8.24.1 "*.html"  # HTML validity
+npm run test:budget                # page weight: HTML, CSS and script per page, the 3D bundle, posters
+npx playwright install chromium    # once
+npm run test:browser               # every page in Chromium (about 6 minutes), see below
 ```
 
-All three run automatically on every push and pull request (`.github/workflows/checks.yml`).
+All of these run automatically on every push and pull request (`.github/workflows/checks.yml`), and a change cannot merge while one fails. The browser checks (`tests/browser.mjs`) hold every page to the site's own rules:
+
+- **Accessibility:** WCAG 2.2 AA and best practice (axe), and no script errors.
+- **One "Request a demo":** the navigation's button changes at most once, never shows on the contact page, and the label is never on screen twice.
+- **The home story:** fits one screen, plays in about 11 seconds, steps can be chosen, rests on step 4, replays on return. Checked at 1440, 390 and 2560 wide.
+- **Section folds:** flat in the reading area, no sideways scroll, and the page scale marks the section being read.
+- **Overflow:** nothing wider than the screen on 320 and 390 wide phones, or at 50%, 200% and 300% zoom.
+- **Fast scrolling:** counters never pass their value and are complete by mid-screen, and the reading progress bar stays exact.
 
 Stylesheet and script references carry a content fingerprint (`?v=…`) so returning visitors never get a stale copy. `configure.mjs` updates them automatically, locally and on every Netlify deploy.
 

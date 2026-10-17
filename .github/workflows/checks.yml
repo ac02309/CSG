@@ -30,3 +30,9 @@ jobs:
         run: node --experimental-sqlite --no-warnings tests/pages-functions.test.mjs
       - name: Cloudflare Pages build (public files only, links resolve)
         run: node scripts/build-pages.mjs
+      - name: Page weight within budget
+        run: npm run test:budget
+      - name: Install Chromium for the browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Browser checks (accessibility, demo button, story, folds, overflow, scroll speed)
+        run: npm run test:browser
