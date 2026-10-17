@@ -1,2 +1,13 @@
 node_modules/
 dist/
+
+# explainer build outputs
+marketing/explainer/vo/
+marketing/explainer/*.wav
+marketing/explainer/*.mp4
+marketing/explainer/*.jpg
+marketing/explainer/film.js
+marketing/explainer/inter.woff2
+marketing/explainer/timeline.json
+marketing/audio/samples/
+marketing/audio/read-*/

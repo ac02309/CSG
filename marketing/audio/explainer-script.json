@@ -1,0 +1,198 @@
+{
+ "voice": "bm_george",
+ "speed": 0.94,
+ "scenes": [
+  {
+   "id": "hook",
+   "slot": "A",
+   "stage": 0,
+   "eyebrow": "Monday morning",
+   "title": "Copy. Paste. Repeat.",
+   "body": "Hours lost every week to work a system could do.",
+   "lines": [
+    "Monday morning.",
+    "Your best people are copying numbers from one system into another.",
+    "Again."
+   ]
+  },
+  {
+   "id": "problem",
+   "slot": "A",
+   "stage": 1,
+   "eyebrow": "The cost",
+   "title": "One typo can reach a customer.",
+   "body": "Slow, costly, and avoidable.",
+   "lines": [
+    "Rebuilding the same report. Checking the same records. Fixing the same mistakes.",
+    "It's slow. It's costly. And one typo can reach a customer."
+   ]
+  },
+  {
+   "id": "who",
+   "slot": "A",
+   "stage": 2,
+   "eyebrow": "Who we are",
+   "title": "A team that automates operations work.",
+   "body": "Engineers and specialists. Accurate, and at scale.",
+   "lines": [
+    "We're Clarke Systems Group.",
+    "We build the systems that do that work for you. Accurately. At scale. Every single day."
+   ]
+  },
+  {
+   "id": "integrations",
+   "slot": "A",
+   "stage": 3,
+   "eyebrow": "Integrations",
+   "title": "Systems that share data on their own.",
+   "body": "Orders, invoices and customers kept in sync.",
+   "lines": [
+    "Your systems start talking to each other. Orders, invoices, customers.",
+    "Nobody types anything twice."
+   ]
+  },
+  {
+   "id": "quality",
+   "slot": "A",
+   "stage": 4,
+   "eyebrow": "Quality checks",
+   "title": "Every record checked, not a sample.",
+   "body": "Errors held back, with the reason.",
+   "lines": [
+    "Every record is checked. Not a sample. Every one.",
+    "Errors are stopped before anyone sees them."
+   ]
+  },
+  {
+   "id": "reporting",
+   "slot": "A",
+   "stage": 5,
+   "eyebrow": "Reporting",
+   "title": "Reports that run themselves.",
+   "body": "The right figures, sent on time, every time.",
+   "lines": [
+    "Reports build themselves, and land on time. Every time."
+   ]
+  },
+  {
+   "id": "scheduling",
+   "slot": "A",
+   "stage": 6,
+   "eyebrow": "Scheduling",
+   "title": "Plans that stay up to date.",
+   "body": "Re-planned when people are off or work changes.",
+   "lines": [
+    "Plans re-plan themselves when someone's off, or the work changes."
+   ]
+  },
+  {
+   "id": "ai",
+   "slot": "A",
+   "stage": 7,
+   "eyebrow": "AI processing",
+   "title": "AI that sorts your data, measured.",
+   "body": "Chosen on tested accuracy and cost.",
+   "lines": [
+    "And where AI helps, we prove it first. Tested on real data. Chosen on accuracy and cost."
+   ]
+  },
+  {
+   "id": "tools",
+   "slot": "B",
+   "stage": 0,
+   "eyebrow": "Internal tools",
+   "title": "Requests and approvals in one place.",
+   "body": "Simple tools for repeat work, not email chains.",
+   "lines": [
+    "Requests and approvals, out of email, and into one place."
+   ]
+  },
+  {
+   "id": "proof",
+   "slot": "B",
+   "stage": 1,
+   "eyebrow": "Proven at scale",
+   "title": "Built and run on live work.",
+   "body": "",
+   "stats": [
+    [
+     "180+",
+     "errors stopped before release, across 30+ markets"
+    ],
+    [
+     "290+",
+     "client projects planned, no unresolved clashes"
+    ],
+    [
+     "3",
+     "AI model families tested before one went live"
+    ]
+   ],
+   "lines": [
+    "This isn't theory.",
+    "Over thirty markets. Over a hundred and eighty errors, stopped before release.",
+    "Over two hundred and ninety client projects, planned with no unresolved clashes.",
+    "Three families of AI models, tested before one went live."
+   ]
+  },
+  {
+   "id": "how",
+   "slot": "B",
+   "stage": 2,
+   "eyebrow": "How it works",
+   "title": "From brief to live in four steps.",
+   "body": "",
+   "steps": [
+    [
+     "1",
+     "Brief",
+     "A short written brief"
+    ],
+    [
+     "2",
+     "Demo",
+     "20 minutes, free"
+    ],
+    [
+     "3",
+     "Build",
+     "Most builds: 2 to 6 weeks"
+    ],
+    [
+     "4",
+     "Go live",
+     "Documented and handed over"
+    ]
+   ],
+   "lines": [
+    "Here's how it works.",
+    "Send us a short brief, and we'll show you a free, twenty-minute demo, on your own process.",
+    "Then a written plan, with a fixed price. Most builds take two to six weeks."
+   ]
+  },
+  {
+   "id": "promise",
+   "slot": "B",
+   "stage": 3,
+   "eyebrow": "No nonsense",
+   "title": "Published prices. A fixed written scope.",
+   "body": "Builds from \u00a31,250. You own what we build.",
+   "lines": [
+    "Published prices, from twelve hundred and fifty pounds.",
+    "You own what we build. And nothing starts until you say yes."
+   ]
+  },
+  {
+   "id": "end",
+   "slot": "B",
+   "stage": 4,
+   "eyebrow": "",
+   "title": "",
+   "body": "",
+   "lines": [
+    "Less admin. Fewer errors. Same team.",
+    "Clarke Systems Group. Book your free demo today."
+   ]
+  }
+ ]
+}

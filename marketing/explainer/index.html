@@ -1,0 +1,141 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>CSG explainer</title>
+<style>
+@font-face{font-family:"Inter";src:url("inter.woff2") format("woff2");font-weight:100 900}
+:root{--ink:#0b1220;--ink2:#2a3445;--muted:#5b6474;--mist:#f3f5f8;--rule:#d9dee6;--cobalt:#2d4fe0;--amber:#b54708}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--mist);font-family:Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse 65% 60% at 66% 46%,#fff 0%,rgba(255,255,255,0) 70%);pointer-events:none}
+.stage{position:absolute;left:45%;top:12%;width:51%;height:70%}
+.slot{position:absolute;inset:0}
+.slot canvas.view{position:absolute;left:-28%;top:-12%;width:156%;height:124%}
+.brandbar{position:absolute;left:6%;top:6.2%;display:flex;align-items:center;gap:.9rem;font-weight:650;font-size:1.55rem;letter-spacing:-.02em}
+.brandbar svg{width:2.4rem;height:2.4rem}
+.url{position:absolute;right:5%;top:6.6%;font-size:1.25rem;color:var(--muted);font-weight:500}
+.scene{position:absolute;left:6%;top:48%;transform:translateY(-50%);width:36%;opacity:0}
+.eyebrow{font-size:1.45rem;font-weight:650;color:var(--cobalt);letter-spacing:.01em;margin:0 0 1.4rem}
+.scene h2{margin:0;font-size:4.6rem;line-height:1.02;letter-spacing:-.045em;font-weight:750;text-wrap:balance}
+.scene p.body{margin:1.6rem 0 0;font-size:1.75rem;line-height:1.4;color:var(--muted);max-width:24ch}
+.stats{display:flex;flex-direction:column;gap:1.4rem;margin-top:2.2rem}
+.stat{display:flex;align-items:baseline;gap:1.4rem;opacity:0;border-top:1px solid var(--rule);padding-top:1.1rem}
+.stat b{font-size:4.2rem;font-weight:750;letter-spacing:-.05em;min-width:5.5ch;color:var(--cobalt);font-variant-numeric:tabular-nums}
+.stat:first-child b{color:var(--amber)}
+.stat span{font-size:1.5rem;color:var(--ink2);line-height:1.35;max-width:22ch}
+.steps{display:flex;flex-direction:column;gap:1rem;margin-top:2.2rem}
+.step{display:flex;align-items:center;gap:1.3rem;opacity:0;background:#fff;border:1px solid var(--rule);border-radius:1.4rem;padding:1.1rem 1.4rem}
+.step i{font-style:normal;display:grid;place-items:center;width:2.8rem;height:2.8rem;border-radius:50%;background:var(--ink);color:#fff;font-weight:700;font-size:1.3rem;flex:none}
+.step strong{font-size:1.8rem;letter-spacing:-.02em;min-width:5.2ch}
+.step span{font-size:1.4rem;color:var(--muted)}
+.end{position:absolute;left:6%;top:50%;transform:translateY(-50%);opacity:0}
+.end h2{margin:0;font-size:6.4rem;line-height:1;letter-spacing:-.05em;font-weight:750}
+.end h2 span{display:block}
+.end h2 span:last-child{background:linear-gradient(95deg,#0e9384,#2d4fe0);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.08em}
+.end .cta{margin-top:2.4rem;display:inline-flex;align-items:center;gap:1rem;background:var(--ink);color:#fff;border-radius:999px;padding:1.1rem 2rem;font-size:1.65rem;font-weight:600}
+.end .cta small{font-weight:500;color:#c9d1de;font-size:1.45rem}
+.cap{position:absolute;left:50%;bottom:6.5%;transform:translateX(-50%);max-width:84%;width:max-content;text-align:center;font-size:1.75rem;line-height:1.35;font-weight:550;color:#fff;background:rgba(11,18,32,.78);padding:.7rem 1.4rem;border-radius:1rem;opacity:0;letter-spacing:-.01em}
+/* kinetic headline: each word rises out of its own line box */
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em;margin-bottom:-.06em}
+.w>span{display:inline-block;will-change:transform}
+/* vertical: text on top, scene in the middle, figures and steps below it, captions low; sized for a phone */
+body.v .stage{left:-4%;top:27%;width:108%;height:40%}
+body.v .slot canvas.view{left:-20%;top:-15%;width:140%;height:130%}
+body.v .brandbar{left:7%;top:3.6%;font-size:2.1rem}
+body.v .brandbar svg{width:3rem;height:3rem}
+body.v .url{display:none}
+body.v .scene{left:7%;top:8.5%;transform:none;width:86%;height:80%}
+body.v .eyebrow{font-size:2rem;margin-bottom:1.2rem}
+body.v .scene h2{font-size:5.6rem}
+body.v .scene p.body{font-size:2.3rem;max-width:30ch;margin-top:1.4rem}
+body.v .stats,body.v .steps{position:absolute;left:0;right:0;top:60%;margin:0;gap:1rem}
+body.v .stat{background:#fff;border:1px solid var(--rule);border-radius:1.4rem;padding:1rem 1.4rem}
+body.v .stat b{font-size:4rem;min-width:4.4ch}
+body.v .stat span{font-size:1.85rem;max-width:30ch}
+body.v .step{padding:1rem 1.4rem}
+body.v .step strong{font-size:2.3rem}
+body.v .step span{font-size:1.8rem}
+body.v .step i{width:3.2rem;height:3.2rem;font-size:1.5rem}
+body.v .end{left:7%;top:8.5%;transform:none;width:86%;height:80%}
+body.v .end h2{font-size:7rem}
+body.v .end .cta{position:absolute;left:0;top:74%;margin:0;font-size:2.1rem;padding:1.3rem 2.2rem}
+body.v .end .cta small{font-size:1.8rem}
+body.v .cap{bottom:5%;max-width:88%;font-size:2.2rem}
+</style></head>
+<body data-stat-a="stacks:1,2,3,4">
+<div class="stage" id="sA" data-drive><div class="slot" data-forms="orbit,scatter,b,link,scan,report,gantt,a" aria-hidden="true"></div></div>
+<div class="stage" id="sB" data-drive style="opacity:0"><div class="slot" data-forms="kanban,gate,line,a,b" aria-hidden="true"></div></div>
+<div class="brandbar" id="brandbar"><svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0e9384"/><stop offset="1" stop-color="#2d4fe0"/></linearGradient></defs><g transform="translate(1 1)"><circle cx="14" cy="14" r="9" fill="none" stroke="url(#g)" stroke-width="3.4" stroke-dasharray="42.5 14" transform="rotate(25 14 14)" stroke-linecap="round"/><circle cx="22.4" cy="10.9" r="2.8" fill="url(#g)"/></g></svg>Clarke Systems Group</div>
+<div class="url" id="url">clarkesystemsgroup.com</div>
+<div id="scenes"></div>
+<div class="end" id="end"><h2><span>Less admin.</span><span>Fewer errors.</span><span>Same team.</span></h2><div class="cta">Book a free 20-minute demo <small>clarkesystemsgroup.com</small></div></div>
+<div class="cap" id="cap"></div>
+<script>
+if (location.search.includes('v')) document.body.classList.add('v');
+const sm = x => x * x * (3 - 2 * x), cl = (x, a, b) => Math.min(b, Math.max(a, x));
+let TL = null;
+window.__ready = fetch('timeline.json').then(r => r.json()).then(tl => {
+  TL = tl;
+  const host = document.getElementById('scenes');
+  for (const s of tl.scenes) {
+    if (s.id === 'end') continue;
+    const d = document.createElement('div'); d.className = 'scene'; d.id = 'sc-' + s.id;
+    let h = `<p class="eyebrow">${s.eyebrow}</p><h2>${s.title.split(' ').map(w => `<span class="w"><span>${w}</span></span>`).join(' ')}</h2>`;
+    if (s.body) h += `<p class="body">${s.body}</p>`;
+    if (s.stats) h += '<div class="stats">' + s.stats.map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('') + '</div>';
+    if (s.steps) h += '<div class="steps">' + s.steps.map(([n, a, b]) => `<div class="step"><i>${n}</i><strong>${a}</strong><span>${b}</span></div>`).join('') + '</div>';
+    d.innerHTML = h; host.appendChild(d);
+  }
+  return true;
+});
+// in-out envelope: rises in over `a`, out over `b`
+const io = (t, s, e, a = .6, b = .45) => cl(Math.min((t - s) / a, (e - t) / b), 0, 1);
+window.__setT = t => {
+  const sA = document.getElementById('sA'), sB = document.getElementById('sB');
+  // stage index: eases from the previous scene's form to this one's over 1.4 s
+  let slotA = 0, slotB = 0, prevA = 0, prevB = 0;
+  for (const s of TL.scenes) {
+    const k = sm(cl((t - s.start) / 1.4, 0, 1));
+    if (s.slot === 'A') { if (t >= s.start) { slotA = prevA + (s.stage - prevA) * k; prevA = s.stage; } }
+    else { if (t >= s.start) { slotB = prevB + (s.stage - prevB) * k; prevB = s.stage; } }
+  }
+  sA.csgStage = slotA; sB.csgStage = slotB;
+  // a slow camera push through each scene, eased back at every cut
+  const cur = TL.scenes.filter(s => t >= s.start).pop() || TL.scenes[0];
+  const pk = cl((t - cur.start) / Math.max(1, cur.end - cur.start), 0, 1), push = 1 + .07 * sm(pk);
+  sA.style.transform = sB.style.transform = `scale(${push.toFixed(4)})`;
+  const tools = TL.scenes.find(s => s.id === 'tools').start;
+  const x = sm(cl((t - tools + .3) / 1.0, 0, 1));
+  sA.style.opacity = 1 - x; sB.style.opacity = x;
+  for (const s of TL.scenes) {
+    if (s.id === 'end') {
+      const v = sm(cl((t - s.start - .2) / .9, 0, 1));
+      const e = document.getElementById('end'); e.style.opacity = v;
+      e.style.translate = `0 ${(1 - v) * 1.6}rem`;
+      continue;
+    }
+    const d = document.getElementById('sc-' + s.id); const v = sm(io(t, s.start + .15, s.end - .1));
+    d.style.opacity = v; d.style.translate = `0 ${(1 - v) * 1.4}rem`;
+    d.querySelectorAll('.w>span').forEach((w, i) => {           // words rise in, 55 ms apart
+      const k = sm(cl((t - s.start - .2 - i * .055) / .55, 0, 1)); w.style.transform = `translateY(${(1 - k) * 105}%)`;
+    });
+    d.querySelectorAll('.stat').forEach((el, i) => {      // each figure appears as it is spoken
+      const ln = s.lines[i + 1]; const w = ln ? sm(cl((t - ln.start + .3) / .5, 0, 1)) : 0;
+      el.style.opacity = w; el.style.translate = `${(1 - w) * 1.2}rem 0`;
+      const b = el.querySelector('b'); if (!b.dataset.v) b.dataset.v = b.textContent;   // the figure counts up as it is spoken
+      const to = parseInt(b.dataset.v, 10), suf = b.dataset.v.replace(/^\d+/, '');
+      const c = ln ? cl((t - ln.start + .2) / 1.1, 0, 1) : 0; b.textContent = Math.round(to * (1 - Math.pow(1 - c, 3))) + (c >= 1 ? suf : '');
+    });
+    d.querySelectorAll('.step').forEach((el, i) => {      // steps follow the voice through the process
+      const at = s.lines[1].start + [0, 1.6, s.lines[2].start - s.lines[1].start, s.lines[2].start - s.lines[1].start + 2.8][i];
+      const w = sm(cl((t - at + .2) / .5, 0, 1)); el.style.opacity = w; el.style.translate = `${(1 - w) * 1.2}rem 0`;
+    });
+  }
+  // captions: the line being spoken
+  const cap = document.getElementById('cap'); let line = null;
+  for (const s of TL.scenes) for (const l of s.lines) if (t >= l.start - .15 && t <= l.end + .25) line = l;
+  if (line) { cap.textContent = line.text.replace('clarke systems group dot com', 'clarkesystemsgroup.com').replace('twelve hundred and fifty pounds', '£1,250').replace('Over thirty markets', 'Over 30 markets').replace('Over a hundred and eighty errors', 'Over 180 errors').replace('Over two hundred and ninety', 'Over 290').replace('Three families', '3 families').replace('twenty-minute', '20-minute').replace('two to six weeks', '2 to 6 weeks'); cap.style.opacity = sm(io(t, line.start - .15, line.end + .25, .2, .2)); }
+  else cap.style.opacity = 0;
+  const endS = TL.scenes.find(s => s.id === 'end').start;
+  const hideTop = 1 - sm(cl((t - endS) / .6, 0, 1));
+  document.getElementById('brandbar').style.opacity = hideTop; document.getElementById('url').style.opacity = hideTop;
+};
+</script>
+<script src="film.js"></script>
+</body></html>
