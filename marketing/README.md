@@ -51,16 +51,12 @@ Every file in this folder, its size and where to use it. Colours, type and copy 
 
 ## Audio (marketing/audio/)
 
-Every film carries a voiceover and an original score.
+Every film carries an original score: calm felt piano, composed in code by `score.py`, so the business owns it outright (no samples, no stock library, no licence). Each is levelled to -16 LUFS, the loudness social platforms expect.
 
-- **Voice:** a natural British voice ("Emma") generated with the open-source Kokoro model (Apache 2.0 licence, commercial use allowed). Captions in the explainer match it word for word. A recorded team voice can replace it at any time with `mix_voice.sh`.
-- **Music:** a calm felt-piano score, composed in code by `score.py`, so the business owns it outright: no samples, no stock library, no licence. It sits under the voice and lifts between lines.
-- **Loudness:** every film is levelled to -16 LUFS, the loudness social platforms expect.
+There is no voiceover yet. Generated voices were tried and rejected as not human enough; the voice will be a real person's recording. `mix_voice.sh` puts a recorded voice over any film (cleans it, lowers the music under each line, levels the result), working from the music-free masters in `video/silent/`.
 
 | File | Length | Used in |
 | --- | --- | --- |
 | score-16x9.m4a | 16 s | csg-film-16x9.mp4 (resolves as the logo forms, 14 s) |
 | score-teaser.m4a | 15 s | csg-teaser-15s-16x9.mp4 (resolves at 11.5 s) |
 | score-social.m4a | 22.3 s | the square and vertical cuts (resolves on the end card, 17.3 s) |
-
-`mix_voice.sh` puts any recorded voice over a film: it cleans the voice, lowers the music under each line and levels the result. The music-free masters it works from are in `video/silent/`.
