@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>CSG brand film</title>
+<style>
+@font-face{font-family:Inter;src:url(inter.woff2) format('woff2');font-weight:100 900}
+html,body{margin:0;background:#0b1220;overflow:hidden}
+canvas{display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Motion-designed brand film: one canvas, drawn as a pure function of time t (seconds), so every frame is reproducible.
+// Timings match beats.json and the score (112 BPM); ?v renders the 9:16 cut.
+const V = location.search.includes('v');
+const W = V ? 1080 : 1920, H = V ? 1920 : 1080;
+const cv = document.getElementById('c'), x = cv.getContext('2d');
+{ const arc0 = CanvasRenderingContext2D.prototype.arc; CanvasRenderingContext2D.prototype.arc = function (cx, cy, r, ...rest) { return arc0.call(this, cx, cy, Math.max(0, r), ...rest); }; }  // springy eases can dip a hair below zero
+cv.width = W; cv.height = H; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+const U = Math.min(W, H) / 1080;                       // 1 unit = 1px of a 1080-tall frame
+
+// ---------- palette ----------
+const INK = '#0a1020', INK2 = '#121a2e', PAPER = '#f3f5f9', FG = '#0b1220', MUTED = '#5b6578';
+const TEAL = '#3fd0b8', BLUE = '#6f86ff', RED = '#ff4d5e', AMBER = '#ffb547', GREEN = '#2fcf8a';
+
+// ---------- maths ----------
+const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const pr = (t, a, b) => cl((t - a) / (b - a));
+const eo = k => 1 - Math.pow(1 - k, 3);
+const eo5 = k => 1 - Math.pow(1 - k, 5);
+const eio = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eback = (k, s = 1.7) => 1 + (s + 1) * Math.pow(k - 1, 3) + s * Math.pow(k - 1, 2);
+const spring = (k, f = 4.5, d = 6) => k <= 0 ? 0 : 1 - Math.exp(-d * k) * Math.cos(f * Math.PI * k);
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let r = Math.imul(seed ^ seed >>> 15, 1 | seed); r = r + Math.imul(r ^ r >>> 7, 61 | r) ^ r; return ((r ^ r >>> 14) >>> 0) / 4294967296; }; }
+const mix = (a, b, k) => { const p = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); const A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], k))).join(',')})`; };
+const bez = (p0, p1, p2, p3, k) => { const u = 1 - k; return [u*u*u*p0[0] + 3*u*u*k*p1[0] + 3*u*k*k*p2[0] + k*k*k*p3[0], u*u*u*p0[1] + 3*u*u*k*p1[1] + 3*u*k*k*p2[1] + k*k*k*p3[1]]; };
+
+// ---------- drawing helpers ----------
+const font = (s, w = 700) => `${w} ${s}px Inter`;
+function rr(px, py, w, h, r) { x.beginPath(); x.roundRect(px, py, w, h, r); }
+function txt(s, px, py, size, color, w = 700, align = 'left', ls = 0) {
+  x.font = font(size, w); x.fillStyle = color; x.textAlign = align; x.textBaseline = 'alphabetic';
+  x.letterSpacing = ls + 'px'; x.fillText(s, px, py); x.letterSpacing = '0px';
+}
+// Headline with words that rise out of a mask, staggered. parts: [[word, colour?], ...]
+function lay(parts, size, maxW, w = 760) {
+  x.font = font(size, w); x.letterSpacing = (-0.045 * size) + 'px';
+  const sp = x.measureText(' ').width, lines = [[]]; let lw = 0;
+  for (const p of parts) { const ww = x.measureText(p[0]).width; if (lw + ww > maxW && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push({ s: p[0], c: p[1], w: ww, x: lw }); lw += ww + sp; }
+  x.letterSpacing = '0px'; return lines;
+}
+function head(parts, px, py, size, t0, t, o = {}) {
+  const { color = FG, maxW = W * .8, align = 'left', lh = 1.02, stagger = .07, dur = .55, out = 1e9, w = 760 } = o;
+  const lines = lay(parts, size, maxW, w); let i = 0;
+  const ko = pr(t, out, out + .35);
+  lines.forEach((ln, li) => {
+    const lw = ln.length ? ln.at(-1).x + ln.at(-1).w : 0, ox = align === 'center' ? px - lw / 2 : px;
+    const y = py + li * size * lh;
+    x.save(); x.beginPath(); x.rect(0, y - size * 1.05, W, size * 1.42); x.clip();
+    for (const wd of ln) {
+      const k = eo5(pr(t, t0 + i * stagger, t0 + i * stagger + dur)); i++;
+      const dy = (1 - k) * size * 1.1 - ko * size * 1.1;
+      x.font = font(size, w); x.letterSpacing = (-0.045 * size) + 'px'; x.textAlign = 'left';
+      x.fillStyle = wd.c || color; x.fillText(wd.s, ox + wd.x, y + dy);
+    }
+    x.letterSpacing = '0px'; x.restore();
+  });
+  return lines.length * size * lh;
+}
+function eyebrow(s, px, py, t0, t, color = TEAL) {
+  const k = eo(pr(t, t0, t0 + .4));
+  x.globalAlpha = k; txt(s.toUpperCase(), px + (1 - k) * -20 * U, py, 22 * U, color, 650, 'left', 3 * U); x.globalAlpha = 1;
+}
+function logoMark(cx, cy, r, k = 1, lw = null, col1 = TEAL, col2 = BLUE) {
+  // the CSG mark: a 270.8° ring starting at 25°, and a dot in the gap
+  const g = x.createLinearGradient(cx - r, cy - r, cx + r, cy + r); g.addColorStop(0, col1); g.addColorStop(1, col2);
+  x.strokeStyle = g; x.fillStyle = g; x.lineWidth = lw || r * .378; x.lineCap = 'round';
+  const a0 = 25 * Math.PI / 180, sweep = 270.8 * Math.PI / 180 * eo(cl(k * 1.15));
+  x.beginPath(); x.arc(cx, cy, r, a0, a0 + sweep); x.stroke();
+  const dk = eback(pr(k, .7, 1)); if (dk > 0) { x.beginPath(); x.arc(cx + r * .933, cy - r * .344, r * .311 * dk, 0, Math.PI * 2); x.fill(); }
+}
+function bg(c) { x.fillStyle = c; x.fillRect(0, 0, W, H); }
+function vignette(a = .5) { const g = x.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .3, W / 2, H / 2, Math.max(W, H) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${a})`); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+function glow(cx, cy, r, c, a) { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)'); x.globalAlpha = a; x.fillStyle = g; x.fillRect(cx - r, cy - r, r * 2, r * 2); x.globalAlpha = 1; }
+function chrome(t, dark) {
+  // the corner signature, present throughout like a broadcast bug
+  const c = dark ? 'rgba(255,255,255,.75)' : FG;
+  logoMark(56 * U + 13 * U, 54 * U, 10 * U, 1, 3.6 * U);
+  txt('Clarke Systems Group', 92 * U, 62 * U, 21 * U, c, 650);
+  txt('clarkesystemsgroup.com', W - 56 * U, 62 * U, 19 * U, dark ? 'rgba(255,255,255,.45)' : MUTED, 500, 'right');
+}
+
+// ---------- six solutions, each its own working system ----------
+const SOL = [
+  { e: 'Integrations', l: [['Systems'], ['that'], ['talk'], ['to'], ['each'], ['other.', BLUE]] },
+  { e: 'Quality checks', l: [['Every'], ['record'], ['checked.', GREEN]] },
+  { e: 'Reporting', l: [['Reports'], ['that'], ['run'], ['themselves.', BLUE]] },
+  { e: 'Scheduling', l: [['Plans'], ['that'], ['re-plan'], ['themselves.', BLUE]] },
+  { e: 'AI processing', l: [['AI,'], ['proven'], ['before'], ['it'], ['ships.', BLUE]] },
+  { e: 'Internal tools', l: [['Approvals'], ['in'], ['one'], ['place.', BLUE]] },
+];
+function vizBox() { return V ? { x: 70 * U, y: H * .43, w: W - 140 * U, h: H * .47 } : { x: W * .47, y: H * .17, w: W * .47, h: H * .72 }; }
+function card(px, py, w, h, r = 18) { rr(px, py, w, h, r * U); x.fillStyle = '#fff'; x.fill(); x.strokeStyle = 'rgba(11,18,32,.08)'; x.lineWidth = 1.5 * U; x.stroke(); }
+
+function vizIntegrations(b, k, t) {
+  const n = [['Shopify', b.x + b.w * .16, b.y + b.h * .28], ['Xero', b.x + b.w * .84, b.y + b.h * .28], ['Warehouse', b.x + b.w * .16, b.y + b.h * .78], ['CRM', b.x + b.w * .84, b.y + b.h * .78]];
+  const hub = [b.x + b.w / 2, b.y + b.h * .53];
+  for (const [nm, nx, ny] of n) { // pipes
+    x.strokeStyle = 'rgba(111,134,255,.25)'; x.lineWidth = 3 * U; x.beginPath(); x.moveTo(nx, ny); x.bezierCurveTo(nx + (hub[0] - nx) * .6, ny, hub[0], hub[1] + (ny - hub[1]) * .6, hub[0], hub[1]); x.stroke();
+    for (let q = 0; q < 5; q++) { // packets both ways
+      const ph = ((t * .9 + q / 5 + nx * .001) % 1), dir = q % 2, kk = dir ? ph : 1 - ph;
+      const p = bez([nx, ny], [nx + (hub[0] - nx) * .6, ny], [hub[0], hub[1] + (ny - hub[1]) * .6], hub, kk);
+      x.fillStyle = dir ? TEAL : BLUE; x.globalAlpha = eo(k * 3); x.beginPath(); x.arc(p[0], p[1], 7 * U, 0, Math.PI * 2); x.fill(); x.globalAlpha = 1;
+    }
+  }
+  for (const [nm, nx, ny] of n) { const s = eback(pr(k, .05, .35)); x.save(); x.translate(nx, ny); x.scale(s, s); card(-110 * U, -46 * U, 220 * U, 92 * U, 20); txt(nm, 0, 10 * U, 26 * U, FG, 700, 'center'); x.restore(); }
+  const hs = eback(pr(k, 0, .3)); x.save(); x.translate(hub[0], hub[1]); x.scale(hs, hs); x.fillStyle = INK; x.beginPath(); x.arc(0, 0, 70 * U, 0, Math.PI * 2); x.fill(); logoMark(0, 0, 30 * U, 1, 10 * U); x.restore();
+  const pulse = (t * 1.2) % 1; x.strokeStyle = `rgba(63,208,184,${1 - pulse})`; x.lineWidth = 3 * U; x.beginPath(); x.arc(hub[0], hub[1], 70 * U + pulse * 60 * U, 0, Math.PI * 2); x.stroke();
+}
+function vizQuality(b, k, t) {
+  const rows = 11, rh = b.h / rows, scan = eio(pr(k, .08, .85));
+  card(b.x, b.y, b.w, b.h, 24);
+  for (let i = 0; i < rows; i++) {
+    const y = b.y + i * rh, passed = scan * rows > i + .5, bad = i === 3 || i === 8, fixed = scan * rows > i + 2.2;
+    x.fillStyle = 'rgba(11,18,32,.09)'; x.fillRect(b.x + 40 * U, y + rh / 2 - 6 * U, b.w * .5, 12 * U);
+    if (passed) { const c = bad && !fixed ? RED : GREEN, sk = eback(cl((scan * rows - i - .5) * 2));
+      x.save(); x.translate(b.x + b.w - 60 * U, y + rh / 2); x.scale(sk, sk); x.fillStyle = c; x.beginPath(); x.arc(0, 0, 16 * U, 0, Math.PI * 2); x.fill();
+      x.strokeStyle = '#fff'; x.lineWidth = 4 * U; x.beginPath(); if (bad && !fixed) { x.moveTo(-6 * U, -6 * U); x.lineTo(6 * U, 6 * U); x.moveTo(6 * U, -6 * U); x.lineTo(-6 * U, 6 * U); } else { x.moveTo(-7 * U, 0); x.lineTo(-2 * U, 6 * U); x.lineTo(8 * U, -6 * U); } x.stroke(); x.restore();
+      if (bad && !fixed) { x.fillStyle = 'rgba(255,77,94,.1)'; x.fillRect(b.x + 8 * U, y + 4 * U, b.w - 16 * U, rh - 8 * U); }
+      if (bad && fixed) txt('auto-fixed', b.x + b.w - 100 * U, y + rh / 2 + 7 * U, 18 * U, GREEN, 650, 'right');
+    }
+  }
+  const sy = b.y + scan * b.h; const g = x.createLinearGradient(0, sy - 60 * U, 0, sy); g.addColorStop(0, 'rgba(63,208,184,0)'); g.addColorStop(1, 'rgba(63,208,184,.35)');
+  x.fillStyle = g; x.fillRect(b.x, sy - 60 * U, b.w, 60 * U); x.fillStyle = TEAL; x.fillRect(b.x, sy - 2 * U, b.w, 4 * U);
+}
+function vizReport(b, k, t) {
+  card(b.x, b.y, b.w, b.h, 24);
+  const n = 8, bw = b.w * .7 / n, base = b.y + b.h * .82, vals = [.35, .5, .42, .62, .58, .74, .7, .9];
+  txt('Weekly sales', b.x + 40 * U, b.y + 64 * U, 30 * U, FG, 750);
+  for (let i = 0; i < n; i++) { const kk = spring(cl((k - .05 - i * .045) / .5), 2, 6), h = vals[i] * b.h * .55 * kk;
+    const bx = b.x + b.w * .1 + i * (b.w * .8 / n); rr(bx, base - h, bw, h, 8 * U); x.fillStyle = i === n - 1 ? BLUE : 'rgba(111,134,255,.35)'; x.fill(); }
+  const lk = eio(pr(k, .35, .75)); x.strokeStyle = TEAL; x.lineWidth = 5 * U; x.lineJoin = 'round'; x.beginPath();
+  for (let i = 0; i < n; i++) { const px = b.x + b.w * .1 + i * (b.w * .8 / n) + bw / 2, py = base - vals[i] * b.h * .55 - 30 * U; if (i / (n - 1) > lk) break; i ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke();
+  const sk = eback(pr(k, .72, .9)); if (sk > 0) { x.save(); x.translate(b.x + b.w - 40 * U, b.y + 50 * U); x.scale(sk, sk); rr(-200 * U, -30 * U, 200 * U, 56 * U, 28 * U); x.fillStyle = GREEN; x.fill(); txt('Sent 07:00 ✓', -100 * U, 8 * U, 22 * U, '#fff', 700, 'center'); x.restore(); }
+}
+function vizSchedule(b, k, t) {
+  card(b.x, b.y, b.w, b.h, 24);
+  const lanes = 6, lh = b.h * .8 / lanes, oy = b.y + b.h * .14, slip = eio(pr(k, .25, .45)), replan = eio(pr(k, .45, .8));
+  const base = [[0, .3], [.25, .5], [.1, .35], [.45, .7], [.3, .55], [.6, .9]];
+  for (let c = 0; c < 8; c++) { x.fillStyle = 'rgba(11,18,32,.05)'; x.fillRect(b.x + b.w * .06 + c * b.w * .11, oy, 1.5 * U, lh * lanes); }
+  for (let i = 0; i < lanes; i++) {
+    let [s, e] = base[i]; let c = 'rgba(111,134,255,.55)';
+    if (i === 2) { e += .18 * slip; c = mix('#6f86ff', '#ffb547', slip * (1 - replan)); }
+    if (i === 3 || i === 5) { s += .14 * replan; e += .14 * replan; if (replan > 0 && replan < 1) c = TEAL; }
+    const ek = eo5(pr(k, i * .04, i * .04 + .3));
+    rr(b.x + b.w * .06 + s * b.w * .86, oy + i * lh + lh * .22, (e - s) * b.w * .86 * ek, lh * .56, 10 * U); x.fillStyle = c; x.fill();
+  }
+  if (replan > .5) { x.globalAlpha = eo(pr(k, .75, .9)); txt('Re-planned · no clashes', b.x + b.w - 40 * U, b.y + 60 * U, 24 * U, GREEN, 700, 'right'); x.globalAlpha = 1; }
+}
+function vizAI(b, k, t) {
+  const bins = [['Footwear', TEAL], ['Outerwear', BLUE], ['Accessories', AMBER]];
+  const bw = (b.w - 60 * U) / 3;
+  bins.forEach(([nm, c], i) => { const bx = b.x + i * (bw + 30 * U); rr(bx, b.y + b.h * .62, bw, b.h * .38, 20 * U); x.fillStyle = 'rgba(11,18,32,.04)'; x.fill(); x.strokeStyle = c; x.lineWidth = 2.5 * U; x.stroke(); txt(nm, bx + bw / 2, b.y + b.h - 26 * U, 22 * U, FG, 700, 'center'); });
+  const R = rng(5);
+  for (let q = 0; q < 9; q++) {
+    const at = .04 + q * .085, kk = pr(k, at, at + .32); if (kk <= 0) continue;
+    const bin = q % 3, bx = b.x + bin * (bw + 30 * U) + bw / 2 + (Math.floor(q / 3) - 1) * 70 * U;
+    const p0 = [b.x + b.w / 2, b.y - 40 * U], p1 = [b.x + b.w / 2, b.y + b.h * .3], p2 = [bx, b.y + b.h * .74 + Math.floor(q / 3) * 8 * U];
+    const p = kk < .5 ? [lerp(p0[0], p1[0], eo(kk * 2)), lerp(p0[1], p1[1], eo(kk * 2))] : bez(p1, [p1[0], p1[1] + 60 * U], [p2[0], p2[1] - 120 * U], p2, eio((kk - .5) * 2));
+    x.save(); x.translate(p[0], p[1]); x.rotate((R() - .5) * .3); card(-60 * U, -40 * U, 120 * U, 80 * U, 12); x.fillStyle = bins[bin][1]; x.globalAlpha = .7; x.fillRect(-40 * U, -24 * U, 80 * U, 26 * U); x.globalAlpha = 1;
+    if (kk > .45) txt((92 + Math.floor(R() * 7)) + '%', 0, 30 * U, 18 * U, FG, 700, 'center'); x.restore();
+  }
+  const sy = b.y + b.h * .3; x.strokeStyle = TEAL; x.lineWidth = 3 * U; x.setLineDash([10 * U, 8 * U]); x.beginPath(); x.moveTo(b.x + b.w * .25, sy); x.lineTo(b.x + b.w * .75, sy); x.stroke(); x.setLineDash([]);
+  txt('AI sorts · confidence shown', b.x + b.w / 2, sy - 70 * U, 20 * U, MUTED, 600, 'center');
+}
+function vizTools(b, k, t) {
+  const cols = ['Requested', 'Approved'], cw = (b.w - 40 * U) / 2;
+  cols.forEach((nm, i) => { const cx = b.x + i * (cw + 40 * U); rr(cx, b.y, cw, b.h, 22 * U); x.fillStyle = 'rgba(11,18,32,.04)'; x.fill(); txt(nm, cx + 30 * U, b.y + 52 * U, 26 * U, FG, 750); });
+  for (let q = 0; q < 5; q++) {
+    const at = .1 + q * .12, kk = eio(pr(k, at, at + .3));
+    const fx = b.x + 20 * U, fy = b.y + 90 * U + q * 96 * U, tx = b.x + cw + 60 * U, ty = b.y + 90 * U + q * 96 * U;
+    const px = lerp(fx, tx, kk), py = lerp(fy, ty, kk) - Math.sin(kk * Math.PI) * 60 * U;
+    x.save(); x.translate(px, py); x.rotate(Math.sin(kk * Math.PI) * .08); card(0, 0, cw - 40 * U, 80 * U, 14);
+    txt(['Expense · £84', 'Holiday · 3 days', 'Purchase · £1,200', 'Access · CRM', 'Refund · £45'][q], 24 * U, 48 * U, 22 * U, FG, 650);
+    if (kk >= 1) { const sk = eback(pr(k, at + .3, at + .4)); x.save(); x.translate(cw - 80 * U, 40 * U); x.scale(sk, sk); x.fillStyle = GREEN; x.beginPath(); x.arc(0, 0, 18 * U, 0, Math.PI * 2); x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 4 * U; x.beginPath(); x.moveTo(-7 * U, 0); x.lineTo(-2 * U, 6 * U); x.lineTo(8 * U, -6 * U); x.stroke(); x.restore(); }
+    x.restore();
+  }
+}
+const VIZ = [vizIntegrations, vizQuality, vizReport, vizSchedule, vizAI, vizTools];
+// ---------- proof ----------
+function odometer(n, px, py, size, k, color, suffix) {
+  const s = String(n), dg = s.length; x.font = font(size, 850); x.letterSpacing = (-.04 * size) + 'px'; x.textAlign = 'center';
+  const ws = [...s].map(d => x.measureText(d).width), xs = ws.map((_, i) => px + ws.slice(0, i).reduce((a, b) => a + b, 0) + ws[i] / 2), total = ws.reduce((a, b) => a + b, 0);
+  x.save(); x.beginPath(); x.rect(px - 20 * U, py - size * .9, total + 40 * U, size * 1.05); x.clip(); x.fillStyle = color;
+  for (let i = 0; i < dg; i++) {
+    const target = +s[i], spins = (dg - i) * 2 + 1, pos = (target + 10 * spins) * eo5(cl(k * (1 + i * .15)));
+    for (let d = -1; d <= 1; d++) { const v = ((Math.floor(pos) + d) % 10 + 10) % 10, off = (pos - Math.floor(pos)) - d; x.fillText(String(v), xs[i], py + off * size); }
+  }
+  x.restore(); x.textAlign = 'left';
+  if (suffix) { x.globalAlpha = eo(pr(k, .6, .9)); x.fillStyle = TEAL; x.fillText(suffix, px + total + .02 * size, py); x.globalAlpha = 1; }
+  x.letterSpacing = '0px';
+}
+
+// ================= ONE WORLD, ONE CAMERA =================
+// Everything lives in one world. The camera never cuts: it drifts, tracks, dives and whips between places,
+// following one invoice record from the client's problem to our system and back to their customer.
+const CW = 168, CH = 52, COLS = 26, ROWS = 30, SX = -COLS * CW / 2, SY = -ROWS * CH / 2;
+const R1 = rng(7), CELLS = [];
+for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+  const v = R1(); CELLS.push({ r, c, s: c === 0 ? 'SKU-' + (4100 + r * 7) : c === 1 ? ['Order', 'Refund', 'Invoice', 'Return'][r % 4] : v < .5 ? (v * 9000).toFixed(2) : v < .8 ? Math.round(v * 400).toString() : '£' + (v * 2000).toFixed(2) });
+}
+const cellW = (c, r) => [SX + (c + .5) * CW, SY + (r + .5) * CH];
+const CARDS = [[300, -90], [820, -90], [1340, -90]], CARDW = 380, CARDH = 520;   // the three identical reports
+const REC0 = [1340 + CARDW / 2 - 70, -90 - CARDH / 2 + 120 + 2 * 40 - 8];          // the bad cell on the third report
+const INBOX = [2900, 220], IW = 640, IH = 360, LAND = [INBOX[0] + 150, INBOX[1] - IH / 2 + 236];
+const C = [5600, 0], RR = 1400, ROAD = RR * .378;                                   // the ring: our logo, and the road
+const DOT = [C[0] + RR * .933, C[1] - RR * .344], DOTR = RR * .311;
+const deg = d => d * Math.PI / 180, onRing = (a, r = RR) => [C[0] + Math.cos(deg(a)) * r, C[1] + Math.sin(deg(a)) * r];
+const S0 = 22.03, SD = 2.1428;
+const ST = [0, 1, 2, 3, 4, 5].map(i => 25 + 270.8 * (i + .5) / 6);                    // station angles along the ring
+const PANEL = ST.map(a => onRing(a, RR + 1120));
+const DEL0 = 34.42, DEL1 = 34.86;                                                    // the record crosses into the dot
+
+// ----- the record: one invoice line, followed from start to finish -----
+function recordAngle(t) {
+  if (t < S0) return 25;
+  if (t >= DEL0) return lerp(ST[5], 339.7, eio(pr(t, DEL0, DEL1)));
+  const i = Math.min(5, Math.floor((t - S0) / SD)), t0 = S0 + i * SD;
+  return lerp(i ? ST[i - 1] : 25, ST[i], eio(pr(t, t0, t0 + .45)));
+}
+function recordPos(t) {
+  if (t < 11.6) return REC0;
+  if (t < 12.7) return [REC0[0], REC0[1] - 30 * eo5(pr(t, 11.6, 11.9))];
+  if (t < 15.6) { const k = eio(pr(t, 12.7, 13.6)), a = [REC0[0], REC0[1] - 30]; return bez(a, [a[0] + 300, a[1] - 700], [LAND[0] - 300, LAND[1] - 800], LAND, k); }
+  if (t < S0) { // after the reveal it streaks in along the road's tangent and settles at the start
+    const p = onRing(25), tg = [-Math.sin(deg(25)), Math.cos(deg(25))], k = eo5(pr(t, 19.6, 21.7));
+    return [p[0] - tg[0] * 4200 * (1 - k), p[1] - tg[1] * 4200 * (1 - k)];
+  }
+  const a = recordAngle(t), r = t >= DEL0 ? lerp(RR, RR * .99, pr(t, DEL0, DEL1)) : RR;
+  return onRing(a, r);
+}
+const recordValue = t => (t > 12.15 && t < S0 + SD + 1.05) ? '£12,500.00' : '£1,250.00';
+const recordBad = t => t > 12.15 && t < S0 + SD + 1.05;
+
+// ----- camera -----
+const A = (h, v) => V ? [W * v[0], H * v[1]] : [W * h[0], H * h[1]];
+function dyn(t) { // following the record through the six systems
+  const i = t < S0 ? 0 : Math.min(5, Math.floor((t - S0) / SD)), t0 = S0 + i * SD;
+  const k = eio(pr(t, t0, t0 + .45)), pc = i ? [lerp(PANEL[i - 1][0], PANEL[i][0], k), lerp(PANEL[i - 1][1], PANEL[i][1], k)] : PANEL[0];
+  const r = recordPos(t - .05);
+  return { f: [lerp(r[0], pc[0], .6), lerp(r[1], pc[1], .6)], a: A([.73, .52], [.5, .66]), z: V ? .44 : .48, r: 0 };
+}
+const BRAND = { f: C, a: A([.7, .5], [.5, .64]), z: V ? .236 : .236, r: 0 };
+const KEYS = [
+  [0, { f: [250, 60], a: A([.5, .5], [.5, .5]), z: 1.15, r: -.05 }],
+  [2.74, { f: [80, 0], a: A([.5, .5], [.5, .5]), z: 1.0, r: -.04 }, eio],
+  [5.96, { f: [-60, -30], a: A([.5, .5], [.5, .5]), z: .92, r: -.03 }, eio],
+  [7.3, { f: [-60, -30], a: A([.5, .5], [.5, .5]), z: .92, r: -.03 }, k => k],
+  [7.62, { f: [300, -90], a: A([.6, .6], [.5, .62]), z: .9, r: 0 }, eio],
+  [10.85, { f: [1340, -90], a: A([.6, .6], [.5, .62]), z: .95, r: 0 }, k => k],
+  [11.6, { f: REC0, a: A([.6, .62], [.5, .6]), z: 1.8, r: 0 }, eio],
+  [12.7, { f: [REC0[0], REC0[1] - 30], a: A([.6, .62], [.5, .6]), z: 1.95, r: 0 }, k => k],
+  [13.6, { f: [LAND[0] - 120, LAND[1] - 60], a: A([.62, .48], [.5, .58]), z: 1.05, r: .02 }, eio],
+  [15.0, { f: [LAND[0] - 140, LAND[1] - 60], a: A([.62, .48], [.5, .58]), z: 1.16, r: 0 }, k => k],
+  [15.6, BRAND, k => k < .5 ? 16 * k ** 5 : 1 - Math.pow(-2 * k + 2, 5) / 2],
+  [19.5, { ...BRAND, z: .25 }, k => k],
+  [21.75, null, eio],                 // dive onto the record: dynamic from here
+  [34.6, null, null],
+  [35.5, { ...BRAND, a: A([.7, .5], [.5, .64]) }, eio],
+  [46.67, { ...BRAND, z: .25, a: A([.7, .5], [.5, .64]) }, k => k],
+  [47.45, { f: DOT, a: A([.72, .5], [.5, .64]), z: 190 / DOTR, r: 0 }, eo5],
+  [54.17, { f: DOT, a: A([.72, .5], [.5, .64]), z: 205 / DOTR, r: 0 }, k => k],
+  [55.5, { f: [C[0] + 150, C[1]], a: A([.72, .47], [.5, .32]), z: V ? .135 : .155, r: 0 }, eio],
+  [64, { f: [C[0] + 150, C[1]], a: A([.72, .47], [.5, .32]), z: V ? .14 : .16, r: 0 }, k => k],
+];
+function camAt(t) {
+  if (t >= 21.75 && t <= 34.6) return dyn(t);
+  let i = 0; while (i < KEYS.length - 1 && KEYS[i + 1][0] <= t) i++;
+  const [t0, s0] = KEYS[i], [t1, s1raw, e] = KEYS[Math.min(i + 1, KEYS.length - 1)];
+  const a = s0 || dyn(t0), b = s1raw || dyn(t1), k = (e || (q => q))(pr(t, t0, t1));
+  const c = { f: [lerp(a.f[0], b.f[0], k), lerp(a.f[1], b.f[1], k)], a: [lerp(a.a[0], b.a[0], k), lerp(a.a[1], b.a[1], k)], z: Math.exp(lerp(Math.log(a.z), Math.log(b.z), k)), r: lerp(a.r, b.r, k) };
+  // "Again.": a punch in, then a shudder as time rewinds
+  const ag = pr(t, 5.96, 7.4); c.z *= 1 + .2 * eo5(pr(t, 5.96, 6.15)) * (1 - eio(pr(t, 6.9, 7.4)));
+  const sh = (t > 5.96 && t < 7.2 ? Math.exp(-ag * 5) : 0) * 16 + (t > 13.6 && t < 14.2 ? Math.exp(-pr(t, 13.6, 14.2) * 5) * 10 : 0);
+  c.a = [c.a[0] + Math.sin(t * 91) * sh * U, c.a[1] + Math.cos(t * 77) * sh * U];
+  return c;
+}
+let CAM;
+function world() { x.setTransform(1, 0, 0, 1, 0, 0); x.translate(CAM.a[0], CAM.a[1]); x.rotate(CAM.r); x.scale(CAM.z, CAM.z); x.translate(-CAM.f[0], -CAM.f[1]); }
+function screen() { x.setTransform(1, 0, 0, 1, 0, 0); }
+function toS(p) { const dx = (p[0] - CAM.f[0]) * CAM.z, dy = (p[1] - CAM.f[1]) * CAM.z, cs = Math.cos(CAM.r), sn = Math.sin(CAM.r); return [CAM.a[0] + dx * cs - dy * sn, CAM.a[1] + dx * sn + dy * cs]; }
+const px = n => n / CAM.z;   // a size that stays n pixels on screen
+
+// ----- background: dark for the problem, light for the solution, dark for the big picture, light to close -----
+function ground(t) {
+  const lightK = t < 15.6 ? 0 : t < 34.89 ? 1 : t < 46.67 ? 1 - eio(pr(t, 34.89, 35.6)) : eio(pr(t, 46.67, 47.3));
+  x.fillStyle = mix('#0a1020', '#f3f5f9', lightK); x.fillRect(0, 0, W, H);
+  glow(W * .32, H * .22, W * .7, lightK > .5 ? 'rgba(111,134,255,.10)' : 'rgba(70,90,170,.32)', 1);
+  return lightK;
+}
+
+// ----- the spreadsheet, the copying, the three reports, the inbox -----
+const R2 = rng(11), JOBS = [];
+for (let i = 0; i < 240; i++) { const sc = 2 + Math.floor(R2() * 9), sr = Math.floor(R2() * ROWS), dc = 14 + Math.floor(R2() * 10), dr = Math.floor(R2() * ROWS); JOBS.push({ a: cellW(sc, sr), b: cellW(dc, dr), at: 2.95 + Math.pow(i / 240, .55) * 2.95, d: .5 + R2() * .35, s: CELLS[sr * COLS + sc].s, lift: 180 + 240 * R2() }); }
+function drawSheet(t, alpha) {
+  if (alpha <= 0) return;
+  x.globalAlpha = alpha;
+  x.strokeStyle = 'rgba(140,165,220,.14)'; x.lineWidth = px(1);
+  x.beginPath();
+  for (let c = 0; c <= COLS; c++) { x.moveTo(SX + c * CW, SY); x.lineTo(SX + c * CW, SY + ROWS * CH); }
+  for (let r = 0; r <= ROWS; r++) { x.moveTo(SX, SY + r * CH); x.lineTo(SX + COLS * CW, SY + r * CH); }
+  x.stroke();
+  x.font = font(19, 500); x.textAlign = 'right'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(190,205,235,.24)';
+  for (const e of CELLS) x.fillText(e.s, SX + e.c * CW + CW - 14, SY + e.r * CH + CH / 2);
+  x.textBaseline = 'alphabetic';
+  // the keyboard selection, hopping cell to cell like someone working through it by hand
+  if (t < 5.96) { const R3 = rng(Math.floor(t / .14) * 31 + 5), c = 2 + Math.floor(R3() * 8), r = 4 + Math.floor(R3() * 16);
+    x.fillStyle = 'rgba(63,208,184,.14)'; x.fillRect(SX + c * CW, SY + r * CH, CW, CH); x.strokeStyle = TEAL; x.lineWidth = px(3); x.strokeRect(SX + c * CW, SY + r * CH, CW, CH); }
+  // copying, then the rewind
+  const rew = pr(t, 5.96, 6.75);
+  for (const j of JOBS) {
+    let k = pr(t, j.at, j.at + j.d);
+    if (t >= 5.96) k = pr(5.96, j.at, j.at + j.d) * (1 - eio(rew));
+    if (k <= 0 || (k >= 1 && t < 5.96)) continue;
+    const c1 = [j.a[0], j.a[1] - j.lift], c2 = [j.b[0], j.b[1] - j.lift];
+    const p = bez(j.a, c1, c2, j.b, eio(k)), q = bez(j.a, c1, c2, j.b, eio(cl(k + (t >= 5.96 ? .2 : -.12))));
+    x.strokeStyle = t >= 5.96 ? 'rgba(255,181,71,.55)' : 'rgba(63,208,184,.45)'; x.lineWidth = 3; x.beginPath(); x.moveTo(q[0], q[1]); x.lineTo(p[0], p[1]); x.stroke();
+    rr(p[0] - 54, p[1] - 18, 108, 36, 9); x.fillStyle = t >= 5.96 ? AMBER : TEAL; x.fill();
+    txt(j.s, p[0], p[1] + 7, 17, INK, 650, 'center');
+  }
+  x.globalAlpha = 1;
+}
+function reportCard(i, t) {
+  // each report rises out of the sheet as the camera reaches it
+  const hit = [7.66, 8.6, 9.55][i], k = eo5(pr(t, hit - .1, hit + .45));
+  if (k <= 0) return;
+  const [cx, cy] = CARDS[i], w = CARDW, h = CARDH, out = t > 15.0 ? eio(pr(t, 15.0, 15.4)) : 0;
+  x.save(); x.translate(cx, cy); x.scale(lerp(.6, 1, k), lerp(.2, 1, k)); x.rotate((1 - k) * .3 + (i - 1) * .02); x.globalAlpha = cl(k * 2) * (1 - out);
+  x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 40 * k; x.shadowOffsetY = 24 * k;
+  rr(-w / 2, -h / 2, w, h, 18); x.fillStyle = '#f7f8fb'; x.fill(); x.shadowBlur = 0; x.shadowOffsetY = 0;
+  txt('Weekly report', -w / 2 + 30, -h / 2 + 52, 28, FG, 750); txt('Wk 42 · v3 FINAL (2).xlsx', -w / 2 + 30, -h / 2 + 84, 17, MUTED, 500);
+  const R = rng(3);
+  for (let q = 0; q < 9; q++) {
+    const y = -h / 2 + 120 + q * 40, bad = i === 2 && (q === 2 || q === 6);
+    if (bad) { x.fillStyle = `rgba(255,77,94,${.15 + .12 * Math.sin(t * 14)})`; x.fillRect(-w / 2 + 16, y - 26, w - 32, 36); }
+    x.fillStyle = 'rgba(11,18,32,.12)'; x.fillRect(-w / 2 + 30, y - 12, (w - 200) * (.4 + .5 * R()), 10);
+    const v = (R() * 9000).toFixed(0);
+    if (!(i === 2 && q === 2 && t > 11.6)) txt(bad && q === 6 ? '#REF!' : bad ? '£1,250.00' : v, w / 2 - 30, y, 18, bad ? RED : FG, 650, 'right');
+  }
+  const sk = pr(t, hit + .3, hit + .5);
+  if (sk > 0) { x.save(); x.translate(0, h * .12); x.rotate(-.22); const s = lerp(2.4, 1, eo5(sk)); x.scale(s, s); x.globalAlpha = cl(sk * 3) * .92 * (1 - out);
+    const sc = i === 2 ? RED : BLUE; rr(-125, -46, 250, 92, 12); x.strokeStyle = sc; x.lineWidth = 6; x.stroke(); txt(i === 2 ? 'WRONG' : 'SAME', 0, 20, 56, sc, 850, 'center', 4); x.restore(); }
+  x.restore(); x.globalAlpha = 1;
+}
+function inbox(t) {
+  const k = eo5(pr(t, 12.95, 13.45)), out = eio(pr(t, 15.0, 15.45));
+  if (k <= 0 || out >= 1) return;
+  const [cx, cy] = INBOX;
+  x.save(); x.translate(cx, cy + (1 - k) * 80); x.globalAlpha = k * (1 - out);
+  x.shadowColor = 'rgba(0,0,0,.5)'; x.shadowBlur = 50; x.shadowOffsetY = 30;
+  rr(-IW / 2, -IH / 2, IW, IH, 22); x.fillStyle = '#f7f8fb'; x.fill(); x.shadowBlur = 0; x.shadowOffsetY = 0;
+  txt('To: accounts@yourcustomer.com', -IW / 2 + 34, -IH / 2 + 54, 20, MUTED, 550);
+  txt('Invoice INV-20419', -IW / 2 + 34, -IH / 2 + 102, 36, FG, 760);
+  txt('Total due', -IW / 2 + 34, -IH / 2 + 244, 22, MUTED, 550);
+  txt('Sent 09:14 · Delivered', -IW / 2 + 34, IH / 2 - 32, 18, '#1f9d68', 650);
+  x.restore(); x.globalAlpha = 1;
+  for (let i = 0; i < 3; i++) { const rk = pr(t, 13.62 + i * .32, 14.9 + i * .32); if (rk <= 0 || rk >= 1) continue;
+    x.strokeStyle = `rgba(255,77,94,${(1 - rk) * (1 - out)})`; x.lineWidth = 5; x.beginPath(); x.arc(LAND[0], LAND[1], 70 + rk * 520, 0, Math.PI * 2); x.stroke(); }
+}
+
+// ----- the record chip -----
+function recordChip(t, scale = 1) {
+  if (t < 11.6 || t > DEL1 + .45) return;
+  const p = recordPos(t), bad = recordBad(t), val = recordValue(t);
+  const pop = eback(pr(t, 11.6, 11.85)), land = t > 34.86 ? 1 - eio(pr(t, DEL1, DEL1 + .45)) : 1;
+  const flying = t > 12.7 && t < 13.6 ? 1 - Math.abs(pr(t, 12.7, 13.6) - .5) * 2 : 0;
+  const s = scale * pop * land * (t > 15.6 && t < S0 ? 2.6 : t >= S0 ? 1.6 : 1) * (1 + flying * .25);
+  const glitch = (t > 12.12 && t < 12.45) || (t > S0 + SD + .95 && t < S0 + SD + 1.15) ? Math.sin(t * 130) * 7 : 0;
+  x.save(); x.translate(p[0] + glitch, p[1]); x.scale(s, s);
+  // motion streak when it moves fast
+  const q = recordPos(t - .05), sp = Math.hypot(p[0] - q[0], p[1] - q[1]);
+  if (sp > 30) { x.save(); x.rotate(Math.atan2(p[1] - q[1], p[0] - q[0])); const g = x.createLinearGradient(-Math.min(sp * 3, 900) / s, 0, 0, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, bad ? 'rgba(255,77,94,.5)' : 'rgba(63,208,184,.55)'); x.fillStyle = g; x.fillRect(-Math.min(sp * 3, 900) / s, -20, Math.min(sp * 3, 900) / s, 40); x.restore(); }
+  const w = 230, h = 66;
+  x.shadowColor = bad ? 'rgba(255,77,94,.55)' : 'rgba(63,208,184,.55)'; x.shadowBlur = 30;
+  rr(-w / 2, -h / 2, w, h, 14); x.fillStyle = bad ? '#2a1218' : '#0f2a2a'; x.fill(); x.shadowBlur = 0;
+  x.strokeStyle = bad ? RED : TEAL; x.lineWidth = 3.5; x.stroke();
+  if (glitch) { x.save(); x.globalCompositeOperation = 'lighter'; txt(val, 6, 13, 36, 'rgba(0,255,255,.5)', 760, 'center'); x.restore(); }
+  txt(val, 0, 13, 36, bad ? '#ff8a96' : '#d9fff7', 760, 'center');
+  if (t > 11.8 && t < 12.15 && Math.sin(t * 30) > 0) { x.fillStyle = '#fff'; x.fillRect(64, -22, 4, 44); }   // the caret that makes the mistake
+  if (t > S0 + SD + 1.05 && t < S0 + SD * 2) { const fk = eback(pr(t, S0 + SD + 1.05, S0 + SD + 1.3)); x.save(); x.translate(w / 2 + 12, -h / 2 - 6); x.scale(fk, fk);
+    rr(0, -20, 170, 40, 20); x.fillStyle = GREEN; x.fill(); txt('Caught · fixed', 85, 7, 19, '#fff', 750, 'center'); x.restore(); }
+  x.restore();
+}
+
+// ----- the brand: every cell pours into the ring, and the ring is the road -----
+const R4 = rng(19), PARTS = [];
+for (let i = 0; i < 700; i++) {
+  let tx, ty; if (i > 640) { const a = R4() * Math.PI * 2, r = Math.sqrt(R4()) * DOTR; tx = DOT[0] + Math.cos(a) * r; ty = DOT[1] + Math.sin(a) * r; }
+  else { const a = deg(25 + R4() * 270.8), r = RR + (R4() - .5) * ROAD; tx = C[0] + Math.cos(a) * r; ty = C[1] + Math.sin(a) * r; }
+  PARTS.push({ sx: 600 + R4() * 3200, sy: -900 + R4() * 1800, tx, ty, d: R4(), rot: (R4() - .5) * 8, sz: 30 + R4() * 46 });
+}
+function particles(t) {
+  if (t < 14.95 || t > 18.4) return;
+  const fade = 1 - eo(pr(t, 17.4, 18.4));
+  for (const p of PARTS) {
+    const k = spring(cl((t - 15.0 - p.d * .55) / 2.0), 2.2, 5.2);
+    const px2 = lerp(p.sx, p.tx, k), py2 = lerp(p.sy, p.ty, k) - Math.sin(cl(k) * Math.PI) * 500 * (p.d - .5);
+    x.save(); x.translate(px2, py2); x.rotate(p.rot * (1 - cl(k)));
+    x.fillStyle = mix(TEAL, BLUE, cl((px2 - C[0] + RR) / (2 * RR))); x.globalAlpha = .9 * fade;
+    x.fillRect(-p.sz / 2, -p.sz * .3, p.sz, p.sz * .6); x.restore();
+  }
+  x.globalAlpha = 1;
+}
+function road(t, lightK) {
+  const k = eo(pr(t, 16.9, 17.8)); if (k <= 0) return;
+  x.globalAlpha = k;
+  const g = x.createLinearGradient(C[0] - RR, C[1] - RR, C[0] + RR, C[1] + RR); g.addColorStop(0, TEAL); g.addColorStop(1, BLUE);
+  x.strokeStyle = g; x.lineWidth = ROAD; x.lineCap = 'round';
+  x.beginPath(); x.arc(C[0], C[1], RR, deg(25), deg(295.8)); x.stroke();
+  // lanes: data flowing round the road, faster once the system is running
+  x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = px(3) > 14 ? 14 : px(3); x.setLineDash([140, 120]); x.lineDashOffset = -t * 900;
+  for (const r of [RR - ROAD * .22, RR + ROAD * .22]) { x.beginPath(); x.arc(C[0], C[1], r, deg(28), deg(292)); x.stroke(); }
+  x.setLineDash([]);
+  // the dot: the client's customer
+  const dk = eback(pr(t, 17.2, 17.7)); x.fillStyle = g; x.beginPath(); x.arc(DOT[0], DOT[1], DOTR * dk, 0, Math.PI * 2); x.fill();
+  // delivered: the record lands and the dot answers with a pulse
+  const pk = pr(t, DEL1, DEL1 + 1.2); if (pk > 0 && pk < 1) { x.strokeStyle = `rgba(47,207,138,${1 - pk})`; x.lineWidth = 30; x.beginPath(); x.arc(DOT[0], DOT[1], DOTR * (1 + pk * .9), 0, Math.PI * 2); x.stroke(); }
+  x.globalAlpha = 1;
+}
+function stations(t) {
+  for (let i = 0; i < 6; i++) {
+    const t0 = S0 + i * SD, ap = eo5(pr(t, t0 - .25, t0 + .35)); if (ap <= 0) continue;
+    const away = t > 34.6 ? 1 - eio(pr(t, 34.6, 35.4)) : 1;
+    const k = cl((t - t0) / SD), act = t >= t0 && t < t0 + SD;
+    const pc = PANEL[i], b = { x: pc[0] - 450, y: pc[1] - 310, w: 900, h: 620 };
+    const ring = onRing(ST[i], RR + ROAD / 2), edge = [lerp(ring[0], pc[0], .52), lerp(ring[1], pc[1], .52)];
+    const pa = ap * away * (act ? 1 : t < t0 + SD + .6 ? lerp(1, .3, pr(t, t0 + SD, t0 + SD + .6)) : .3); if (pa < .01) continue; x.filter = `opacity(${pa.toFixed(3)})`;
+    x.strokeStyle = 'rgba(11,18,32,.25)'; x.lineWidth = 4; x.setLineDash([16, 14]); x.beginPath(); x.moveTo(ring[0], ring[1]); x.lineTo(edge[0], edge[1]); x.stroke(); x.setLineDash([]);
+    x.save(); x.translate(pc[0], pc[1]); const s = 1.35 * lerp(.85, 1, ap); x.scale(s, s); x.translate(-pc[0], -pc[1]);
+    x.shadowColor = 'rgba(11,18,32,.12)'; x.shadowBlur = 50; x.shadowOffsetY = 20; rr(b.x - 30, b.y - 30, b.w + 60, b.h + 60, 32); x.fillStyle = 'rgba(255,255,255,.92)'; x.fill(); x.shadowBlur = 0; x.shadowOffsetY = 0;
+    VIZ[i](b, act ? k : 1, t);
+    x.restore(); x.globalAlpha = 1; x.filter = 'none';
+  }
+}
+
+// ================= THE WORDS, ON TOP OF THE WORLD =================
+const SOLT = [
+  { e: 'Integrations', l: [['Systems'], ['that'], ['talk'], ['to'], ['each'], ['other.', BLUE]] },
+  { e: 'Quality checks', l: [['Every'], ['record'], ['checked.', GREEN]] },
+  { e: 'Reporting', l: [['Reports'], ['that'], ['run'], ['themselves.', BLUE]] },
+  { e: 'Scheduling', l: [['Plans'], ['that'], ['re-plan'], ['themselves.', BLUE]] },
+  { e: 'AI processing', l: [['AI,'], ['proven'], ['before'], ['it'], ['ships.', BLUE]] },
+  { e: 'Internal tools', l: [['Approvals'], ['in'], ['one'], ['place.', BLUE]] },
+];
+const LX = () => V ? 80 * U : 140 * U;
+function hud(t, lightK) {
+  const fg = lightK > .5 ? FG : '#fff', L = LX(), mw = V ? W - 160 * U : W * .42;
+  // act 1: the problem, in their words
+  if (t < 2.95) head([['Monday'], ['morning.']], L, V ? 330 * U : H * .66, 150 * U, .65, t, { color: '#fff', maxW: V ? W - 160 * U : 1100 * U, out: 2.6 });
+  if (t > 2.6 && t < 6.1) head([['Your'], ['best'], ['people'], ['are'], ['copying'], ['data.', TEAL]], L, V ? 300 * U : H * .62, 104 * U, 2.8, t, { color: '#fff', maxW: V ? W - 160 * U : 1250 * U, out: 5.75 });
+  if (t > 5.9 && t < 7.7) again(t);
+  if (t > 7.5 && t < 11.4) head([['Same'], ['report.'], ['Same'], ['checks.'], ['Same'], ['mistakes.', RED]], L, V ? 260 * U : 190 * U, 84 * U, 7.62, t, { color: '#fff', maxW: V ? W - 160 * U : 1500 * U, stagger: .31, out: 11.0 });
+  if (t > 11.3 && t < 15.3) head([['One'], ['typo', AMBER], ['can'], ['reach'], ['a'], ['customer.']], L, V ? 300 * U : 190 * U, 92 * U, 11.45, t, { color: '#fff', maxW: V ? W - 160 * U : 1500 * U, out: 15.0 });
+  // the turn
+  if (t > 15.6 && t < 19.9) { const by = V ? 300 * U : H * .45, hh = head([['Clarke'], ['Systems'], ['Group.']], L, by, (V ? 120 : 136) * U, 16.1, t, { maxW: V ? W - 160 * U : 850 * U, stagger: .09, out: 19.5 });
+    const sk = eo(pr(t, 17.2, 17.8)) * (1 - pr(t, 19.4, 19.7)); x.globalAlpha = sk; txt('We build the systems that do the work.', L, by + hh + 4 * U + (1 - sk) * 20 * U, 40 * U, MUTED, 500); x.globalAlpha = 1; }
+  if (t > 19.7 && t < 22.1) head([['Same'], ['invoice.'], ['Our'], ['system.', BLUE]], L, V ? 300 * U : H * .5, 100 * U, 19.85, t, { maxW: mw, stagger: .12, out: 21.85 });
+  // the six systems
+  if (t >= S0 && t < 34.6) { const i = Math.min(5, Math.floor((t - S0) / SD)), t0 = S0 + i * SD, ty = V ? 300 * U : H * .45;
+    eyebrow(`0${i + 1} · ${SOLT[i].e}`, L, ty - (V ? 120 : 125) * U, t0 + .05, t, BLUE);
+    head(SOLT[i].l, L, ty, (V ? 96 : 90) * U, t0 + .1, t, { maxW: mw, out: t0 + SD - .28 });
+    const ry = V ? 120 * U + 60 * U : H * .8; for (let j = 0; j < 6; j++) { rr(L + j * 54 * U, ry, 42 * U, 6 * U, 3 * U); x.fillStyle = j < i ? 'rgba(111,134,255,.45)' : j === i ? BLUE : 'rgba(11,18,32,.1)'; x.fill(); } }
+  if (t > 34.2 && t < 35.4) { const k = eo(pr(t, 34.5, 34.9)) * (1 - pr(t, 35.1, 35.4)); x.globalAlpha = k; txt('Delivered · correct', L, V ? 330 * U : H * .5, 60 * U, GREEN, 760); x.globalAlpha = 1; }
+  // the big picture
+  if (t > 35.0 && t < 37.1) { const s = 'This isn’t theory.', n = Math.floor(pr(t, 35.2, 36.2) * s.length), y = V ? 330 * U : H * .5;
+    x.font = font(100 * U, 780); x.letterSpacing = (-4.5 * U) + 'px'; x.textAlign = 'left'; x.fillStyle = '#fff'; x.globalAlpha = 1 - pr(t, 36.85, 37.03); x.fillText(s.slice(0, n), L, y);
+    const tw = x.measureText(s.slice(0, n)).width; x.letterSpacing = '0px'; if (Math.sin(t * 18) > 0 || n < s.length) { x.fillStyle = TEAL; x.fillRect(L + tw + 8 * U, y - 76 * U, 7 * U, 92 * U); } x.globalAlpha = 1; }
+  if (t >= 37.03 && t < 46.67) proof(t);
+  // the offer
+  if (t >= 46.67 && t < 54.17) { const i = t < 48.81 ? 0 : t < 50.96 ? 1 : 2, t0 = [46.72, 48.86, 51.0][i], t1 = [48.81, 50.96, 54.17][i];
+    const lines = [[['Free'], ['20-minute'], ['demo.', TEAL]], [['Fixed'], ['price.'], ['Agreed'], ['first.', BLUE]], [['Nothing'], ['starts'], ['until'], ['you'], ['say'], ['yes.', TEAL]]];
+    head(lines[i], L, V ? 300 * U : H * .47, (V ? 104 : 100) * U, t0, t, { maxW: V ? W - 160 * U : W * .44, out: t1 - .28 }); }
+  // the close
+  if (t >= 54.17) { const ty = V ? H * .55 : H * .35, size = (V ? 112 : 118) * U;
+    head([['Less'], ['admin.']], L, ty, size, 54.23, t, { maxW: W });
+    head([['Fewer'], ['errors.']], L, ty + size * 1.02, size, 54.87, t, { maxW: W });
+    head([['Same'], ['team.', TEAL]], L, ty + size * 2.04, size, 55.51, t, { maxW: W });
+    const ck = eback(pr(t, 56.5, 57.0)); if (ck > 0) { const cy = ty + size * 2.04 + (V ? 140 : 120) * U; x.save(); x.translate(L, cy); x.scale(ck, ck);
+      x.font = font(30 * U, 700); const a = 'Book a free 20-minute demo', bw = x.measureText(a).width + 380 * U;
+      rr(0, -46 * U, bw, 76 * U, 38 * U); x.fillStyle = FG; x.fill(); txt(a, 34 * U, 2 * U, 30 * U, '#fff', 700); txt('clarkesystemsgroup.com', bw - 34 * U, 2 * U, 24 * U, 'rgba(255,255,255,.65)', 500, 'right'); x.restore(); } }
+}
+function again(t) {
+  const k = pr(t, 5.96, 6.2), cx = W / 2, cy = H / 2 + 80 * U, out = pr(t, 7.3, 7.56);
+  for (let e = 3; e >= 1; e--) { const ek = pr(t, 5.96 + e * .09, 7.4); if (ek <= 0) continue;
+    x.save(); x.translate(cx, cy); const s = 1.05 + ek * .4 * e / 3; x.scale(s, s); x.globalAlpha = (1 - ek) * .5;
+    x.font = font(300 * U, 850); x.textAlign = 'center'; x.letterSpacing = (-14 * U) + 'px'; x.strokeStyle = AMBER; x.lineWidth = 2 * U; x.strokeText('Again.', 0, 0); x.letterSpacing = '0px'; x.restore(); }
+  const s = lerp(2.4, 1, eo5(k)) * (1 + out * .6);
+  x.save(); x.translate(cx, cy); x.scale(s, s); x.globalAlpha = cl(k * 3) * (1 - out); x.font = font(300 * U, 850); x.textAlign = 'center'; x.letterSpacing = (-14 * U) + 'px'; x.fillStyle = '#fff'; x.fillText('Again.', 0, 0); x.letterSpacing = '0px'; x.restore();
+  const rk = pr(t, 5.96, 7.4); x.save(); x.translate(cx, cy - 330 * U); x.rotate(-rk * Math.PI * 4); x.globalAlpha = (1 - out) * cl(k * 3);
+  x.strokeStyle = AMBER; x.lineWidth = 7 * U; x.lineCap = 'round'; x.beginPath(); x.arc(0, 0, 44 * U, .4, Math.PI * 1.75); x.stroke(); x.restore(); x.globalAlpha = 1;
+}
+function clock(t) {
+  const flip = pr(t, 1.45, 1.75), cx = W - (V ? 80 : 140) * U, cy = (V ? 230 : 190) * U, a = eo(pr(t, .2, .8)) * (1 - pr(t, 5.6, 5.96));
+  if (a <= 0) return; x.globalAlpha = a;
+  rr(cx - 230 * U, cy - 70 * U, 230 * U, 100 * U, 18 * U); x.fillStyle = 'rgba(255,255,255,.06)'; x.fill(); x.strokeStyle = 'rgba(255,255,255,.14)'; x.lineWidth = 1.5 * U; x.stroke();
+  x.save(); x.beginPath(); x.rect(cx - 230 * U, cy - 70 * U, 230 * U, 100 * U); x.clip();
+  txt('08:59', cx - 115 * U, cy + 6 * U - flip * 100 * U, 58 * U, '#fff', 700, 'center'); txt('09:00', cx - 115 * U, cy + 6 * U + (1 - flip) * 100 * U, 58 * U, TEAL, 700, 'center');
+  x.restore(); txt('MON', cx - 115 * U, cy + 64 * U, 18 * U, 'rgba(255,255,255,.5)', 650, 'center', 4 * U); x.globalAlpha = 1;
+}
+
+// ----- proof, built round the ring (screen space, from where the ring sits) -----
+const R5 = rng(23), DROPS = Array.from({ length: 180 }, () => ({ x: R5() * 2 - 1, at: R5() * 1.7, sp: .55 + R5() * .4 }));
+function proof(t) {
+  const L = LX(), cs = toS(C), rs = RR * CAM.z, rw = ROAD * CAM.z;
+  const st = [[37.07, 180, '+', 'Quality checks', 'errors stopped before release, across 30+ markets'], [40.28, 290, '+', 'Scheduling', 'client projects planned, with no unresolved clashes'], [43.5, 3, '', 'AI processing', 'AI model families tested before one went live']];
+  const i = t < 40.24 ? 0 : t < 43.46 ? 1 : 2, [h0, n, suf, eb, sub] = st[i], k = pr(t, h0, h0 + 1.1), end = [40.24, 43.46, 46.67][i], out = eio(pr(t, end - .25, end));
+  x.save(); x.globalAlpha = 1 - out;
+  if (i === 0) { // 180 errors rain down; the ring catches every one
+    let caught = 0;
+    for (const d of DROPS) { const px2 = cs[0] + d.x * (rs + rw / 2) * .95, hitY = cs[1] - Math.sqrt(Math.max(0, (rs + rw / 2) ** 2 - (px2 - cs[0]) ** 2));
+      const kk = (t - h0 - d.at) * d.sp; if (kk < 0) continue; let y = (V ? 760 * U : -40 * U) + kk * H * (V ? .55 : 1.1); const c = y >= hitY; if (c) { caught++; y = hitY - 8 * U; }
+      x.globalAlpha = (1 - out) * (c ? .9 : 1); x.fillStyle = c ? GREEN : RED; rr(px2 - 7 * U, y - 7 * U, 14 * U, 14 * U, 3 * U); x.fill(); }
+    x.globalAlpha = 1 - out; txt(`${Math.min(180, caught)} caught`, cs[0], cs[1] + 12 * U, 40 * U, GREEN, 760, 'center');
+  } else if (i === 1) { // 290 projects slot into a clash-free ring of time
+    for (let q = 0; q < 290; q++) { const kk = eback(pr(t, h0 + q * .007, h0 + q * .007 + .25)); if (kk <= 0) continue;
+      const a = -Math.PI / 2 + q / 290 * Math.PI * 2, ring = q % 2 ? rs * 1.42 : rs * 1.34, s = 13 * U * kk;
+      x.save(); x.translate(cs[0] + Math.cos(a) * ring, cs[1] + Math.sin(a) * ring); x.rotate(a); x.fillStyle = mix(TEAL, BLUE, q / 290); rr(-s / 2, -s / 2, s, s, 2 * U); x.fill(); x.restore(); }
+    x.globalAlpha = (1 - out) * eo(pr(t, h0 + 2.1, h0 + 2.5)); txt('0 clashes', cs[0], cs[1] + 14 * U, 40 * U, GREEN, 760, 'center');
+  } else { // three model families orbit; one is chosen and docks
+    const nm = ['A', 'B', 'C'];
+    for (let q = 0; q < 3; q++) { const win = q === 1, dock = win ? eio(pr(t, h0 + 1.5, h0 + 2.3)) : 0;
+      const a = (t - h0) * 1.1 + q * Math.PI * 2 / 3, orb = [cs[0] + Math.cos(a) * rs * 1.45, cs[1] + Math.sin(a) * rs * 1.45], dot = toS(DOT);
+      const p = [lerp(orb[0], dot[0], dock), lerp(orb[1], dot[1], dock)], r = lerp(52, 60, dock) * U;
+      x.globalAlpha = (1 - out) * (win ? 1 : 1 - .6 * eo(pr(t, h0 + 1.5, h0 + 2.0)));
+      x.fillStyle = win && dock > .5 ? GREEN : 'rgba(255,255,255,.14)'; x.strokeStyle = win ? GREEN : 'rgba(255,255,255,.5)'; x.lineWidth = 3 * U; x.beginPath(); x.arc(p[0], p[1], r, 0, Math.PI * 2); x.fill(); x.stroke();
+      txt(nm[q], p[0], p[1] + 13 * U, 38 * U, '#fff', 800, 'center'); }
+    x.globalAlpha = (1 - out) * eo(pr(t, h0 + 2.3, h0 + 2.7)); txt('Chosen on accuracy and cost', cs[0], cs[1] + 12 * U, 30 * U, GREEN, 700, 'center');
+  }
+  x.restore();
+  const slam = pr(t, h0 - .02, h0 + .28), sc = lerp(1.55, 1, eo5(slam)), fy = V ? 470 * U : H * .58, size = (V ? 250 : 300) * U;
+  x.save(); x.globalAlpha = cl(slam * 4) * (1 - out); x.translate(L, fy); x.scale(sc, sc); x.translate(-L, -fy); odometer(n, L, fy, size, k, '#fff', suf); x.restore();
+  if (slam > 0 && slam < 1) { x.fillStyle = `rgba(255,255,255,${(1 - slam) * .22})`; x.fillRect(0, 0, W, H); }
+  x.globalAlpha = 1 - out; eyebrow(eb, L, fy - size * .92, h0 + .1, t, TEAL);
+  const sk = eo(pr(t, h0 + .5, h0 + .9)); x.globalAlpha = sk * (1 - out); x.font = font(36 * U, 500);
+  let line = '', ly = fy + 76 * U; const mw = V ? W - 160 * U : W * .36;
+  for (const w of sub.split(' ')) { if (x.measureText(line + w).width > mw) { txt(line, L, ly, 36 * U, 'rgba(255,255,255,.82)', 500); line = ''; ly += 48 * U; } line += w + ' '; }
+  txt(line, L, ly, 36 * U, 'rgba(255,255,255,.82)', 500); x.globalAlpha = 1;
+}
+
+// ----- the offer: the customer's dot becomes the dial, the seal and the switch -----
+function offer(t) {
+  const d = toS(DOT), r = DOTR * CAM.z;
+  if (t >= 46.9 && t < 48.81) { // 20-minute dial grows out of the dot
+    const k = eio(pr(t, 47.2, 48.5)), shrink = eio(pr(t, 46.9, 47.5)), out = eio(pr(t, 48.55, 48.81));
+    x.fillStyle = PAPER; x.globalAlpha = shrink; x.beginPath(); x.arc(d[0], d[1], r * 1.02, 0, Math.PI * 2); x.fill(); x.globalAlpha = 1;
+    const R = r * lerp(1, .95, out);
+    for (let m = 0; m < 20; m++) { const a = -Math.PI / 2 + m / 20 * Math.PI * 2, on = m / 20 < k, mk = eback(pr(t, 47.0 + m * .02, 47.3 + m * .02));
+      x.strokeStyle = on ? TEAL : 'rgba(11,18,32,.14)'; x.lineWidth = 11 * U * mk; x.lineCap = 'round'; x.beginPath(); x.moveTo(d[0] + Math.cos(a) * R * .76, d[1] + Math.sin(a) * R * .76); x.lineTo(d[0] + Math.cos(a) * R, d[1] + Math.sin(a) * R); x.stroke(); }
+    x.globalAlpha = shrink * (1 - out); txt(String(Math.round(k * 20)), d[0], d[1] + 34 * U, 110 * U, FG, 800, 'center'); txt('minutes', d[0], d[1] + 82 * U, 24 * U, MUTED, 600, 'center'); txt('FREE', d[0], d[1] - 74 * U, 22 * U, TEAL, 760, 'center', 4 * U); x.globalAlpha = 1;
+  }
+  if (t >= 48.81 && t < 50.96) { // a written plan slides up, is signed, and the dot comes down as the seal
+    const inn = eo5(pr(t, 48.81, 49.25)), out = eio(pr(t, 50.66, 50.96)), w = 430 * U, h = 540 * U;
+    x.fillStyle = PAPER; x.beginPath(); x.arc(d[0], d[1], r * 1.02, 0, Math.PI * 2); x.fill();
+    x.save(); x.translate(d[0], d[1] + (1 - inn) * 500 * U + out * 600 * U); x.rotate(-.04 * inn);
+    x.shadowColor = 'rgba(11,18,32,.18)'; x.shadowBlur = 40 * U; x.shadowOffsetY = 18 * U; rr(-w / 2, -h / 2, w, h, 22 * U); x.fillStyle = '#fff'; x.fill(); x.shadowBlur = 0; x.shadowOffsetY = 0;
+    txt('Written plan', -w / 2 + 36 * U, -h / 2 + 66 * U, 32 * U, FG, 760);
+    for (let q = 0; q < 6; q++) { x.fillStyle = 'rgba(11,18,32,.09)'; x.fillRect(-w / 2 + 36 * U, -h / 2 + 116 * U + q * 34 * U, w * (.5 + (q % 3) * .1), 10 * U); }
+    txt('Fixed price', -w / 2 + 36 * U, h / 2 - 150 * U, 22 * U, MUTED, 600);
+    const sg = eio(pr(t, 49.2, 49.95)); x.strokeStyle = BLUE; x.lineWidth = 4.5 * U; x.lineCap = 'round'; x.beginPath();
+    for (let q = 0; q <= 70 * sg; q++) { const u = q / 70, ppx = -w / 2 + 40 * U + u * 300 * U, ppy = h / 2 - 84 * U + Math.sin(u * 22) * 15 * U * (1 - u * .5) - u * 12 * U; q ? x.lineTo(ppx, ppy) : x.moveTo(ppx, ppy); } x.stroke();
+    x.fillStyle = 'rgba(11,18,32,.25)'; x.fillRect(-w / 2 + 36 * U, h / 2 - 60 * U, w - 72 * U, 2 * U);
+    const sk = pr(t, 50.05, 50.25); if (sk > 0) { x.save(); x.translate(80 * U, 30 * U); x.rotate(-.3); const s = lerp(2.6, 1, eo5(sk)); x.scale(s, s); x.globalAlpha = cl(sk * 3);
+      x.strokeStyle = GREEN; x.lineWidth = 8 * U; x.beginPath(); x.arc(0, 0, 112 * U, 0, Math.PI * 2); x.stroke(); x.lineWidth = 3 * U; x.beginPath(); x.arc(0, 0, 96 * U, 0, Math.PI * 2); x.stroke();
+      txt('AGREED', 0, 16 * U, 46 * U, GREEN, 850, 'center', 3 * U); x.restore(); }
+    x.restore();
+  }
+  if (t >= 50.96 && t < 55.6) { // the switch only the client can flip; its knob becomes the dot again
+    const inn = eo5(pr(t, 50.96, 51.4)), on = eio(pr(t, 51.95, 52.3)), sw = 380 * U, sh = 176 * U, back = eio(pr(t, 54.17, 55.2));
+    x.fillStyle = PAPER; x.globalAlpha = 1 - back; x.beginPath(); x.arc(d[0], d[1], r * 1.02, 0, Math.PI * 2); x.fill(); x.globalAlpha = 1;
+    x.globalAlpha = inn * (1 - back); rr(d[0] - sw / 2 * inn, d[1] - sh / 2, sw * inn, sh, sh / 2); x.fillStyle = mix('#d5dae4', '#3fd0b8', on); x.fill(); x.globalAlpha = 1;
+    const kx0 = d[0] - sw / 2 + sh / 2 + on * (sw - sh), knob = [lerp(kx0, d[0], back), d[1]], kr = lerp(sh / 2 - 14 * U, r, back);
+    x.shadowColor = 'rgba(11,18,32,.25)'; x.shadowBlur = 26 * U * (1 - back); x.fillStyle = back > .5 ? mix('#ffffff', '#3fd0b8', back) : '#fff';
+    x.beginPath(); x.arc(knob[0], knob[1], kr, 0, Math.PI * 2); x.fill(); x.shadowBlur = 0;
+    x.globalAlpha = 1 - back; txt(on > .5 ? 'YES' : 'NO', knob[0], knob[1] + 12 * U, 34 * U, on > .5 ? TEAL : MUTED, 800, 'center', 2 * U); x.globalAlpha = 1;
+    const bk = pr(t, 52.25, 53.1); if (bk > 0 && bk < 1) for (let q = 0; q < 18; q++) { const a = q / 18 * Math.PI * 2, r0 = sh * .75 + bk * 240 * U;
+      x.strokeStyle = `rgba(63,208,184,${1 - bk})`; x.lineWidth = 5 * U; x.beginPath(); x.moveTo(d[0] + Math.cos(a) * r0, d[1] + Math.sin(a) * r0); x.lineTo(d[0] + Math.cos(a) * (r0 + 44 * U), d[1] + Math.sin(a) * (r0 + 44 * U)); x.stroke(); }
+  }
+}
+
+function scrim(t, lightK) {
+  const on = (t > 15.6 && t < 34.95) || (t > 46.67 && t < 54.4) ? lightK : 0; if (on <= 0) return;
+  const g = V ? x.createLinearGradient(0, 0, 0, H * .52) : x.createLinearGradient(0, 0, W * .56, 0);
+  g.addColorStop(0, `rgba(243,245,249,${.94 * on})`); g.addColorStop(.62, `rgba(243,245,249,${.8 * on})`); g.addColorStop(1, 'rgba(243,245,249,0)');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+}
+// ================= MASTER CLOCK =================
+function draw(t) {
+  CAM = camAt(t);
+  screen(); const lightK = ground(t);
+  world();
+  drawSheet(t, 1 - eio(pr(t, 15.0, 15.7)));
+  for (let i = 0; i < 3; i++) reportCard(i, t);
+  inbox(t);
+  particles(t);
+  road(t, lightK);
+  stations(t);
+  recordChip(t);
+  screen();
+  if (t < 15.6) vignette(.5);
+  if (t > 34.89 && t < 46.67) vignette(.35);
+  if (t >= 46.67) offer(t);
+  scrim(t, lightK);
+  clock(t);
+  hud(t, lightK);
+  chrome(t, lightK < .5);
+  // the hit: white flash and a shockwave from the ring
+  const fl = 1 - eo(pr(t, 15.6, 16.15)); if (t >= 15.6 && fl > 0) { x.fillStyle = `rgba(255,255,255,${fl})`; x.fillRect(0, 0, W, H); }
+  const sw = pr(t, 15.6, 16.8); if (sw > 0 && sw < 1) { const c = toS(C); x.strokeStyle = `rgba(111,134,255,${(1 - sw) * .6})`; x.lineWidth = 4 * U; x.beginPath(); x.arc(c[0], c[1], sw * W, 0, Math.PI * 2); x.stroke(); }
+  const fi = 1 - pr(t, 0, .5); if (fi > 0) { x.fillStyle = `rgba(10,16,32,${fi})`; x.fillRect(0, 0, W, H); }
+}
+
+// ================= SOUND CUES (the soundtrack is built from these, so picture and sound share one clock) =================
+const CUES = [];
+const cue = (t, k, g = 1, p = 0) => CUES.push({ t: +t.toFixed(3), k, g, p });
+for (let h = 0; h < Math.floor(5.96 / .14); h++) if (h * .14 > .6) cue(h * .14, 'tick', .35, .3);               // cell hops
+cue(1.45, 'flip', .7);
+for (const j of JOBS) cue(j.at, 'blip', .22, j.a[0] / 2000); for (const j of JOBS) if (j.at + j.d < 5.96) cue(j.at + j.d, 'drop', .16);
+cue(5.96, 'rewind', 1); cue(5.96, 'impact', .9);
+[7.66, 8.6, 9.55].forEach((h, i) => { cue(h - .1, 'whoosh', .55, -.3 + i * .3); cue(h + .32, i === 2 ? 'stampbad' : 'stamp', .85); });
+cue(10.85, 'whoosh', .6); cue(11.6, 'pop', .8);
+for (let q = 0; q < 4; q++) cue(11.82 + q * .08, 'key', .55);
+cue(12.15, 'glitch', 1); cue(12.7, 'whooshlong', .8); cue(13.6, 'thud', 1); cue(13.62, 'alarm', .75); cue(13.94, 'alarm', .6); cue(14.26, 'alarm', .45);
+cue(14.3, 'riser', 1); cue(15.0, 'suck', .8); cue(15.6, 'hit', 1.2); cue(15.6, 'shimmer', .8);
+for (let q = 0; q < 24; q++) cue(15.4 + q * .07, 'grain', .25, (q % 5 - 2) / 3);
+cue(17.2, 'pop', .6); cue(19.55, 'whooshlong', .9); cue(21.6, 'settle', .7);
+for (let i = 0; i < 6; i++) { const t0 = S0 + i * SD; cue(t0, 'zip', .75, i % 2 ? .25 : -.25); cue(t0 + .42, 'arrive', .7); }
+cue(S0 + SD + .3, 'scan', .7); cue(S0 + SD + .95, 'catch', .9); cue(S0 + SD + 1.05, 'success', 1);
+cue(S0 + 2 * SD + 1.6, 'send', .7); cue(S0 + 3 * SD + .55, 'slide', .6); cue(S0 + 4 * SD + .3, 'sort', .55); for (let q = 0; q < 5; q++) cue(S0 + 5 * SD + (.1 + q * .12 + .3) * SD, 'check', .5);
+cue(DEL0, 'zip', .8); cue(DEL1, 'deliver', 1);
+for (let q = 0; q < 17; q++) cue(35.2 + q / 17 * 1.0, 'key', .45);
+cue(34.89, 'whooshlong', .8);
+[37.07, 40.28, 43.5].forEach(h => { cue(h - .02, 'slam', 1.1); cue(h, 'tickroll', .6); });
+for (const d of DROPS) { const hitAt = 37.07 + d.at + .5 / d.sp; cue(hitAt, 'catchtick', .12, d.x); }
+for (let q = 0; q < 290; q += 6) cue(40.28 + q * .007, 'tock', .18, (q / 290) * 2 - 1);
+cue(45.0, 'dock', .9); cue(45.1, 'success', .8);
+cue(46.67, 'whooshlong', .9); cue(47.4, 'settle', .7);
+for (let m = 0; m < 20; m++) cue(47.2 + m / 20 * 1.3, 'dialtick', .4);
+cue(48.81, 'slide', .7); cue(49.2, 'pen', .7); cue(50.05, 'stamp', 1.0);
+cue(50.96, 'slide', .6); cue(51.95, 'switch', 1); cue(52.25, 'yes', 1);
+cue(54.17, 'whooshlong', .7); cue(55.2, 'pop', .6); cue(56.5, 'pop', .7); cue(56.55, 'resolve', 1);
+window.__cues = CUES;
+window.__setT = t => draw(t);
+window.__ready = document.fonts.load('700 40px Inter').then(() => document.fonts.ready).then(() => { draw(0); return true; });
+if (!location.search.includes('capture')) { const t0 = performance.now(); const loop = () => { draw(((performance.now() - t0) / 1000) % 63.143); requestAnimationFrame(loop); }; window.__ready.then(loop); }
+</script></body></html>
