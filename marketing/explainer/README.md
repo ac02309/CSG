@@ -9,7 +9,7 @@ Generated open-source voices were rejected as not human enough. The voice is eit
 Run from this folder. `../audio/explainer-script.json` holds the 26 lines, grouped by scene.
 
 1. **Voice, one WAV per line,** named `vo/<scene>-<n>.wav` (for example `vo/hook-0.wav`):
-   - Google: run `GOOGLE_TTS_API_KEY=… python3 ../audio/tts_google.py samples`, pick a voice, then run `python3 ../audio/tts_google.py read <Voice>`. Copy `../audio/read-<Voice>/*.wav` into `vo/`.
+   - Google (key stored as a network secret for texttospeech.googleapis.com, header X-Goog-Api-Key): run `python3 ../audio/tts_google.py samples`, pick a voice, then run `python3 ../audio/tts_google.py read <Voice>`. Copy `../audio/read-<Voice>/*.wav` into `vo/`.
    - A recording: cut each line into its own file with the same names. Keep the best take of each.
 2. **Timeline:** `python3 timeline.py` writes `timeline.json` and `voice.wav` from the real line lengths. Reading the WAVs needs `soundfile` (`pip install soundfile numpy`).
 3. **Score:** `python3 score2.py timeline.json score.wav` writes the driving score. The swell, the stop on "This isn't theory.", the hits on each figure and the resolve all land on the voice.
