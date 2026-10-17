@@ -32,6 +32,7 @@ Every file in this folder, its size and where to use it. Colours, type and copy 
 - `video/csg-journey-film-16x9.mp4` (1920x1080, 63 s, H.264, music and synced sound design). **The main brand film:** one invoice followed from a manual mistake to our system catching it. Website (home page), YouTube, LinkedIn, presentations. Source and rebuild steps: `explainer/README.md`.
 - `video/csg-journey-film-16x9-poster.jpg`. Poster frame for the main brand film.
 - `video/csg-journey-film-9x16.mp4` (1080x1920, 63 s). The same film, vertical. Stories, Reels, Shorts, LinkedIn mobile.
+- `video/csg-journey-film-9x16-poster.jpg`. Poster frame for the vertical film.
 - `video/csg-film-16x9.mp4` (1920x1080, 16.0 s, H.264, no audio, 6.7 MB). Full brand film, 16:9. Website, YouTube, presentations, LinkedIn.
 - `video/csg-film-16x9-poster.png` (1920x1080, 704 KB). Poster frame for the full film.
 - `video/csg-teaser-15s-16x9.mp4` (1920x1080, 15.0 s, H.264, no audio, 4.2 MB). 15-second teaser, 16:9. Ends on the demo offer and URL. LinkedIn and X feed, ads.
