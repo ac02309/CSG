@@ -2,7 +2,7 @@
 //   "catalogue-check" (Get the full product-level list) and "brief" (the contact page request).
 // Replaces Netlify Forms if the site moves to Cloudflare Pages. Bind a D1 database as LEADS (docs/HOSTING.md).
 // Stores only the fields each form asks for. No IP address is stored.
-import { json, originAllowed, clientIp, limited } from "../_lib/common.js";
+import { json, originAllowed, clientIp, limited, signListToken } from "../_lib/common.js";
 
 const SCHEMA = `CREATE TABLE IF NOT EXISTS leads (id INTEGER PRIMARY KEY, at TEXT NOT NULL, form TEXT NOT NULL DEFAULT 'catalogue-check',
   store TEXT NOT NULL DEFAULT '', email TEXT NOT NULL, name TEXT, updates INTEGER NOT NULL DEFAULT 0, summary TEXT,
@@ -49,6 +49,10 @@ export async function onRequestPost({ request, env }) {
       ["yes", "on", "true", "1"].includes(String(f.updates || "").toLowerCase()) ? 1 : 0, clip(f.summary, 900),
       JSON.stringify(fields))
     .run();
+  // the browser uses this token to build the full product-level list straight away (see /api/check)
+  if (form === "catalogue-check" && env.LEADS_KEY && env.LEADS_KEY.length >= 24) {
+    return json(200, { ok: true, token: await signListToken(env.LEADS_KEY, store) });
+  }
   return json(200, { ok: true });
 }
 

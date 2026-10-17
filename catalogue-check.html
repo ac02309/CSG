@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%233fd0b8'/%3E%3Cstop%20offset='1'%20stop-color='%237d95ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='32'%20height='32'%20rx='9'%20fill='%230b0e14'/%3E%3Cg%20transform='translate(1%201)'%3E%3Ccircle%20cx='15'%20cy='15'%20r='9'%20fill='none'%20stroke='url(%23g)'%20stroke-width='3.4'%20stroke-dasharray='42.5%2014'%20transform='rotate(25%2015%2015)'%20stroke-linecap='round'/%3E%3Ccircle%20cx='23.4'%20cy='11.9'%20r='2.8'%20fill='url(%23g)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site.css?v=3e32c078ca">
+<link rel="stylesheet" href="assets/site.css?v=3b43b9441c">
 <noscript><style>.slot{background-image:var(--poster)}.rv{opacity:1!important;transform:none!important}</style></noscript>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Service","name":"Catalogue check","serviceType":"Product data quality check and clean-up","description":"Every product in your Shopify or WooCommerce catalogue checked for the data errors that break stock sync, shipping rates, Google Shopping and collections. Then fixed at a fixed price.","provider":{"@type":"Organization","name":"Clarke Systems Group","url":"https://www.clarkesystemsgroup.com/"},"areaServed":"Worldwide","url":"https://www.clarkesystemsgroup.com/catalogue-check.html"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.clarkesystemsgroup.com/"},{"@type":"ListItem","position":2,"name":"Solutions","item":"https://www.clarkesystemsgroup.com/solutions.html"},{"@type":"ListItem","position":3,"name":"Catalogue check","item":"https://www.clarkesystemsgroup.com/catalogue-check.html"}]}]}</script>
 <!-- cfg:analytics --><!-- /cfg:analytics -->
@@ -99,17 +99,18 @@
         <input type="hidden" name="summary" id="leadSummary" value="">
         <fieldset class="fs">
           <legend>Get the full product-level list</legend>
-          <p class="chk-intro">Every flagged product across the whole catalogue, with a suggested fix for each, plus barcode, image and description checks. Within two business days.</p>
+          <p class="chk-intro">Every flagged product across your whole catalogue, with a suggested fix and a link to each one. Ready here in seconds, with a spreadsheet download.</p>
           <div class="field trap" aria-hidden="true"><label for="leadWebsite">Leave this empty</label><input id="leadWebsite" name="csg_trap" type="text" tabindex="-1" autocomplete="off"></div>
           <div class="two">
             <div class="field"><label for="leadName">Your name</label><input class="input" id="leadName" name="name" type="text" autocomplete="name"></div>
             <div class="field"><label for="leadEmail">Work email</label><input class="input" id="leadEmail" name="email" type="email" autocomplete="email" inputmode="email" required></div>
           </div>
           <label class="chk-consent"><input type="checkbox" name="updates" value="yes"> Send me occasional notes on catalogue and ecommerce operations. You can unsubscribe at any time.</label>
-          <div class="chk-actions"><button class="btn btn-primary" type="submit">Send me the full list</button><p class="chk-status" id="leadNote" role="status" aria-live="polite"></p></div>
-          <p class="chk-fine">We use your email to send the list and reply to you. See our <a href="privacy.html">privacy notice</a>.</p>
+          <div class="chk-actions"><button class="btn btn-primary" type="submit">Show me the full list</button><p class="chk-status" id="leadNote" role="status" aria-live="polite"></p></div>
+          <p class="chk-fine">We use your email to follow up on the list and reply to you. See our <a href="privacy.html">privacy notice</a>.</p>
         </fieldset>
       </form>
+      <div class="chk-full" id="fullList" data-rules="assets/catalogue-rules.mjs?v=7cb96e5581" hidden></div>
     </div>
   </div>
 </section>
@@ -125,7 +126,7 @@
 <section class="section" id="how" aria-labelledby="howTitle">
   <div class="wrap">
     <div class="head rv"><h2 class="h2" data-split id="howTitle">How it works.</h2></div>
-    <ol class="howrow"><li class="rv"><span class="howrow-n" aria-hidden="true">1</span><h3 class="h4">Send your store</h3><p>Your web address is all we need. No admin access.</p></li><li class="rv"><span class="howrow-n" aria-hidden="true">2</span><h3 class="h4">We check it</h3><p>Every product, read-only, from the catalogue your store already publishes.</p></li><li class="rv"><span class="howrow-n" aria-hidden="true">3</span><h3 class="h4">You get the list</h3><p>Every flagged product, why it matters and a suggested fix. Within two business days.</p></li><li class="rv"><span class="howrow-n" aria-hidden="true">4</span><h3 class="h4">We fix it</h3><p>A fixed price, agreed before work starts. Nightly checks then keep it clean.</p></li></ol>
+    <ol class="howrow"><li class="rv"><span class="howrow-n" aria-hidden="true">1</span><h3 class="h4">Send your store</h3><p>Your web address is all we need. No admin access.</p></li><li class="rv"><span class="howrow-n" aria-hidden="true">2</span><h3 class="h4">We check it</h3><p>Every product, read-only, from the catalogue your store already publishes.</p></li><li class="rv"><span class="howrow-n" aria-hidden="true">3</span><h3 class="h4">You get the list</h3><p>Every flagged product, why it matters and a suggested fix. In seconds, on this page.</p></li><li class="rv"><span class="howrow-n" aria-hidden="true">4</span><h3 class="h4">We fix it</h3><p>A fixed price, agreed before work starts. Nightly checks then keep it clean.</p></li></ol>
   </div>
 </section>
 <section class="section" aria-label="Proof and questions">
@@ -138,7 +139,7 @@
 <section class="section-tight cta" id="demo" aria-labelledby="demoTitle">
   <div class="wrap">
     <div class="cta-plain rv"><h2 class="h2" data-split id="demoTitle">Find out what your catalogue is hiding.</h2>
-      <div class="ctas"><a class="btn btn-primary" data-cta href="contact.html?topic=Catalogue+check">Request a catalogue check</a></div><p class="cta-note">Send your store address. The product-level list follows within two business days.</p></div>
+      <div class="ctas"><a class="btn btn-primary" data-cta href="contact.html?topic=Catalogue+check">Request a catalogue check</a></div><p class="cta-note">Run the check above for the full list now, or send us your store address and we will talk you through it.</p></div>
   </div>
 </section>
 </main>
@@ -160,6 +161,6 @@
 <!-- /cfg:footer -->
 <script src="assets/site.js?v=a2230bfca6" defer></script>
 <script src="assets/motion.js?v=31813718b7" defer></script>
-<script src="assets/check.js?v=6fcb501ff8" defer></script>
+<script src="assets/check.js?v=56527a3932" defer></script>
 </body>
 </html>

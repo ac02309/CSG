@@ -196,84 +196,9 @@ async function canonicalBase(host, fetcher, resolve) {
 }
 
 // --------------------------------------------------------------- checks
-const NON_PHYSICAL = new RegExp(
-  String.raw`\bgift ?cards?\b(?!\s+(holder|box|case|wallet))|\be-?gift\b|\bgift (certificate|voucher)s?\b|\bvouchers?\b|` +
-  String.raw`\bdonations?\b|\bgift ?wrap(ping)?\b(?!\s+(paper|roll|sheet)s?)|\bpostage\b|\bpackage protection\b|` +
-  String.raw`\bshipping (protection|insurance|upgrade)\b|\b(next|same)[- ]day delivery$|\bdelivery (charge|upgrade|fee)\b|` +
-  String.raw`\bpriority (processing|dispatch)\b|\b(service|handling|scripting|personali[sz]ation|engraving) (charge|fee|service|option)\b|` +
-  String.raw`^personali[sz]ation$|^engraving$|\bsubscriptions?\b(?!\s+box)|\binsurance\b|\bwarranty\b(?!\s+card)|\bdeposit\b|` +
-  String.raw`\btickets?\b(?!\s+holder)|\btakeaway\b|\beat[- ]in\b|\bdigital (download|product|file|pattern)\b|\be-?book\b|` +
-  String.raw`\bsample\b(?!\s+pack)|\bcatalogue( 20\d\d)?$|\badd[- ]?on\b|^tips?$`, "i");
-
-export const CHECKS = {
-  duplicate_sku: { label: "SKUs are shared by more than one variant", why: "Most 3PL, ERP and marketplace connectors match stock by SKU, so a shared SKU can split or overwrite stock counts." },
-  no_weight: { label: "product variants have no shipping weight", why: "If you charge postage by weight or use carrier-calculated rates, checkout may be undercharging customers on these." },
-  no_image: { label: "products have no image", why: "Google Shopping and the marketplaces reject product listings without an image." },
-  no_sku: { label: "variants have no SKU", why: "If a warehouse, ERP or marketplace connector matches by SKU, these variants are invisible to it." },
-  uncategorised: { label: "products have no product type", why: "If any smart collections, filters or feed rules use product type, these products drop out of them." },
-  taxonomy_clash: { label: "sets of near-duplicate product types", why: "Filters, collections and reports that use product type treat these as separate ranges." },
-  vendor_clash: { label: "brands spelt more than one way", why: "Brand filters and brand-level reports split one brand into several." },
-};
-const ORDER = ["duplicate_sku", "no_weight", "no_image", "no_sku", "uncategorised", "taxonomy_clash", "vendor_clash"];
-
-const normType = (s) => s.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
-  .filter((w) => w && w !== "and").map((w) => (w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w)).join(" ");
-
-export function analyse(products) {
-  const hits = Object.fromEntries(ORDER.map((k) => [k, []]));
-  let variants = 0;
-  const skuOwners = new Map();
-  for (const p of products) {
-    const title = String(p.title || "").trim();
-    const special = NON_PHYSICAL.test(title);
-    if (!String(p.product_type || "").trim()) hits.uncategorised.push(title);
-    if (!(p.images || []).length) hits.no_image.push(title);
-    for (const v of p.variants || []) {
-      variants++;
-      const sku = String(v.sku || "").trim();
-      if (sku && !special) {
-        const k = sku.toLowerCase();
-        if (!skuOwners.has(k)) skuOwners.set(k, []);
-        skuOwners.get(k).push(title);
-      } else if (!sku && !special) hits.no_sku.push(title);
-      if (v.requires_shipping !== false && !v.grams && !special) hits.no_weight.push(title);
-    }
-  }
-  for (const [sku, owners] of skuOwners) {
-    if (owners.length < 2) continue;
-    const names = [...new Set(owners)];
-    hits.duplicate_sku.push(names.length > 1 ? `SKU ${sku.toUpperCase()} on "${names[0]}" and "${names[1]}"`
-                                             : `SKU ${sku.toUpperCase()} on ${owners.length} variants of "${names[0]}"`);
-  }
-  for (const [field, key] of [["product_type", "taxonomy_clash"], ["vendor", "vendor_clash"]]) {
-    const groups = new Map();
-    for (const p of products) {
-      const v = String(p[field] || "").trim();
-      if (!v) continue;
-      const g = normType(v);
-      if (!groups.has(g)) groups.set(g, new Set());
-      groups.get(g).add(v);
-    }
-    for (const set of groups.values()) if (set.size > 1) hits[key].push([...set].map((x) => `"${x}"`).join(" / "));
-  }
-  const denom = { uncategorised: products.length, no_image: products.length };
-  const findings = [];
-  for (const key of ORDER) {
-    const list = hits[key];
-    const count = list.length;
-    const min = key.endsWith("_clash") || key === "duplicate_sku" ? 1 : 3;
-    if (count < min) continue;
-    const total = key.endsWith("_clash") ? null : (denom[key] ?? variants);
-    const share = total ? count / total : null;
-    findings.push({
-      key, count, total, share,
-      label: CHECKS[key].label, why: CHECKS[key].why,
-      setup_choice: share !== null && share >= 0.9 && ["no_weight", "uncategorised", "no_sku"].includes(key),
-      examples: [...new Set(list)].slice(0, 3),
-    });
-  }
-  return { products: products.length, variants, findings };
-}
+// The rules live in assets/catalogue-rules.mjs so the browser builds the full list with exactly the same logic.
+import { analyse, compact, CHECKS } from "../../assets/catalogue-rules.mjs";
+export { analyse, compact, CHECKS };
 
 // --------------------------------------------------------------- orchestration
 export async function checkStore(input, { fetcher = fetch, resolve = noResolver, maxPages = MAX_PAGES } = {}) {
@@ -315,4 +240,25 @@ export async function checkStore(input, { fetcher = fetch, resolve = noResolver,
   if (!products.length) throw new CheckError("empty", "That store's public catalogue is empty.");
   const result = analyse(products);
   return { store: base.replace("https://", ""), capped, checked_at: new Date().toISOString(), ...result };
+}
+
+// One page (250 products) of a store's catalogue, compacted for the browser, which builds the full list from every
+// page. `canonical` ({base, robots}) can be passed from an earlier page so robots.txt is not re-read for each one.
+export const FULL_MAX_PAGES = 40; // 10,000 products
+export async function checkPage(input, { page = 1, fetcher = fetch, resolve = noResolver, canonical = null } = {}) {
+  const host = normaliseStore(input);
+  if (!host) throw new CheckError("invalid", "Enter a store web address, for example yourstore.co.uk.");
+  if (!Number.isInteger(page) || page < 1 || page > FULL_MAX_PAGES) throw new CheckError("invalid", "That page is out of range.");
+  const canon = canonical || await canonicalBase(host, fetcher, resolve);
+  const path = `/products.json?limit=250&page=${page}`;
+  if (!robotsOk(canon.robots, path)) throw new CheckError("robots", ROBOTS_REFUSAL);
+  const r = await fetchJson(`${canon.base}${path}`, fetcher);
+  if (r.status !== 200) {
+    if (r.status === 403 || r.status === 429) throw new CheckError("limited", "That store is turning away automated requests right now. Try again in a few minutes.");
+    throw new CheckError("no_catalogue", "That store did not respond in time. Try again in a minute.");
+  }
+  const batch = Array.isArray(r.data?.products) ? r.data.products.filter((p) => p && typeof p === "object") : null;
+  if (!batch) throw new CheckError("no_catalogue", "That address did not return a Shopify catalogue.");
+  return { store: canon.base.replace("https://", ""), page, products: batch.map(compact),
+    more: batch.length === 250 && page < FULL_MAX_PAGES, canonical: canon };
 }

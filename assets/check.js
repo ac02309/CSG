@@ -1,4 +1,7 @@
-/* Instant catalogue check: calls /api/check and renders the findings, then offers the full list. */
+/* Instant catalogue check: calls /api/check and renders the findings, then offers the full list.
+   The full list is built here in the browser: after the lead form, /api/lead returns a token, every page of the
+   catalogue is read through /api/check, and assets/catalogue-rules.mjs (the same rules the server uses) turns it
+   into one row per product to fix, shown on the page and offered as a CSV download. */
 (function () {
   "use strict";
   var form = document.getElementById("checkForm");
@@ -29,16 +32,30 @@
 
   function render(r) {
     out.textContent = "";
+    findings(out, r, r.capped ? "First " + fmt(r.products) + " products checked" : fmt(r.products) + " products checked");
+    if (r.capped) out.appendChild(el("p", "chk-note", "Large catalogue: this instant check reads the first " + fmt(r.products) + " products. The full list below covers every product."));
+    out.hidden = false;
+    lead.hidden = false;
+    lead.querySelector("fieldset").disabled = false;   // a second store can be requested after the first
+    leadNote.textContent = "";
+    leadBusy = false;
+    if (full) { full.hidden = true; full.textContent = ""; }
+    document.getElementById("leadStore").value = r.store;
+    document.getElementById("leadSummary").value = r.findings.map(function (f) { return f.count + " " + f.label; }).join("; ").slice(0, 900);
+    out.focus();
+  }
+
+  function findings(box, r, kicker) {
     var head = el("div", "chk-head");
-    head.appendChild(el("p", "chk-kicker", r.capped ? "First " + fmt(r.products) + " products checked" : fmt(r.products) + " products checked"));
+    head.appendChild(el("p", "chk-kicker", kicker));
     var h = el("h2", "h3 chk-title");
     var real = r.findings.filter(function (f) { return !f.setup_choice; });
     h.textContent = real.length ? r.store + ": " + real.length + (real.length === 1 ? " issue type" : " issue types") + " found"
                                 : r.store + ": no common catalogue errors found";
     head.appendChild(h);
-    out.appendChild(head);
+    box.appendChild(head);
     if (!r.findings.length) {
-      out.appendChild(el("p", "chk-why", "The public catalogue looks clean on the checks we run here. The full check goes deeper: barcodes (GTINs), images, descriptions and the whole catalogue."));
+      box.appendChild(el("p", "chk-why", "The public catalogue looks clean on the checks we run here. The full check goes deeper: barcodes (GTINs), images, descriptions and the whole catalogue."));
     }
     var list = el("ol", "chk-list");
     r.findings.forEach(function (f) {
@@ -54,16 +71,93 @@
       }
       li.appendChild(n); li.appendChild(body); list.appendChild(li);
     });
-    out.appendChild(list);
-    if (r.capped) out.appendChild(el("p", "chk-note", "Large catalogue: this instant check reads the first " + fmt(r.products) + " products. The full check covers every product."));
-    out.hidden = false;
-    lead.hidden = false;
-    lead.querySelector("fieldset").disabled = false;   // a second store can be requested after the first
-    leadNote.textContent = "";
-    leadBusy = false;
-    document.getElementById("leadStore").value = r.store;
-    document.getElementById("leadSummary").value = r.findings.map(function (f) { return f.count + " " + f.label; }).join("; ").slice(0, 900);
-    out.focus();
+    box.appendChild(list);
+  }
+
+  // ------------------------------------------------------------ full list
+  var full = document.getElementById("fullList");
+  var PREVIEW = 25;
+
+  function fetchPage(endpoint, store, page, token) {
+    return fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ store: store, page: page, token: token }) })
+      .then(function (res) { return res.json().then(function (j) { if (!res.ok) throw j; return j; }, function () { throw {}; }); });
+  }
+
+  function buildFull(store, token) {
+    var endpoint = form.getAttribute("data-endpoint") || "/api/check";
+    var rulesUrl = new URL(full.getAttribute("data-rules"), document.baseURI).href;   // import() would resolve it from assets/
+    var products = [], seen = {}, stopped = null;
+    full.hidden = false;
+    full.textContent = "";
+    var progress = el("p", "chk-status", "Reading every product in " + store + "…");
+    progress.setAttribute("role", "status");
+    full.appendChild(progress);
+    function next(page) {
+      return fetchPage(endpoint, store, page, token).then(function (j) {
+        j.products.forEach(function (p) { if (!seen[p.id]) { seen[p.id] = 1; products.push(p); } });
+        progress.textContent = "Reading every product in " + store + ": " + fmt(products.length) + " so far…";
+        if (j.more) return next(page + 1);
+      }, function (err) {
+        if (page === 1) throw err;
+        stopped = err && err.error ? err.error : "The store stopped responding.";
+      });
+    }
+    var rules = import(rulesUrl);                     // loads while the pages are read
+    rules.catch(function () {});
+    return next(1).then(function () { return rules; }).then(function (m) {
+      showFull(m, store, products, stopped);
+    }).catch(function (err) {
+      progress.textContent = (err && err.error) || "The full list could not be built. Run the check again in a minute.";
+    });
+  }
+
+  function showFull(rules, store, products, stopped) {
+    full.textContent = "";
+    var r = rules.analyse(products);
+    r.store = store;
+    var capped = products.length >= 10000;
+    findings(full, r, "Full list: " + fmt(products.length) + " products checked");
+    if (stopped) full.appendChild(el("p", "chk-note", "We read " + fmt(products.length) + " products before the store stopped answering, so the list covers those. Run it again later for the rest."));
+    else if (capped) full.appendChild(el("p", "chk-note", "This list covers the first 10,000 products. Ask us for the rest."));
+    var rows = rules.listRows(products);
+    if (!rows.length) { full.focus(); return; }
+    var blob = new Blob([rules.toCsv(rows, store)], { type: "text/csv;charset=utf-8" });
+    var a = el("a", "btn btn-primary chk-download", "Download the full list (" + fmt(rows.length) + " rows, CSV)");
+    a.href = URL.createObjectURL(blob);
+    a.download = store.replace(/[^a-z0-9.-]/gi, "") + "-catalogue-check.csv";
+    a.addEventListener("click", function () { if (window.csgTrack) window.csgTrack("Catalogue check list downloaded", {}); });
+    full.appendChild(a);
+    var shown = rows.slice(0, PREVIEW);
+    var wrap = el("div", "chk-table-wrap");
+    wrap.setAttribute("tabindex", "0");
+    wrap.setAttribute("role", "region");
+    wrap.setAttribute("aria-label", "First " + shown.length + " rows of the full list");
+    var t = el("table", "chk-table");
+    var hr = el("tr");
+    ["Product", "Variant or SKU", "Issue", "Suggested fix"].forEach(function (h) { var th = el("th", null, h); th.scope = "col"; hr.appendChild(th); });
+    var thead = el("thead"); thead.appendChild(hr); t.appendChild(thead);
+    var tb = el("tbody");
+    shown.forEach(function (row) {
+      var tr = el("tr");
+      var td = el("td");
+      if (row.handle) {
+        var link = el("a", null, row.product);
+        link.href = "https://" + store + "/products/" + encodeURIComponent(row.handle);
+        link.rel = "noopener noreferrer"; link.target = "_blank";
+        td.appendChild(link);
+      } else td.textContent = row.product;
+      tr.appendChild(td);
+      tr.appendChild(el("td", null, [row.variant, row.sku].filter(Boolean).join(" · ")));
+      tr.appendChild(el("td", null, row.issue));
+      tr.appendChild(el("td", null, row.fix));
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); wrap.appendChild(t); full.appendChild(wrap);
+    if (rows.length > shown.length) full.appendChild(el("p", "chk-note", "Showing the first " + shown.length + " of " + fmt(rows.length) + " rows. The download has them all, with a link to each product."));
+    full.appendChild(el("p", "chk-note", "Barcodes (GTINs) are not in a store's public catalogue, so checking them needs admin access. We include them when we fix the list for you."));
+    full.setAttribute("tabindex", "-1");
+    full.focus();
   }
 
   form.addEventListener("submit", function (e) {
@@ -120,11 +214,19 @@
     post(lead.getAttribute("data-endpoint") || "/")
       .then(function (res) {
         if (!res.ok) throw new Error();
+        return res.json().catch(function () { return {}; });   // Netlify Forms answers with a page, not JSON
+      })
+      .then(function (j) {
+        if (window.csgTrack) window.csgTrack("Catalogue check list requested", {});
+        if (j && j.token && full && window.Blob) {
+          leadNote.textContent = "";
+          lead.querySelector("fieldset").disabled = true;
+          return buildFull(last.store, j.token);
+        }
         leadNote.setAttribute("tabindex", "-1");
         leadNote.textContent = "Done. The product-level list for " + last.store + " will be with you within two business days.";
         leadNote.focus();                         // focus moves to the confirmation before the form is locked
         lead.querySelector("fieldset").disabled = true;
-        if (window.csgTrack) window.csgTrack("Catalogue check list requested", {});
       })
       .catch(function () {
         leadBusy = false;

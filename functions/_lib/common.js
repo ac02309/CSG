@@ -54,3 +54,24 @@ export function safeEqual(a, b) {
   for (let i = 0; i < Math.max(x.length, y.length); i++) d |= (x[i] || 0) ^ (y[i] || 0);
   return d === 0;
 }
+
+// Full-list token: proof that this visitor left their email for this store (issued by /api/lead, checked by
+// /api/check before it serves catalogue pages for the full list). HMAC-SHA256 over the store and an expiry,
+// keyed from LEADS_KEY with a separate label, so the token can never be used as the export key or vice versa.
+export const tokenStore = (s) => String(s || "").trim().toLowerCase().replace(/^https?:\/\//, "").split(/[/?#]/)[0].replace(/^www\./, "");
+const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+async function hmac(secret, msg) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode("csg-full-list:" + secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return b64url(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(msg)));
+}
+export async function signListToken(secret, store, ttlS = 3600, now = Date.now()) {
+  const exp = Math.floor(now / 1000) + ttlS;
+  return `${exp}.${await hmac(secret, `${tokenStore(store)}|${exp}`)}`;
+}
+export async function verifyListToken(secret, store, token, now = Date.now()) {
+  if (!secret || secret.length < 24 || typeof token !== "string" || token.length > 200) return false;
+  const [exp, sig] = token.split(".");
+  if (!/^\d{10}$/.test(exp || "") || Number(exp) < now / 1000) return false;
+  return safeEqual(sig || "", await hmac(secret, `${tokenStore(store)}|${exp}`));
+}

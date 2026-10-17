@@ -133,6 +133,43 @@ for (const o of ["http://localhost.attacker.com", "http://localhost:3000.evil"])
   ok(r.status === 403, `origin ${o} refused`);
 }
 
+console.log("full list");
+const { signListToken, verifyListToken } = await import("../functions/_lib/common.js");
+const { listRows, toCsv, compact, analyse } = await import("../assets/catalogue-rules.mjs");
+r = await lead.onRequestPost(ctx(form({ "form-name": "catalogue-check", store: "www.shop.example.com", email: "t@shop.example.com" }, "10.6.1.1"), env));
+j = await r.json();
+ok(r.status === 200 && typeof j.token === "string", "lead form returns a full-list token");
+r = await lead.onRequestPost(ctx(form({ "form-name": "catalogue-check", store: "shop.example.com", email: "t@shop.example.com" }, "10.6.1.2"), { LEADS: env.LEADS }));
+ok(!(await r.json()).token, "no LEADS_KEY -> no token (the page falls back to the emailed list)");
+const tok = j.token;
+ok(await verifyListToken(env.LEADS_KEY, "shop.example.com", tok), "token valid for the store, with or without www.");
+ok(!(await verifyListToken(env.LEADS_KEY, "other.example.com", tok)), "token refused for another store");
+ok(!(await verifyListToken("x".repeat(32), "shop.example.com", tok)), "token refused under another key");
+ok(!(await verifyListToken(env.LEADS_KEY, "shop.example.com", await signListToken(env.LEADS_KEY, "shop.example.com", -10))), "expired token refused");
+const fp = (o, ip) => check.onRequestPost(ctx(post("/api/check", o, { "cf-connecting-ip": ip }), env));
+r = await fp({ store: "shop.example.com", page: 1, token: "123.abc" }, "10.7.1.1");
+ok(r.status === 403, "bad token refused before any store request");
+const calls0 = storeCalls;
+r = await fp({ store: "shop.example.com", page: 1, token: tok }, "10.7.1.2"); const p1 = await r.json();
+r = await fp({ store: "shop.example.com", page: 2, token: tok }, "10.7.1.2"); const p2 = await r.json();
+await Promise.all(waits);
+ok(p1.products.length === 250 && p1.more === true && p2.products.length === 100 && p2.more === false, "pages read until a short page");
+ok(!("body_html" in shop(1).products[0]) && p1.products[0].variants[0].sku === "S0" && !("canonical" in p1), "compacted products, internals not exposed");
+ok(storeCalls - calls0 <= 4, "robots.txt and the address read once per list, not per page");
+r = await fp({ store: "shop.example.com", page: 41, token: tok }, "10.7.1.3");
+ok(r.status === 400, "page past the 10,000-product cap refused");
+const all = [...p1.products, ...p2.products];
+const rows2 = listRows(all);
+ok(rows2.filter((x) => x.key === "uncategorised").length === 20 && rows2.filter((x) => x.key === "no_weight").length === 30, "a row for every product to fix");
+ok(JSON.stringify(analyse(all).findings.map((f) => f.count)) === JSON.stringify(analyse(shop(250).products.concat(shop(100, 250).products)).findings.map((f) => f.count)),
+   "compacted products give the same findings as raw ones");
+const dup = listRows([{ id: 1, title: "A", handle: "a", images: [1], body_html: "x", product_type: "Rug", vendor: "Oak", variants: [{ title: "Red", sku: "X1", grams: 1 }, { title: "Blue", sku: "x1", grams: 1 }] },
+  { id: 2, title: "B", handle: "b", images: [1], body_html: "x", product_type: "Rugs", vendor: "Oak", variants: [{ title: "Default Title", sku: "B1", grams: 1 }] },
+  { id: 3, title: "C", handle: "c", images: [1], body_html: "x", product_type: "Rugs", vendor: "Oak", variants: [{ title: "Default Title", sku: "C1", grams: 1 }] }]);
+ok(dup.filter((x) => x.key === "duplicate_sku").length === 2 && dup.find((x) => x.key === "taxonomy_clash")?.fix.includes('"Rugs"'), "shared SKUs and the majority spelling suggested");
+const csv2 = toCsv([{ issue: "No SKU", product: "=cmd()", variant: "", sku: "-1", fix: "Add a SKU", handle: "x" }], "shop.example.com");
+ok(csv2.includes("'=cmd()") && csv2.includes("'-1") && csv2.includes("https://shop.example.com/products/x"), "CSV is spreadsheet-safe with product links");
+
 globalThis.fetch = realFetch;
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

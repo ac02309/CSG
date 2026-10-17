@@ -762,6 +762,16 @@ html:not(.cta-free) body:has(.hero [data-cta]) .gnav-cta,body[data-nav="contact"
 .chk-note,.chk-fine{margin:0;font-size:0.875rem;color:var(--muted)}
 .chk-fine a{color:var(--cobalt);text-decoration:underline;text-underline-offset:0.1875rem}
 .chk-lead{border-top:1px solid var(--rule-2);padding-top:1.5rem}
+.chk-full{display:grid;gap:1rem;border-top:1px solid var(--rule-2);padding-top:1.5rem}
+.chk-full:focus{outline:0}
+.chk-download{justify-self:start}
+.chk-table-wrap{overflow-x:auto;border-radius:1rem;background:var(--mist)}
+.chk-table-wrap:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+.chk-table{width:100%;border-collapse:collapse;font-size:0.875rem;min-width:40rem}
+.chk-table th,.chk-table td{text-align:left;vertical-align:top;padding:0.625rem 0.875rem;border-bottom:1px solid var(--rule-2)}
+.chk-table th{font-weight:600;color:var(--ink-2)}
+.chk-table tr:last-child td{border-bottom:0}
+.chk-table a{color:var(--cobalt);text-decoration:underline;text-underline-offset:0.1875rem;overflow-wrap:anywhere}
 .chk-consent{display:flex;gap:0.625rem;align-items:flex-start;font-size:0.9375rem;color:var(--ink-2)}
 .chk-consent input{margin-top:0.25rem;width:1.125rem;height:1.125rem;flex:none}
 .chk-actions{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
