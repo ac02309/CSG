@@ -42,6 +42,7 @@ Every file in this folder, its size and where to use it. Colours, type and copy 
 
 - `print/one-pager.pdf` (A4, 1 page, 332 KB). A4 capability sheet. Print, or attach to emails after a first call.
 - `print/one-pager.png` (1588x2246, 380 KB). Preview of the one-pager. Email bodies, proposals, web.
+- `print/sample-catalogue-check.pdf`. An example catalogue-check report on sample data, labelled as such. Attach to outreach so a prospect sees exactly what the free check returns.
 
 ## Notes
 
