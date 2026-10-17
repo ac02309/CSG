@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/configure.mjs && node scripts/build-dist.mjs",
     "build:film": "node scripts/build-film.mjs",
     "configure": "node scripts/configure.mjs",
     "check": "node scripts/configure.mjs && node scripts/check-site.mjs && html-validate \"*.html\"",

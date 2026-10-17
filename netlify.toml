@@ -8,4 +8,4 @@
   # Each live deploy uses part of the free monthly allowance, so skip it when a change touches
   # nothing visitors receive: tests, docs, CI, the 3D source (its built file is in assets/), and
   # the scripts that only run locally. Exit 0 means "skip"; any site file changed means build.
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)tests' ':(exclude)marketing' ':(exclude)docs' ':(exclude).github' ':(exclude)src/film' ':(exclude)scripts/check-site.mjs' ':(exclude)scripts/build-film.mjs' ':(exclude)scripts/build-land.mjs' ':(exclude)README.md' ':(exclude)LAUNCH.md' ':(exclude)package.json' ':(exclude)package-lock.json'"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)tests' ':(exclude)marketing' ':(exclude)docs' ':(exclude).github' ':(exclude)src/film' ':(exclude)scripts/check-site.mjs' ':(exclude)scripts/build-film.mjs' ':(exclude)scripts/build-land.mjs' ':(exclude)scripts/build-dist.mjs' ':(exclude)README.md' ':(exclude)LAUNCH.md' ':(exclude)package.json' ':(exclude)package-lock.json'"
