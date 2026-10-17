@@ -21,7 +21,7 @@ B = [
  (18.5, 1.5, 'dark',  'B', 0, 'Scheduling', '290+', 'client projects planned, with no unresolved clashes'),
  (20,   1.5, 'dark',  'B', 0, 'AI processing', '3', 'AI model families tested before one went live'),
  (21.5, 1,   'light', 'B', 1, '', 'Free 20-minute demo.', ''),
- (22.5, 1,   'light', 'B', 1, '', 'Fixed price. From <em>£1,250.</em>', ''),
+ (22.5, 1,   'light', 'B', 1, '', 'Fixed price. <em>Agreed first.</em>', ''),
  (23.5, 1.5, 'light', 'B', 1, '', 'Nothing starts until you say <em>yes.</em>', ''),
  (25,   4,   'light', 'B', 2, '', 'END', ''),
 ]

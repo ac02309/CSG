@@ -6,7 +6,7 @@ The main film is typographic: bold words cut to a 112 BPM original score, with n
 - **The cut to light:** a flash on the downbeat as the logo assembles.
 - **Six solutions,** one bar each, each with its 3D scene.
 - **The proof:** "This isn't theory." in near-silence, then 180+, 290+ and 3, each slamming in on a musical hit.
-- **The offer:** free demo, fixed price from £1,250, "Nothing starts until you say yes."
+- **The offer:** free demo, a fixed price agreed before work starts, "Nothing starts until you say yes." (No figure in the film: prices live on the site and in outreach.)
 - **The close:** "Less admin. Fewer errors. Same team." and the call to action.
 
 ## Rebuild it (run from this folder)
