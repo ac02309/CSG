@@ -125,9 +125,9 @@ function foundingSection() {
   `;
 }
 
-const faqDefault = "Clarke Systems Group was founded by an engineer from enterprise digital commerce who designed and delivered automation systems at a global digital-commerce analytics business, including launch quality assurance across 30+ markets, capacity planning for 290+ client projects and AI product categorisation. Our case studies present that work, anonymised. Clarke Systems Group is independent and is not affiliated with any current or former employer.";
+const faqDefault = "Clarke Systems Group was founded by an engineer from enterprise digital commerce who designed and delivered automation systems at a global retail-data business, including launch quality assurance across 30+ markets, capacity planning for 290+ client projects and AI product categorisation. Our case studies present that work, anonymised. Clarke Systems Group is independent and is not affiliated with any current or former employer.";
 const faqFounder = () => founderOn
-  ? `Clarke Systems Group was founded by ${esc(f.name)}, an engineer from enterprise digital commerce who designed and delivered automation systems at a global digital-commerce analytics business, including launch quality assurance across 30+ markets, capacity planning for 290+ client projects and AI product categorisation. ${esc(f.name.split(" ")[0])} leads every project personally. Our case studies present that earlier work, anonymised. Clarke Systems Group is independent and is not affiliated with any current or former employer.`
+  ? `Clarke Systems Group was founded by ${esc(f.name)}, an engineer from enterprise digital commerce who designed and delivered automation systems at a global retail-data business, including launch quality assurance across 30+ markets, capacity planning for 290+ client projects and AI product categorisation. ${esc(f.name.split(" ")[0])} leads every project personally. Our case studies present that earlier work, anonymised. Clarke Systems Group is independent and is not affiliated with any current or former employer.`
   : faqDefault;
 
 const social = () => {
